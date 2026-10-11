@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+# Ensure the repository root is importable in CI and local test runs.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from fastapi.testclient import TestClient
 
 from app.main import app
