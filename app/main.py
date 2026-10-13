@@ -1,13 +1,15 @@
+import asyncio
 import logging
 import os
 import secrets
+from datetime import datetime, timezone
 from urllib.parse import urlencode
 
 import httpx
 import psycopg
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Header
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 
 load_dotenv()
@@ -23,6 +25,7 @@ REDIRECT_URI = os.getenv(
 ).strip()
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 TOKEN_ENCRYPTION_KEY = os.getenv("TOKEN_ENCRYPTION_KEY", "").strip()
+AUTOMATION_API_KEY = os.getenv("AUTOMATION_API_KEY", "").strip()
 
 oauth_states: dict[str, str] = {}
 
@@ -193,3 +196,162 @@ async def instagram_callback(request: Request, code: str | None = None,
         "user_id": instagram_user_id,
         "expires_in": expires_in,
     }
+
+
+# Scheduled publishing MVP. Requires a persistent PostgreSQL database and a public HTTPS image URL.
+def require_automation_key(provided: str | None):
+    if not AUTOMATION_API_KEY:
+        raise HTTPException(status_code=503, detail="AUTOMATION_API_KEY is not configured on the server.")
+    if not provided or not secrets.compare_digest(provided, AUTOMATION_API_KEY):
+        raise HTTPException(status_code=401, detail="Invalid automation key.")
+
+
+def ensure_posts_table():
+    with database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS scheduled_posts (
+                    id BIGSERIAL PRIMARY KEY,
+                    instagram_user_id TEXT NOT NULL,
+                    image_url TEXT NOT NULL,
+                    caption TEXT NOT NULL,
+                    scheduled_at TIMESTAMPTZ NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'scheduled',
+                    instagram_media_id TEXT,
+                    last_error TEXT,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    published_at TIMESTAMPTZ
+                )
+            """)
+        conn.commit()
+
+
+def make_caption(topic: str, call_to_action: str = "Follow @officialkiraankumar for practical AI automation workflows.") -> str:
+    clean_topic = " ".join(topic.split()).strip()
+    if not clean_topic:
+        raise HTTPException(status_code=400, detail="topic is required.")
+    return f"{clean_topic}\n\nSave this workflow for later and share it with someone who needs it.\n\n{call_to_action}\n\n#AIAutomation #DigitalMarketing #Automation #AITools #KiranKumar"
+
+
+async def publish_due_posts():
+    if not DATABASE_URL or not TOKEN_ENCRYPTION_KEY:
+        return
+    try:
+        ensure_posts_table()
+        # Claim due jobs in a short DB transaction to avoid duplicate processing.
+        with database_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT id, instagram_user_id, image_url, caption
+                    FROM scheduled_posts
+                    WHERE status='scheduled' AND scheduled_at <= NOW()
+                    ORDER BY scheduled_at
+                    LIMIT 5
+                    FOR UPDATE SKIP LOCKED
+                """)
+                jobs = cur.fetchall()
+                for job in jobs:
+                    cur.execute("UPDATE scheduled_posts SET status='processing' WHERE id=%s", (job[0],))
+            conn.commit()
+        for post_id, user_id, image_url, caption in jobs:
+            try:
+                with database_connection() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("SELECT encrypted_access_token FROM instagram_connections WHERE instagram_user_id=%s", (user_id,))
+                        row = cur.fetchone()
+                if not row:
+                    raise RuntimeError("No saved Instagram connection for this account.")
+                token = token_cipher().decrypt(row[0].encode("ascii")).decode("utf-8")
+                async with httpx.AsyncClient(timeout=30) as client:
+                    media = await client.post(
+                        f"https://graph.instagram.com/{user_id}/media",
+                        data={"image_url": image_url, "caption": caption, "access_token": token},
+                    )
+                    media.raise_for_status()
+                    media_id = media.json().get("id")
+                    if not media_id:
+                        raise RuntimeError("Instagram did not return a media container ID.")
+                    published = await client.post(
+                        f"https://graph.instagram.com/{user_id}/media_publish",
+                        data={"creation_id": media_id, "access_token": token},
+                    )
+                    published.raise_for_status()
+                    published_id = published.json().get("id")
+                with database_connection() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("UPDATE scheduled_posts SET status='published', instagram_media_id=%s, published_at=NOW(), last_error=NULL WHERE id=%s", (published_id, post_id))
+                    conn.commit()
+            except Exception as exc:
+                logger.exception("Scheduled Instagram post %s failed", post_id)
+                with database_connection() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("UPDATE scheduled_posts SET status='failed', last_error=%s WHERE id=%s", (str(exc)[:500], post_id))
+                    conn.commit()
+    except Exception:
+        logger.exception("Scheduled publishing poll failed")
+
+
+async def scheduler_loop():
+    while True:
+        await publish_due_posts()
+        await asyncio.sleep(30)
+
+
+@app.on_event("startup")
+async def start_scheduler():
+    if DATABASE_URL and TOKEN_ENCRYPTION_KEY:
+        asyncio.create_task(scheduler_loop())
+
+
+@app.post("/api/posts/schedule")
+async def schedule_post(payload: dict, x_automation_key: str | None = Header(default=None)):
+    require_automation_key(x_automation_key)
+    image_url = str(payload.get("image_url", "")).strip()
+    topic = str(payload.get("topic", "")).strip()
+    caption = str(payload.get("caption", "")).strip()
+    user_id = str(payload.get("instagram_user_id", "")).strip()
+    scheduled_at = str(payload.get("scheduled_at", "")).strip()
+    if not image_url.startswith("https://"):
+        raise HTTPException(status_code=400, detail="image_url must be a public HTTPS image URL.")
+    if not user_id or not scheduled_at:
+        raise HTTPException(status_code=400, detail="instagram_user_id and scheduled_at are required.")
+    if not caption:
+        caption = make_caption(topic)
+    try:
+        when = datetime.fromisoformat(scheduled_at.replace("Z", "+00:00"))
+        if when.tzinfo is None:
+            raise ValueError("Timezone required")
+        when = when.astimezone(timezone.utc)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="scheduled_at must be ISO-8601 with timezone, e.g. 2026-10-13T15:30:00+05:30.")
+    try:
+        ensure_posts_table()
+        with database_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1 FROM instagram_connections WHERE instagram_user_id=%s", (user_id,))
+                if not cur.fetchone():
+                    raise HTTPException(status_code=400, detail="This Instagram account is not connected with a saved token. Reconnect Instagram first.")
+                cur.execute("INSERT INTO scheduled_posts (instagram_user_id, image_url, caption, scheduled_at) VALUES (%s,%s,%s,%s) RETURNING id,status,scheduled_at", (user_id, image_url, caption, when))
+                row = cur.fetchone()
+            conn.commit()
+        return {"ok": True, "post_id": row[0], "status": row[1], "scheduled_at": row[2].isoformat(), "caption": caption}
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Could not schedule Instagram post")
+        raise HTTPException(status_code=503, detail="Could not schedule post. Check DATABASE_URL and TOKEN_ENCRYPTION_KEY.")
+
+
+@app.get("/api/posts")
+async def list_posts(x_automation_key: str | None = Header(default=None)):
+    require_automation_key(x_automation_key)
+    try:
+        ensure_posts_table()
+        with database_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id, instagram_user_id, caption, scheduled_at, status, instagram_media_id, last_error FROM scheduled_posts ORDER BY scheduled_at DESC LIMIT 50")
+                rows = cur.fetchall()
+        return {"posts": [{"id":r[0],"instagram_user_id":r[1],"caption":r[2],"scheduled_at":r[3].isoformat(),"status":r[4],"instagram_media_id":r[5],"last_error":r[6]} for r in rows]}
+    except Exception:
+        logger.exception("Could not list scheduled posts")
+        raise HTTPException(status_code=503, detail="Could not load posts. Check database configuration.")
