@@ -731,6 +731,8 @@ async def queue_daily_posts(instagram_user_id: str, target_date: str):
     except ValueError:
         raise HTTPException(status_code=400, detail="target_date must be YYYY-MM-DD.")
     local_tz = ZoneInfo("Asia/Kolkata")
+    if day <= datetime.now(local_tz).date():
+        raise HTTPException(status_code=400, detail="target_date must be a future date in India time.")
     schedule_times = [
         datetime(day.year, day.month, day.day, 10, 0, tzinfo=local_tz),
         datetime(day.year, day.month, day.day, 18, 0, tzinfo=local_tz),
