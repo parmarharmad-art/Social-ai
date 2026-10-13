@@ -90,7 +90,7 @@ async def dashboard():
     <title>SocialPilot AI</title><style>body{font:16px system-ui;max-width:760px;margin:40px auto;padding:0 18px;color:#18212f}
     .card{border:1px solid #d9e0e8;border-radius:16px;padding:22px}a{display:inline-block;background:#1769e0;color:white;padding:12px 16px;border-radius:9px;text-decoration:none}</style></head>
     <body><div class="card"><h1>SocialPilot AI</h1><p>Instagram Creator account connection.</p>
-    <p><a href="/auth/instagram/start">Connect Instagram</a></p>
+    <p><a href="/auth/instagram/start">Connect Instagram</a> <a href="/studio">Open Post & Video Studio</a> <a href="/planner">Content Planner</a></p>
     <p>Encrypted token storage requires DATABASE_URL and TOKEN_ENCRYPTION_KEY configuration.</p></div></body></html>
     """
 
