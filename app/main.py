@@ -1,8 +1,10 @@
 import asyncio
+import base64
 import logging
 import os
 import secrets
 from datetime import datetime, timezone
+from uuid import UUID, uuid4
 from urllib.parse import urlencode
 
 import httpx
@@ -10,7 +12,7 @@ import psycopg
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, Header
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, Response
 
 load_dotenv()
 
@@ -25,7 +27,7 @@ REDIRECT_URI = os.getenv(
 ).strip()
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 TOKEN_ENCRYPTION_KEY = os.getenv("TOKEN_ENCRYPTION_KEY", "").strip()
-AUTOMATION_API_KEY = os.getenv("AUTOMATION_API_KEY", "").strip()
+AUTOMATION_API_KEY = os.getenv("AUTOMATION_API_KEY", "").strip()\nOPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()\nAPP_BASE_URL = os.getenv("APP_BASE_URL", "https://socialpilot-ai-mvp.onrender.com").strip().rstrip("/")\nMETA_WEBHOOK_VERIFY_TOKEN = os.getenv("META_WEBHOOK_VERIFY_TOKEN", "").strip()\nAUTO_REPLY_ENABLED = os.getenv("AUTO_REPLY_ENABLED", "false").strip().lower() == "true"
 
 oauth_states: dict[str, str] = {}
 
@@ -108,7 +110,7 @@ async def instagram_start():
         "client_id": INSTAGRAM_APP_ID,
         "redirect_uri": oauth_states[state],
         "response_type": "code",
-        "scope": "instagram_business_basic,instagram_business_content_publish",
+        "scope": "instagram_business_basic,instagram_business_content_publish,instagram_business_manage_comments,instagram_business_manage_insights",
         "state": state,
     }
     return RedirectResponse("https://www.instagram.com/oauth/authorize?" + urlencode(params), status_code=302)
@@ -192,7 +194,7 @@ async def instagram_callback(request: Request, code: str | None = None,
         "connected": True,
         "token_saved": True,
         "storage": "encrypted_postgresql",
-        "message": "Instagram connected and token stored encrypted. Publishing automation still needs implementation and testing.",
+        "message": "Instagram connected and token stored encrypted. Publishing still requires a live test and Meta permission approval.",
         "user_id": instagram_user_id,
         "expires_in": expires_in,
     }
@@ -422,3 +424,251 @@ async def content_planner():
     async function schedule(){const out=document.getElementById('result');try{const key=document.getElementById('key').value.trim();const img=document.getElementById('img').value.trim();const when=document.getElementById('when').value;if(!key)throw Error('Enter the automation key set in Render.');if(!img.startsWith('https://'))throw Error('Use a public HTTPS image URL.');if(!when)throw Error('Choose a schedule date and time.');const response=await fetch('/api/posts/schedule',{method:'POST',headers:{'Content-Type':'application/json','X-Automation-Key':key},body:JSON.stringify({topic:document.getElementById('topic').value,caption:document.getElementById('caption').value||makeCaption(),image_url:img,instagram_user_id:document.getElementById('uid').value.trim(),scheduled_at:new Date(when).toISOString()})});const data=await response.json();if(!response.ok)throw Error(data.detail||'Schedule request failed');out.textContent='Scheduled. Post ID: '+data.post_id+'; status: '+data.status;refreshPosts()}catch(e){out.textContent='Not scheduled: '+e.message}}
     async function refreshPosts(){const box=document.getElementById('queue');try{const key=document.getElementById('key').value.trim();if(!key)throw Error('Enter the automation key first.');const response=await fetch('/api/posts',{headers:{'X-Automation-Key':key}});const data=await response.json();if(!response.ok)throw Error(data.detail||'Request failed');box.textContent=data.posts.length?data.posts.map(p=>'#'+p.id+' | '+p.status+' | '+p.scheduled_at+'\\n'+p.caption+(p.last_error?'\\nError: '+p.last_error:'')).join('\\n\\n'):'No scheduled posts.'}catch(e){box.textContent=e.message}}
     preview();</script></body></html>"""
+
+
+# AI content creation, hosted image assets, Instagram reporting, and comment-reply webhook.
+# Optional AI features require OPENAI_API_KEY. Image bytes are stored in PostgreSQL so Instagram
+# can fetch a stable public HTTPS URL instead of a short-lived image-provider URL.
+def ensure_ai_tables():
+    with database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS generated_assets (
+                    asset_id UUID PRIMARY KEY,
+                    image_bytes BYTEA NOT NULL,
+                    mime_type TEXT NOT NULL DEFAULT 'image/png',
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS handled_instagram_comments (
+                    comment_id TEXT PRIMARY KEY,
+                    reply_text TEXT NOT NULL,
+                    handled_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+        conn.commit()
+
+
+def get_saved_token(user_id: str) -> str:
+    with database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT encrypted_access_token FROM instagram_connections WHERE instagram_user_id=%s",
+                (user_id,),
+            )
+            row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Instagram account is not connected with a saved token.")
+    return token_cipher().decrypt(row[0].encode("ascii")).decode("utf-8")
+
+
+async def openai_chat(messages: list[dict], max_tokens: int = 900) -> str:
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=503, detail="OPENAI_API_KEY is not configured in Render.")
+    async with httpx.AsyncClient(timeout=60) as client:
+        response = await client.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
+            json={"model": os.getenv("OPENAI_TEXT_MODEL", "gpt-4o-mini"),
+                  "messages": messages, "temperature": 0.7, "max_tokens": max_tokens},
+        )
+        if response.status_code >= 400:
+            logger.warning("AI text generation failed with HTTP %s", response.status_code)
+            raise HTTPException(status_code=502, detail="AI content generation failed. Check AI provider configuration and quota.")
+        data = response.json()
+    try:
+        return data["choices"][0]["message"]["content"].strip()
+    except (KeyError, IndexError, TypeError):
+        raise HTTPException(status_code=502, detail="AI provider returned an unexpected response.")
+
+
+@app.post("/api/ai/generate")
+async def generate_content(payload: dict, x_automation_key: str | None = Header(default=None)):
+    require_automation_key(x_automation_key)
+    topic = " ".join(str(payload.get("topic", "")).split()).strip()
+    if not topic:
+        raise HTTPException(status_code=400, detail="topic is required.")
+    prompt = (
+        "Create an Instagram carousel content package for the brand Kiran Kumar • AI Automation. "
+        "Write in clear professional English for Indian freelancers, digital marketers and small businesses. "
+        "Return exactly these sections: HOOK, SLIDE 1, SLIDE 2, SLIDE 3, SLIDE 4, CAPTION, CTA, HASHTAGS, IMAGE PROMPT. "
+        "Make each slide practical, specific and mobile-readable. Avoid fabricated performance claims. "
+        "Topic: " + topic
+    )
+    generated = await openai_chat([
+        {"role": "system", "content": "You are an expert practical AI automation educator and social media content strategist."},
+        {"role": "user", "content": prompt},
+    ], max_tokens=1400)
+    return {"ok": True, "topic": topic, "brand": "Kiran Kumar • AI Automation", "content": generated}
+
+
+@app.post("/api/ai/image")
+async def generate_image(payload: dict, x_automation_key: str | None = Header(default=None)):
+    require_automation_key(x_automation_key)
+    prompt = " ".join(str(payload.get("prompt", "")).split()).strip()
+    if not prompt:
+        raise HTTPException(status_code=400, detail="prompt is required.")
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=503, detail="OPENAI_API_KEY is not configured in Render.")
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/images/generations",
+                headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
+                json={"model": os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1"),
+                      "prompt": prompt + ". Premium Instagram 4:5 social media infographic, clean readable composition, practical AI automation workflow, navy and white with electric blue and cyan accents. Do not invent brand logos or tiny illegible text.",
+                      "size": "1024x1536"},
+            )
+            if response.status_code >= 400:
+                logger.warning("AI image generation failed with HTTP %s", response.status_code)
+                raise HTTPException(status_code=502, detail="Image generation failed. Check provider access, model availability and quota.")
+            image_data = response.json()["data"][0]
+            raw = image_data.get("b64_json")
+            if not raw:
+                raise HTTPException(status_code=502, detail="Image provider did not return image bytes.")
+            image_bytes = base64.b64decode(raw)
+    except HTTPException:
+        raise
+    except (ValueError, KeyError, IndexError, TypeError):
+        raise HTTPException(status_code=502, detail="Image provider returned an unexpected response.")
+    try:
+        ensure_ai_tables()
+        asset_id = uuid4()
+        with database_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO generated_assets (asset_id, image_bytes, mime_type) VALUES (%s,%s,%s)",
+                    (asset_id, image_bytes, "image/png"),
+                )
+            conn.commit()
+        return {"ok": True, "asset_id": str(asset_id), "image_url": f"{APP_BASE_URL}/assets/{asset_id}",
+                "note": "Use this public HTTPS image URL when scheduling the post."}
+    except Exception:
+        logger.exception("Could not store generated image asset")
+        raise HTTPException(status_code=503, detail="Image generated but could not be stored. Check database configuration.")
+
+
+@app.get("/assets/{asset_id}")
+async def serve_generated_asset(asset_id: UUID):
+    try:
+        with database_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT image_bytes, mime_type FROM generated_assets WHERE asset_id=%s", (asset_id,))
+                row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Image asset not found.")
+        return Response(content=bytes(row[0]), media_type=row[1], headers={"Cache-Control": "public, max-age=86400"})
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Could not serve generated image asset")
+        raise HTTPException(status_code=503, detail="Image asset storage is unavailable.")
+
+
+@app.get("/api/reports/instagram")
+async def instagram_report(instagram_user_id: str, x_automation_key: str | None = Header(default=None)):
+    require_automation_key(x_automation_key)
+    token = get_saved_token(instagram_user_id)
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.get(
+            f"https://graph.instagram.com/{instagram_user_id}/media",
+            params={"fields": "id,caption,like_count,comments_count,timestamp,permalink", "limit": 25, "access_token": token},
+        )
+    if response.status_code >= 400:
+        logger.warning("Instagram reporting request failed with HTTP %s", response.status_code)
+        raise HTTPException(status_code=502, detail="Instagram reporting API failed. Check permissions and account eligibility.")
+    media = response.json().get("data", [])
+    report = []
+    for item in media:
+        report.append({
+            "media_id": item.get("id"),
+            "caption": (item.get("caption") or "")[:160],
+            "published_at": item.get("timestamp"),
+            "likes": int(item.get("like_count") or 0),
+            "comments": int(item.get("comments_count") or 0),
+            "permalink": item.get("permalink"),
+        })
+    return {
+        "instagram_user_id": instagram_user_id,
+        "posts_returned": len(report),
+        "likes_total": sum(item["likes"] for item in report),
+        "comments_total": sum(item["comments"] for item in report),
+        "posts": report,
+        "note": "This report covers recent media and engagement counts, not full reach/follower analytics.",
+    }
+
+
+@app.get("/webhooks/instagram")
+async def verify_instagram_webhook(request: Request):
+    params = request.query_params
+    mode = params.get("hub.mode")
+    verify_token = params.get("hub.verify_token")
+    challenge = params.get("hub.challenge")
+    if mode == "subscribe" and META_WEBHOOK_VERIFY_TOKEN and secrets.compare_digest(verify_token or "", META_WEBHOOK_VERIFY_TOKEN):
+        return Response(content=challenge or "", media_type="text/plain")
+    raise HTTPException(status_code=403, detail="Webhook verification failed.")
+
+
+async def reply_to_instagram_comment(comment_id: str, text: str, user_id: str):
+    token = get_saved_token(user_id)
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.post(
+            f"https://graph.instagram.com/{comment_id}/replies",
+            data={"message": text[:1000], "access_token": token},
+        )
+    if response.status_code >= 400:
+        logger.warning("Instagram comment reply failed with HTTP %s", response.status_code)
+        raise RuntimeError("Instagram rejected the comment reply; check comment-management permissions.")
+
+
+@app.post("/webhooks/instagram")
+async def receive_instagram_webhook(request: Request):
+    body = await request.json()
+    if not AUTO_REPLY_ENABLED:
+        return {"received": True, "auto_reply_enabled": False}
+    ensure_ai_tables()
+    handled = 0
+    for entry in body.get("entry", []):
+        user_id = str(entry.get("id") or "")
+        for change in entry.get("changes", []):
+            value = change.get("value") or {}
+            comment_id = str(value.get("id") or value.get("comment_id") or "")
+            comment_text = " ".join(str(value.get("text") or "").split()).strip()
+            if not user_id or not comment_id or not comment_text:
+                continue
+            with database_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1 FROM handled_instagram_comments WHERE comment_id=%s", (comment_id,))
+                    already_handled = cur.fetchone()
+            if already_handled:
+                continue
+            try:
+                reply = await openai_chat([
+                    {"role": "system", "content": "Write one warm, short, non-spammy public Instagram reply for an AI automation education account. Do not promise results, ask for private data, or include hashtags. If the comment is abusive, political, medical, or unclear, reply politely and neutrally."},
+                    {"role": "user", "content": f"Instagram comment: {comment_text}"},
+                ], max_tokens=100)
+                reply = reply.strip().strip('"')[:500]
+                await reply_to_instagram_comment(comment_id, reply, user_id)
+                with database_connection() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute("INSERT INTO handled_instagram_comments (comment_id, reply_text) VALUES (%s,%s) ON CONFLICT DO NOTHING", (comment_id, reply))
+                    conn.commit()
+                handled += 1
+            except Exception:
+                logger.exception("Could not auto-reply to Instagram comment %s", comment_id)
+    return {"received": True, "auto_replied": handled, "auto_reply_enabled": True}
+
+
+@app.get("/api/automation/status")
+async def automation_status():
+    return {
+        "service": "ok",
+        "ai_text_configured": bool(OPENAI_API_KEY),
+        "ai_image_configured": bool(OPENAI_API_KEY),
+        "database_configured": bool(DATABASE_URL),
+        "token_encryption_configured": bool(TOKEN_ENCRYPTION_KEY),
+        "automation_key_configured": bool(AUTOMATION_API_KEY),
+        "comment_auto_reply_enabled": AUTO_REPLY_ENABLED,
+        "comment_auto_reply_requires": ["Meta webhook subscription", "META_WEBHOOK_VERIFY_TOKEN", "AUTO_REPLY_ENABLED=true", "OPENAI_API_KEY", "Instagram comment-management permission"],
+    }
