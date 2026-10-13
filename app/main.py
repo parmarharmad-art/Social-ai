@@ -11,9 +11,14 @@ load_dotenv()
 
 app = FastAPI(title="SocialPilot AI MVP", version="0.1.0")
 
-META_APP_ID = os.getenv("META_APP_ID", "").strip()
+# Use the existing Meta app and deployed callback when Render variables are absent.
+# META_APP_SECRET must still be configured securely in the Render environment.
+META_APP_ID = os.getenv("META_APP_ID", "2672783173176357").strip()
 META_APP_SECRET = os.getenv("META_APP_SECRET", "").strip()
-REDIRECT_URI = os.getenv("INSTAGRAM_REDIRECT_URI", "").strip()
+REDIRECT_URI = os.getenv(
+    "INSTAGRAM_REDIRECT_URI",
+    "https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback",
+).strip()
 
 # In-memory state is suitable only for a local smoke test. Use a secure,
 # persistent session store before deployment or multi-user use.
@@ -116,7 +121,6 @@ async def instagram_callback(request: Request, code: str | None = None,
             },
         )
         if long_response.status_code >= 400:
-            # OAuth succeeded, but long-lived token exchange did not. Do not report full setup success.
             return JSONResponse(
                 status_code=502,
                 content={"connected": False, "message": "Login succeeded but long-lived token exchange failed. Check Meta API configuration."},
