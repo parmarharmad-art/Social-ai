@@ -110,7 +110,7 @@ def test_automation_status_does_not_expose_secrets():
     data = response.json()
     assert "ai_text_configured" in data
     assert "comment_auto_reply_enabled" in data
-    assert "OPENAI_API_KEY" not in str(data)
+    assert "sk-" not in str(data)\n    assert "access_token" not in data
 
 
 def test_ai_content_requires_automation_key(monkeypatch):
