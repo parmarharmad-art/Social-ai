@@ -5,11 +5,13 @@ MCP_ACCESS_TOKEN, falling back to AUTOMATION_API_KEY for easier first-time setup
 """
 import hmac
 import os
+from contextlib import AsyncExitStack
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 from app import main as api
 
@@ -98,7 +100,25 @@ async def get_instagram_report(instagram_user_id: str = "") -> dict[str, Any]:
 
 
 def mount_mcp(application: FastAPI) -> None:
-    """Protect and mount the remote MCP endpoint at /mcp."""
+    """Protect and mount the remote MCP endpoint at /mcp/."""
+    mcp_http_app = mcp.streamable_http_app(
+        streamable_http_path="/",
+        transport_security=TransportSecuritySettings(
+            allowed_hosts=["socialpilot-ai-mvp.onrender.com", "socialpilot-ai-mvp.onrender.com:*"],
+            allowed_origins=["https://socialpilot-ai-mvp.onrender.com"],
+        ),
+    )
+    session_stack = AsyncExitStack()
+
+    @application.on_event("startup")
+    async def start_mcp_session_manager():
+        await session_stack.__aenter__()
+        await session_stack.enter_async_context(mcp.session_manager.run())
+
+    @application.on_event("shutdown")
+    async def stop_mcp_session_manager():
+        await session_stack.aclose()
+
     @application.middleware("http")
     async def require_mcp_bearer(request: Request, call_next):
         if request.url.path == "/mcp" or request.url.path.startswith("/mcp/"):
@@ -114,4 +134,4 @@ def mount_mcp(application: FastAPI) -> None:
                 return JSONResponse(status_code=401, content={"detail": "A valid Bearer token is required for the MCP endpoint."})
         return await call_next(request)
 
-    application.mount("/mcp", mcp.streamable_http_app())
+    application.mount("/mcp", mcp_http_app)
