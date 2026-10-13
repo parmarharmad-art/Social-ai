@@ -50,6 +50,16 @@ async def health():
     return {"status": "ok", "service": "socialpilot-ai-mvp"}
 
 
+@app.get("/diagnostics/oauth-config")
+async def oauth_config_check():
+    # Safe diagnostics only: never return the app secret or any access token.
+    return {
+        "instagram_app_id": INSTAGRAM_APP_ID,
+        "redirect_uri": REDIRECT_URI,
+        "secret_configured": bool(INSTAGRAM_APP_SECRET),
+    }
+
+
 @app.get("/auth/instagram/start")
 async def instagram_start():
     if not INSTAGRAM_APP_ID or not REDIRECT_URI:
