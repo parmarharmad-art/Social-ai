@@ -422,7 +422,7 @@ async def content_planner():
     input,select,textarea{width:100%;padding:12px;box-sizing:border-box;border-radius:8px;border:1px solid #52627a;background:#0b1220;color:white}
     button,a{display:inline-block;margin:8px 5px 0 0;padding:12px 14px;background:#2877ee;color:white;border:0;border-radius:8px;text-decoration:none;font:inherit}
     #result{white-space:pre-wrap;overflow-wrap:anywhere}</style></head><body>
-    <h1>SocialPilot AI — Content Planner</h1><p>Choose a topic, prepare a caption, and schedule a post.</p>
+    <h1>SocialPilot AI — Content Planner</h1><p><a href="/studio">Open built-in Post & Video Studio</a> · Choose a topic, prepare a caption, and schedule a post.</p>
     <section><p><a href="/auth/instagram/start">Connect Instagram</a> <a href="/health">Check service</a></p>
     <label>Topic</label><select id="topic">""" + topics_html + """</select>
     <label>Public HTTPS image URL</label><input id="img" placeholder="Generated image URL appears here">
@@ -824,6 +824,9 @@ async def maybe_queue_daily_content():
             conn.commit()
         raise
 
+
+from app.studio import router as studio_router
+app.include_router(studio_router)
 
 # Expose authenticated remote MCP tools from the same app entry point used by existing deployments.
 from app.mcp_server import mount_mcp
