@@ -102,3 +102,67 @@ def test_schedule_rejects_timezone_missing_before_database_access(monkeypatch):
     )
     assert response.status_code == 400
     assert "ISO-8601 with timezone" in response.json()["detail"]
+
+
+def test_automation_status_does_not_expose_secrets():
+    response = client.get("/api/automation/status")
+    assert response.status_code == 200
+    data = response.json()
+    assert "ai_text_configured" in data
+    assert "comment_auto_reply_enabled" in data
+    assert "OPENAI_API_KEY" not in str(data)
+
+
+def test_ai_content_requires_automation_key(monkeypatch):
+    import app.main as main
+
+    monkeypatch.setattr(main, "AUTOMATION_API_KEY", "test-key")
+    response = client.post("/api/ai/generate", json={"topic": "Instagram automation"})
+    assert response.status_code == 401
+
+
+def test_ai_content_requires_topic(monkeypatch):
+    import app.main as main
+
+    monkeypatch.setattr(main, "AUTOMATION_API_KEY", "test-key")
+    response = client.post(
+        "/api/ai/generate",
+        headers={"X-Automation-Key": "test-key"},
+        json={"topic": "   "},
+    )
+    assert response.status_code == 400
+
+
+def test_ai_image_requires_prompt(monkeypatch):
+    import app.main as main
+
+    monkeypatch.setattr(main, "AUTOMATION_API_KEY", "test-key")
+    response = client.post(
+        "/api/ai/image",
+        headers={"X-Automation-Key": "test-key"},
+        json={},
+    )
+    assert response.status_code == 400
+
+
+def test_webhook_verification_fails_closed_without_valid_token(monkeypatch):
+    import app.main as main
+
+    monkeypatch.setattr(main, "META_WEBHOOK_VERIFY_TOKEN", "private-test-token")
+    response = client.get(
+        "/webhooks/instagram",
+        params={
+            "hub.mode": "subscribe",
+            "hub.verify_token": "wrong-token",
+            "hub.challenge": "12345",
+        },
+    )
+    assert response.status_code == 403
+
+
+def test_instagram_report_requires_automation_key(monkeypatch):
+    import app.main as main
+
+    monkeypatch.setattr(main, "AUTOMATION_API_KEY", "test-key")
+    response = client.get("/api/reports/instagram?instagram_user_id=123")
+    assert response.status_code == 401
