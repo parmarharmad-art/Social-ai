@@ -19,5 +19,7 @@ services:
         sync: false
       - key: TOKEN_ENCRYPTION_KEY
         sync: false
+      - key: AUTOMATION_API_KEY
+        sync: false
       - key: SESSION_SECRET
         generateValue: true
