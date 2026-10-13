@@ -22,6 +22,7 @@ mcp = FastMCP(
         "Check status before running actions. AI content/image generation may incur API charges. "
         "Scheduling tools create real Instagram post jobs; do not call them unless the user asks."
     ),
+    streamable_http_path="/",
 )
 
 
