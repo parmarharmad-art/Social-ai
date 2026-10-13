@@ -1,3 +1,4 @@
+import logging
 import os
 import secrets
 from urllib.parse import urlencode
@@ -10,6 +11,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 load_dotenv()
 
 app = FastAPI(title="SocialPilot AI MVP", version="0.1.0")
+logger = logging.getLogger(__name__)
 
 # Instagram Business Login uses the Instagram app ID shown under the Instagram product.
 # Configure INSTAGRAM_APP_SECRET securely in Render; never commit the secret.
@@ -111,9 +113,31 @@ async def instagram_callback(request: Request, code: str | None = None,
             },
         )
         if response.status_code >= 400:
-            raise HTTPException(
+            # Log only Meta's non-secret error fields. Never log the OAuth code,
+            # app secret, request form, or any access token.
+            try:
+                meta_error = response.json().get("error", {})
+                if not isinstance(meta_error, dict):
+                    meta_error = {}
+            except ValueError:
+                meta_error = {}
+            logger.warning(
+                "Instagram token exchange rejected: http_status=%s error_type=%s error_code=%s error_message=%s",
+                response.status_code,
+                meta_error.get("type", "unknown"),
+                meta_error.get("code", "unknown"),
+                str(meta_error.get("message", "No error message returned"))[:300],
+            )
+            return JSONResponse(
                 status_code=502,
-                detail="Instagram token exchange failed. Verify the Meta app settings and exact redirect URI.",
+                content={
+                    "connected": False,
+                    "error": "Instagram token exchange failed.",
+                    "meta_http_status": response.status_code,
+                    "meta_error_type": meta_error.get("type"),
+                    "meta_error_code": meta_error.get("code"),
+                    "meta_error_message": str(meta_error.get("message", "No error message returned"))[:300],
+                },
             )
         token_data = response.json()
 
