@@ -15,5 +15,9 @@ services:
         sync: false
       - key: INSTAGRAM_REDIRECT_URI
         sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: TOKEN_ENCRYPTION_KEY
+        sync: false
       - key: SESSION_SECRET
         generateValue: true
