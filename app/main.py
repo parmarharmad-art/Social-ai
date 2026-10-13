@@ -609,11 +609,23 @@ async def instagram_report(instagram_user_id: str, x_automation_key: str | None 
             "comments": int(item.get("comments_count") or 0),
             "permalink": item.get("permalink"),
         })
+    top_post = max(report, key=lambda item: item["likes"] + item["comments"] * 2, default=None)
+    recommendations = [
+        "Publish consistently and compare results across at least 2–4 weeks.",
+        "Use a clear save/share CTA on educational carousel posts.",
+        "Reply to genuine comments promptly; keep automated replies disabled until the Meta webhook is tested.",
+    ]
+    if report and sum(item["comments"] for item in report) == 0:
+        recommendations.append("Test a specific question in the caption to invite relevant comments.")
+    if top_post:
+        recommendations.append("Review the topic and format of the current highest-engagement post and create a useful follow-up.")
     return {
         "instagram_user_id": instagram_user_id,
         "posts_returned": len(report),
         "likes_total": sum(item["likes"] for item in report),
         "comments_total": sum(item["comments"] for item in report),
+        "top_engagement_post": top_post,
+        "growth_recommendations": recommendations,
         "posts": report,
         "note": "This report covers recent media and engagement counts, not full reach/follower analytics.",
     }
@@ -689,7 +701,9 @@ async def automation_status():
         "database_configured": bool(DATABASE_URL),
         "token_encryption_configured": bool(TOKEN_ENCRYPTION_KEY),
         "automation_key_configured": bool(AUTOMATION_API_KEY),
-        "comment_auto_reply_enabled": AUTO_REPLY_ENABLED,\n        "automatic_daily_content_enabled": AUTO_CONTENT_ENABLED,\n        "automatic_daily_content_schedule": "10:00 and 18:00 Asia/Kolkata",
+        "comment_auto_reply_enabled": AUTO_REPLY_ENABLED,
+        "automatic_daily_content_enabled": AUTO_CONTENT_ENABLED,
+        "automatic_daily_content_schedule": "10:00 and 18:00 Asia/Kolkata",
         "comment_auto_reply_requires": ["Meta webhook subscription", "META_WEBHOOK_VERIFY_TOKEN", "AUTO_REPLY_ENABLED=true", "OPENAI_API_KEY", "Instagram comment-management permission"],
     }
 
