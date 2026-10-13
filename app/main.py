@@ -1,5 +1,8 @@
 import asyncio
 import base64
+import hashlib
+import hmac
+import json
 import logging
 import os
 import re
@@ -537,8 +540,8 @@ async def generate_image(payload: dict, x_automation_key: str | None = Header(de
                 "https://api.openai.com/v1/images/generations",
                 headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
                 json={"model": os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1"),
-                      "prompt": prompt + ". Premium Instagram 4:5 social media infographic, clean readable composition, practical AI automation workflow, navy and white with electric blue and cyan accents. Do not invent brand logos or tiny illegible text.",
-                      "size": "1024x1536"},
+                      "prompt": prompt + ". Instagram-feed-safe square social media infographic, clean readable composition, practical AI automation workflow, navy and white with electric blue and cyan accents. Do not invent brand logos or tiny illegible text.",
+                      "size": "1024x1024"},
             )
             if response.status_code >= 400:
                 logger.warning("AI image generation failed with HTTP %s", response.status_code)
@@ -656,7 +659,19 @@ async def reply_to_instagram_comment(comment_id: str, text: str, user_id: str):
 
 @app.post("/webhooks/instagram")
 async def receive_instagram_webhook(request: Request):
-    body = await request.json()
+    raw_body = await request.body()
+    signature = request.headers.get("X-Hub-Signature-256", "")
+    if not INSTAGRAM_APP_SECRET or not signature.startswith("sha256="):
+        raise HTTPException(status_code=403, detail="Webhook signature is missing or app secret is not configured.")
+    expected_signature = "sha256=" + hmac.new(
+        INSTAGRAM_APP_SECRET.encode("utf-8"), raw_body, hashlib.sha256
+    ).hexdigest()
+    if not secrets.compare_digest(signature, expected_signature):
+        raise HTTPException(status_code=403, detail="Webhook signature is invalid.")
+    try:
+        body = json.loads(raw_body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        raise HTTPException(status_code=400, detail="Webhook payload is invalid JSON.")
     if not AUTO_REPLY_ENABLED:
         return {"received": True, "auto_reply_enabled": False}
     ensure_ai_tables()
