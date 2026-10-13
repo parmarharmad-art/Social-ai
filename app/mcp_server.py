@@ -23,6 +23,10 @@ mcp = FastMCP(
         "Scheduling tools create real Instagram post jobs; do not call them unless the user asks."
     ),
     streamable_http_path="/",
+    transport_security=TransportSecuritySettings(
+        allowed_hosts=["socialpilot-ai-mvp.onrender.com", "socialpilot-ai-mvp.onrender.com:*"],
+        allowed_origins=["https://socialpilot-ai-mvp.onrender.com"],
+    ),
 )
 
 
@@ -102,12 +106,7 @@ async def get_instagram_report(instagram_user_id: str = "") -> dict[str, Any]:
 
 def mount_mcp(application: FastAPI) -> None:
     """Protect and mount the remote MCP endpoint at /mcp/."""
-    mcp_http_app = mcp.streamable_http_app(
-        transport_security=TransportSecuritySettings(
-            allowed_hosts=["socialpilot-ai-mvp.onrender.com", "socialpilot-ai-mvp.onrender.com:*"],
-            allowed_origins=["https://socialpilot-ai-mvp.onrender.com"],
-        ),
-    )
+    mcp_http_app = mcp.streamable_http_app()
     session_stack = AsyncExitStack()
 
     @application.on_event("startup")
