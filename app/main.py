@@ -55,7 +55,7 @@ async def instagram_start():
     if not INSTAGRAM_APP_ID or not REDIRECT_URI:
         raise HTTPException(
             status_code=503,
-            detail="Setup required: configure META_APP_ID and INSTAGRAM_REDIRECT_URI in the server environment.",
+            detail="Setup required: configure INSTAGRAM_APP_ID and INSTAGRAM_REDIRECT_URI in the server environment.",
         )
 
     state = secrets.token_urlsafe(32)
@@ -86,14 +86,14 @@ async def instagram_callback(request: Request, code: str | None = None,
     oauth_states.discard(state)
 
     if not INSTAGRAM_APP_ID or not INSTAGRAM_APP_SECRET or not REDIRECT_URI:
-        raise HTTPException(status_code=503, detail="Meta OAuth environment is not configured.")
+        raise HTTPException(status_code=503, detail="Instagram OAuth environment is not configured.")
 
     # Exchange the authorization code for a short-lived Instagram user token.
     async with httpx.AsyncClient(timeout=20) as client:
         response = await client.post(
             "https://api.instagram.com/oauth/access_token",
             data={
-                "client_id": META_APP_ID,
+                "client_id": INSTAGRAM_APP_ID,
                 "client_secret": INSTAGRAM_APP_SECRET,
                 "grant_type": "authorization_code",
                 "redirect_uri": REDIRECT_URI,
@@ -116,7 +116,7 @@ async def instagram_callback(request: Request, code: str | None = None,
             "https://graph.instagram.com/access_token",
             params={
                 "grant_type": "ig_exchange_token",
-                "client_secret": META_APP_SECRET,
+                "client_secret": INSTAGRAM_APP_SECRET,
                 "access_token": short_token,
             },
         )
