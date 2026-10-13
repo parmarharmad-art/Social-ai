@@ -1,0 +1,60 @@
+name: Free Daily Instagram Queue
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub Actions runs in UTC. 03:30 UTC = 09:00 India time.
+    - cron: "30 3 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: socialpilot-daily-queue
+  cancel-in-progress: false
+
+jobs:
+  queue-tomorrow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Validate required GitHub secrets
+        env:
+          BASE_URL: ${{ secrets.SOCIALPILOT_BASE_URL }}
+          AUTOMATION_KEY: ${{ secrets.SOCIALPILOT_AUTOMATION_KEY }}
+          IG_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+        run: |
+          test -n "$BASE_URL" || { echo "Missing repository secret SOCIALPILOT_BASE_URL"; exit 1; }
+          test -n "$AUTOMATION_KEY" || { echo "Missing repository secret SOCIALPILOT_AUTOMATION_KEY"; exit 1; }
+          test -n "$IG_USER_ID" || { echo "Missing repository secret INSTAGRAM_USER_ID"; exit 1; }
+          case "$BASE_URL" in https://*) ;; *) echo "SOCIALPILOT_BASE_URL must start with https://"; exit 1;; esac
+
+      - name: Check API health
+        env:
+          BASE_URL: ${{ secrets.SOCIALPILOT_BASE_URL }}
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 --max-time 60 "$BASE_URL/health"
+
+      - name: Queue two AI posts for tomorrow
+        env:
+          BASE_URL: ${{ secrets.SOCIALPILOT_BASE_URL }}
+          AUTOMATION_KEY: ${{ secrets.SOCIALPILOT_AUTOMATION_KEY }}
+          IG_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+        run: |
+          curl --fail --silent --show-error --retry 2 --retry-delay 10 --max-time 240 \
+            -X POST "$BASE_URL/api/automation/queue-daily" \
+            -H "Content-Type: application/json" \
+            -H "X-Automation-Key: $AUTOMATION_KEY" \
+            --data "$(python -c 'import json,os; print(json.dumps({"instagram_user_id":os.environ["IG_USER_ID"]}))')" \
+            -o response.json
+          python - <<'PY'
+          import json
+          with open("response.json", encoding="utf-8") as f:
+              data = json.load(f)
+          print(json.dumps(data, indent=2))
+          if not data.get("ok"):
+              raise SystemExit("Daily queue endpoint did not confirm success.")
+          posts = data.get("posts", [])
+          if len(posts) != 2:
+              raise SystemExit(f"Expected 2 queued posts; endpoint returned {len(posts)}.")
+          PY
