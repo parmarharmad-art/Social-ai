@@ -6,6 +6,10 @@ Mobile-first Instagram automation project for **Kiran Kumar • AI Automation**.
 - Render service: https://socialpilot-ai-mvp.onrender.com
 - Planner: https://socialpilot-ai-mvp.onrender.com/planner
 
+## Built-in Post & Video Studio
+
+Open `/studio` on the deployed service for the in-app mobile-friendly design editor. It includes editable text and shapes, image upload, 4:5/square/story/landscape canvas sizes, starter templates, drag-to-position, basic layer ordering, PNG export, local browser project save/load, JSON project export, and browser-native animated WebM export. The studio does not require a Canva account or design-app SDK. AI copy/image buttons reuse the configured server AI API and may incur usage charges. Current video export is WebM only and animates one design; multi-scene timelines, AI voice generation, and MP4 export are not implemented in this initial version.
+
 ## Features implemented in code
 
 - Instagram Login OAuth start/callback with encrypted PostgreSQL token storage.
