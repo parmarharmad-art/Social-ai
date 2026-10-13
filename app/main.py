@@ -116,17 +116,27 @@ async def instagram_callback(request: Request, code: str | None = None,
             # Log only Meta's non-secret error fields. Never log the OAuth code,
             # app secret, request form, or any access token.
             try:
-                meta_error = response.json().get("error", {})
+                error_payload = response.json()
+                if not isinstance(error_payload, dict):
+                    error_payload = {}
+                # Meta/Instagram may return either a nested "error" object or
+                # top-level fields such as error_type, code, and error_message.
+                meta_error = error_payload.get("error", error_payload)
                 if not isinstance(meta_error, dict):
                     meta_error = {}
-            except ValueError:
-                meta_error = {}
+                error_type = meta_error.get("type") or meta_error.get("error_type")
+                error_code = meta_error.get("code")
+                error_message = meta_error.get("message") or meta_error.get("error_message")
+            except (ValueError, TypeError):
+                error_type = error_code = None
+                error_message = None
+            safe_message = str(error_message or "No error message returned")[:300]
             logger.warning(
                 "Instagram token exchange rejected: http_status=%s error_type=%s error_code=%s error_message=%s",
                 response.status_code,
-                meta_error.get("type", "unknown"),
-                meta_error.get("code", "unknown"),
-                str(meta_error.get("message", "No error message returned"))[:300],
+                error_type or "unknown",
+                error_code if error_code is not None else "unknown",
+                safe_message,
             )
             return JSONResponse(
                 status_code=502,
@@ -134,9 +144,9 @@ async def instagram_callback(request: Request, code: str | None = None,
                     "connected": False,
                     "error": "Instagram token exchange failed.",
                     "meta_http_status": response.status_code,
-                    "meta_error_type": meta_error.get("type"),
-                    "meta_error_code": meta_error.get("code"),
-                    "meta_error_message": str(meta_error.get("message", "No error message returned"))[:300],
+                    "meta_error_type": error_type,
+                    "meta_error_code": error_code,
+                    "meta_error_message": safe_message,
                 },
             )
         token_data = response.json()
