@@ -15,8 +15,8 @@ load_dotenv()
 app = FastAPI(title="SocialPilot AI MVP", version="0.2.0")
 logger = logging.getLogger(__name__)
 
-INSTAGRAM_APP_ID = os.getenv("INSTAGRAM_APP_ID", "1559704026184551").strip()
-INSTAGRAM_APP_SECRET = os.getenv("INSTAGRAM_APP_SECRET", "").strip()
+INSTAGRAM_APP_ID = (os.getenv("INSTAGRAM_APP_ID") or os.getenv("META_APP_ID") or "1559704026184551").strip()
+INSTAGRAM_APP_SECRET = (os.getenv("INSTAGRAM_APP_SECRET") or os.getenv("META_APP_SECRET") or "").strip()
 REDIRECT_URI = os.getenv(
     "INSTAGRAM_REDIRECT_URI",
     "https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback",
