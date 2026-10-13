@@ -47,7 +47,9 @@ Set secrets in Render's Environment page. Never commit secrets or paste them int
 | `OPENAI_IMAGE_MODEL` | Optional | Defaults to `gpt-image-1` |
 | `APP_BASE_URL` | Generated image links | `https://socialpilot-ai-mvp.onrender.com` |
 | `META_WEBHOOK_VERIFY_TOKEN` | Webhook verification | Choose a private value and use the same value in Meta |
-| `AUTO_REPLY_ENABLED` | Auto-replies | Leave `false` until webhook verification and comment permission are tested |\n| `AUTO_CONTENT_ENABLED` | Daily content queue | Leave `false` until AI and publishing have been tested; set `true` to queue the next day's two posts automatically |\n| `INSTAGRAM_USER_ID` | Daily content queue | Connected Instagram account ID |
+| `AUTO_REPLY_ENABLED` | Auto-replies | Leave `false` until webhook verification and comment permission are tested |
+| `AUTO_CONTENT_ENABLED` | Daily content queue | Leave `false` until AI and publishing have been tested; set `true` to queue the next day's two posts automatically |
+| `INSTAGRAM_USER_ID` | Daily content queue | Connected Instagram account ID |
 
 The Render Blueprint uses `sync: false` for private settings; that does not populate them automatically or provision PostgreSQL. If a token has already been saved, do not rotate `TOKEN_ENCRYPTION_KEY` without a migration plan.
 
