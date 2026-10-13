@@ -11,10 +11,10 @@ load_dotenv()
 
 app = FastAPI(title="SocialPilot AI MVP", version="0.1.0")
 
-# Use the existing Meta app and deployed callback when Render variables are absent.
-# META_APP_SECRET must still be configured securely in the Render environment.
-META_APP_ID = os.getenv("META_APP_ID", "2672783173176357").strip()
-META_APP_SECRET = os.getenv("META_APP_SECRET", "").strip()
+# Instagram Business Login uses the Instagram app ID shown under the Instagram product.
+# Configure INSTAGRAM_APP_SECRET securely in Render; never commit the secret.
+INSTAGRAM_APP_ID = os.getenv("INSTAGRAM_APP_ID", "1559704026184551").strip()
+INSTAGRAM_APP_SECRET = os.getenv("INSTAGRAM_APP_SECRET", "").strip()
 REDIRECT_URI = os.getenv(
     "INSTAGRAM_REDIRECT_URI",
     "https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback",
@@ -52,7 +52,7 @@ async def health():
 
 @app.get("/auth/instagram/start")
 async def instagram_start():
-    if not META_APP_ID or not REDIRECT_URI:
+    if not INSTAGRAM_APP_ID or not REDIRECT_URI:
         raise HTTPException(
             status_code=503,
             detail="Setup required: configure META_APP_ID and INSTAGRAM_REDIRECT_URI in the server environment.",
@@ -61,7 +61,7 @@ async def instagram_start():
     state = secrets.token_urlsafe(32)
     oauth_states.add(state)
     params = {
-        "client_id": META_APP_ID,
+        "client_id": INSTAGRAM_APP_ID,
         "redirect_uri": REDIRECT_URI,
         "response_type": "code",
         "scope": "instagram_business_basic,instagram_business_content_publish",
@@ -85,7 +85,7 @@ async def instagram_callback(request: Request, code: str | None = None,
         raise HTTPException(status_code=400, detail="Invalid or expired OAuth state.")
     oauth_states.discard(state)
 
-    if not META_APP_ID or not META_APP_SECRET or not REDIRECT_URI:
+    if not INSTAGRAM_APP_ID or not INSTAGRAM_APP_SECRET or not REDIRECT_URI:
         raise HTTPException(status_code=503, detail="Meta OAuth environment is not configured.")
 
     # Exchange the authorization code for a short-lived Instagram user token.
@@ -94,7 +94,7 @@ async def instagram_callback(request: Request, code: str | None = None,
             "https://api.instagram.com/oauth/access_token",
             data={
                 "client_id": META_APP_ID,
-                "client_secret": META_APP_SECRET,
+                "client_secret": INSTAGRAM_APP_SECRET,
                 "grant_type": "authorization_code",
                 "redirect_uri": REDIRECT_URI,
                 "code": code,
