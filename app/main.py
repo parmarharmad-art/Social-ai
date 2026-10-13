@@ -410,7 +410,7 @@ async def content_planner():
     <h1>SocialPilot AI — Content Planner</h1><p>Choose a topic, prepare a caption, and schedule a post.</p>
     <section><p><a href="/auth/instagram/start">Connect Instagram</a> <a href="/health">Check service</a></p>
     <label>Topic</label><select id="topic">""" + topics_html + """</select>
-    <label>Public HTTPS image URL</label><input id="img" placeholder="https://.../post-image.jpg">
+    <label>Public HTTPS image URL</label><input id="img" placeholder="Generated image URL appears here">
     <label>Instagram user ID</label><input id="uid" value="28750627681259473">
     <label>Schedule date and time (India)</label><input id="when" type="datetime-local">
     <label>Automation API key (entered only for this session)</label><input id="key" type="password" autocomplete="off">
