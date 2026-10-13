@@ -823,3 +823,8 @@ async def maybe_queue_daily_content():
                 cur.execute("UPDATE automation_daily_batches SET status='failed', last_error=%s WHERE target_date=%s AND instagram_user_id=%s", (str(exc)[:500], tomorrow, INSTAGRAM_USER_ID))
             conn.commit()
         raise
+
+
+# Expose authenticated remote MCP tools from the same app entry point used by existing deployments.
+from app.mcp_server import mount_mcp
+mount_mcp(app)
