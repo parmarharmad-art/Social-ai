@@ -104,6 +104,21 @@ async def get_instagram_report(instagram_user_id: str = "") -> dict[str, Any]:
     return await api.instagram_report(user_id, api.AUTOMATION_API_KEY)
 
 
+@mcp.tool()
+async def get_studio_info() -> dict[str, Any]:
+    """Return the built-in SocialPilot AI design studio URL and supported features. Does not create or publish content."""
+    return {
+        "studio_url": "https://socialpilot-ai-mvp.onrender.com/studio",
+        "features": [
+            "Editable text and shapes", "Image upload", "Post/story/landscape canvas sizes",
+            "Starter templates", "PNG export", "Browser-local project save/load",
+            "JSON project export", "Browser-native animated WebM export",
+            "Optional AI copy and image generation when server AI configuration is available",
+        ],
+        "limitations": ["WebM only; no MP4 export", "Single-design animated video, not a multi-scene timeline", "AI features may incur API charges"],
+    }
+
+
 def mount_mcp(application: FastAPI) -> None:
     """Protect and mount the remote MCP endpoint at /mcp/."""
     mcp_http_app = mcp.streamable_http_app()
