@@ -2,9 +2,11 @@ import asyncio
 import base64
 import logging
 import os
+import re
 import secrets
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
+from zoneinfo import ZoneInfo
 from urllib.parse import urlencode
 
 import httpx
@@ -31,7 +33,7 @@ AUTOMATION_API_KEY = os.getenv("AUTOMATION_API_KEY", "").strip()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 APP_BASE_URL = os.getenv("APP_BASE_URL", "https://socialpilot-ai-mvp.onrender.com").strip().rstrip("/")
 META_WEBHOOK_VERIFY_TOKEN = os.getenv("META_WEBHOOK_VERIFY_TOKEN", "").strip()
-AUTO_REPLY_ENABLED = os.getenv("AUTO_REPLY_ENABLED", "false").strip().lower() == "true"
+AUTO_REPLY_ENABLED = os.getenv("AUTO_REPLY_ENABLED", "false").strip().lower() == "true"\nAUTO_CONTENT_ENABLED = os.getenv("AUTO_CONTENT_ENABLED", "false").strip().lower() == "true"\nINSTAGRAM_USER_ID = os.getenv("INSTAGRAM_USER_ID", "").strip()
 
 oauth_states: dict[str, str] = {}
 
@@ -300,6 +302,10 @@ async def publish_due_posts():
 async def scheduler_loop():
     while True:
         await publish_due_posts()
+        try:
+            await maybe_queue_daily_content()
+        except Exception:
+            logger.exception("Automatic daily content queue check failed")
         await asyncio.sleep(30)
 
 
@@ -683,3 +689,89 @@ async def automation_status():
         "comment_auto_reply_enabled": AUTO_REPLY_ENABLED,
         "comment_auto_reply_requires": ["Meta webhook subscription", "META_WEBHOOK_VERIFY_TOKEN", "AUTO_REPLY_ENABLED=true", "OPENAI_API_KEY", "Instagram comment-management permission"],
     }
+
+
+async def queue_daily_posts(instagram_user_id: str, target_date: str):
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=503, detail="OPENAI_API_KEY is required for automatic content creation.")
+    try:
+        day = datetime.strptime(target_date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="target_date must be YYYY-MM-DD.")
+    local_tz = ZoneInfo("Asia/Kolkata")
+    schedule_times = [
+        datetime(day.year, day.month, day.day, 10, 0, tzinfo=local_tz),
+        datetime(day.year, day.month, day.day, 18, 0, tzinfo=local_tz),
+    ]
+    topics = [
+        CONTENT_TOPICS[(day.toordinal() * 2) % len(CONTENT_TOPICS)],
+        CONTENT_TOPICS[(day.toordinal() * 2 + 1) % len(CONTENT_TOPICS)],
+    ]
+    ensure_posts_table()
+    queued = []
+    for topic, local_time in zip(topics, schedule_times):
+        scheduled_at = local_time.astimezone(timezone.utc)
+        with database_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT id FROM scheduled_posts WHERE instagram_user_id=%s AND scheduled_at=%s",
+                    (instagram_user_id, scheduled_at),
+                )
+                existing = cur.fetchone()
+        if existing:
+            queued.append({"topic": topic, "post_id": existing[0], "status": "already_queued"})
+            continue
+        package = await generate_content({"topic": topic}, AUTOMATION_API_KEY)
+        generated = package["content"]
+        caption_match = re.search(r"CAPTION\s*:\s*(.*?)(?=\n(?:CTA|HASHTAGS|IMAGE PROMPT)\s*:|$)", generated, re.IGNORECASE | re.DOTALL)
+        caption = caption_match.group(1).strip() if caption_match else make_caption(topic)
+        caption = caption[:2000]
+        prompt_match = re.search(r"IMAGE PROMPT\s*:\s*(.*?)(?=\n[A-Z][A-Z ]{2,}\s*:|$)", generated, re.IGNORECASE | re.DOTALL)
+        image_prompt = prompt_match.group(1).strip() if prompt_match else f"Instagram infographic about {topic}"
+        image_data = await generate_image({"prompt": image_prompt}, AUTOMATION_API_KEY)
+        result = await schedule_post({
+            "topic": topic,
+            "caption": caption,
+            "image_url": image_data["image_url"],
+            "instagram_user_id": instagram_user_id,
+            "scheduled_at": scheduled_at.isoformat(),
+        }, AUTOMATION_API_KEY)
+        queued.append({"topic": topic, "post_id": result["post_id"], "status": result["status"], "scheduled_at": result["scheduled_at"]})
+    return {"ok": True, "target_date": target_date, "posts": queued}
+
+
+@app.post("/api/automation/queue-daily")
+async def queue_daily_endpoint(payload: dict, x_automation_key: str | None = Header(default=None)):
+    require_automation_key(x_automation_key)
+    user_id = str(payload.get("instagram_user_id") or INSTAGRAM_USER_ID).strip()
+    target_date = str(payload.get("target_date") or (datetime.now(ZoneInfo("Asia/Kolkata")).date() + __import__("datetime").timedelta(days=1)).isoformat())
+    if not user_id:
+        raise HTTPException(status_code=400, detail="instagram_user_id is required or configure INSTAGRAM_USER_ID.")
+    return await queue_daily_posts(user_id, target_date)
+
+
+async def maybe_queue_daily_content():
+    if not AUTO_CONTENT_ENABLED or not INSTAGRAM_USER_ID or not DATABASE_URL or not TOKEN_ENCRYPTION_KEY or not AUTOMATION_API_KEY or not OPENAI_API_KEY:
+        return
+    tomorrow = datetime.now(ZoneInfo("Asia/Kolkata")).date() + __import__("datetime").timedelta(days=1)
+    target_date = tomorrow.isoformat()
+    with database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS automation_daily_batches (
+                    target_date DATE NOT NULL,
+                    instagram_user_id TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    PRIMARY KEY (target_date, instagram_user_id)
+                )
+            """)
+            cur.execute("SELECT 1 FROM automation_daily_batches WHERE target_date=%s AND instagram_user_id=%s", (tomorrow, INSTAGRAM_USER_ID))
+            already_done = cur.fetchone()
+        conn.commit()
+    if already_done:
+        return
+    await queue_daily_posts(INSTAGRAM_USER_ID, target_date)
+    with database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("INSERT INTO automation_daily_batches (target_date, instagram_user_id) VALUES (%s,%s) ON CONFLICT DO NOTHING", (tomorrow, INSTAGRAM_USER_ID))
+        conn.commit()
