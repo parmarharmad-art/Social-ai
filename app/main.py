@@ -22,9 +22,10 @@ REDIRECT_URI = os.getenv(
     "https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback",
 ).strip()
 
-# In-memory state is suitable only for a local smoke test. Use a secure,
-# persistent session store before deployment or multi-user use.
-oauth_states: set[str] = set()
+# In-memory state is suitable only for a local smoke test. Store the exact
+# redirect URI used to start each OAuth attempt so the token exchange uses the
+# same byte-for-byte value even if environment configuration changes mid-flow.
+oauth_states: dict[str, str] = {}
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -71,10 +72,10 @@ async def instagram_start():
         )
 
     state = secrets.token_urlsafe(32)
-    oauth_states.add(state)
+    oauth_states[state] = REDIRECT_URI
     params = {
         "client_id": INSTAGRAM_APP_ID,
-        "redirect_uri": REDIRECT_URI,
+        "redirect_uri": oauth_states[state],
         "response_type": "code",
         "scope": "instagram_business_basic,instagram_business_content_publish",
         "state": state,
@@ -95,9 +96,10 @@ async def instagram_callback(request: Request, code: str | None = None,
         )
     if not code or not state or state not in oauth_states:
         raise HTTPException(status_code=400, detail="Invalid or expired OAuth state.")
-    oauth_states.discard(state)
+    # Reuse the exact redirect URI from the authorization request for exchange.
+    exchange_redirect_uri = oauth_states.pop(state)
 
-    if not INSTAGRAM_APP_ID or not INSTAGRAM_APP_SECRET or not REDIRECT_URI:
+    if not INSTAGRAM_APP_ID or not INSTAGRAM_APP_SECRET or not exchange_redirect_uri:
         raise HTTPException(status_code=503, detail="Instagram OAuth environment is not configured.")
 
     # Exchange the authorization code for a short-lived Instagram user token.
@@ -108,7 +110,7 @@ async def instagram_callback(request: Request, code: str | None = None,
                 "client_id": INSTAGRAM_APP_ID,
                 "client_secret": INSTAGRAM_APP_SECRET,
                 "grant_type": "authorization_code",
-                "redirect_uri": REDIRECT_URI,
+                "redirect_uri": exchange_redirect_uri,
                 "code": code,
             },
         )
