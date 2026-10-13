@@ -11,7 +11,7 @@ Mobile-first Instagram automation project for **Kiran Kumar • AI Automation**.
 - Instagram Login OAuth start/callback with encrypted PostgreSQL token storage.
 - Scheduled Instagram image publishing queue and status tracking.
 - Mobile content planner with topic ideas, editable captions, scheduling and queue.
-- AI content-package generation endpoint and planner control, using OpenAI when configured.
+- AI content-package generation endpoint and planner control, using OpenAI when configured.\n- Optional daily queue generation for two posts at 10:00 and 18:00 India time, with duplicate-attempt protection. Manual trigger: `POST /api/automation/queue-daily`. Background daily generation is OFF by default and requires `AUTO_CONTENT_ENABLED=true` and `INSTAGRAM_USER_ID`.
 - AI image generation endpoint; generated image bytes are stored in PostgreSQL and exposed through a public HTTPS asset URL for Instagram to fetch.
 - Recent Instagram media report with likes and comment counts.
 - Instagram comment webhook verification and a webhook handler for AI-generated replies, with a database table to avoid replying to the same comment twice.
@@ -46,7 +46,7 @@ Set secrets in Render's Environment page. Never commit secrets or paste them int
 | `OPENAI_IMAGE_MODEL` | Optional | Defaults to `gpt-image-1` |
 | `APP_BASE_URL` | Generated image links | `https://socialpilot-ai-mvp.onrender.com` |
 | `META_WEBHOOK_VERIFY_TOKEN` | Webhook verification | Choose a private value and use the same value in Meta |
-| `AUTO_REPLY_ENABLED` | Auto-replies | Leave `false` until webhook verification and comment permission are tested |
+| `AUTO_REPLY_ENABLED` | Auto-replies | Leave `false` until webhook verification and comment permission are tested |\n| `AUTO_CONTENT_ENABLED` | Daily content queue | Leave `false` until AI and publishing have been tested; set `true` to queue the next day's two posts automatically |\n| `INSTAGRAM_USER_ID` | Daily content queue | Connected Instagram account ID |
 
 The Render Blueprint uses `sync: false` for private settings; that does not populate them automatically or provision PostgreSQL. If a token has already been saved, do not rotate `TOKEN_ENCRYPTION_KEY` without a migration plan.
 
@@ -70,7 +70,7 @@ The Render Blueprint uses `sync: false` for private settings; that does not popu
 3. Confirm the Meta app has the needed permissions and the Instagram account is eligible.
 4. Open `/auth/instagram/start`, authorize, and confirm the callback says `token_saved: true`.
 5. Open `/api/automation/status` and verify the expected configuration booleans.
-6. Open `/planner`, generate a sample caption and image, schedule a test post a few minutes in the future, and verify the post becomes `published`.
+6. Open `/planner`, generate a sample caption and image, schedule a test post a few minutes in the future, and verify the post becomes `published`. The same page can queue tomorrow's two posts after configuration.
 7. Configure and verify the Meta webhook while auto-replies remain disabled. Test with a controlled comment before setting `AUTO_REPLY_ENABLED=true`.
 8. Check the report endpoint for recent posts.
 
