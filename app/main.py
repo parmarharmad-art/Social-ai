@@ -355,3 +355,70 @@ async def list_posts(x_automation_key: str | None = Header(default=None)):
     except Exception:
         logger.exception("Could not list scheduled posts")
         raise HTTPException(status_code=503, detail="Could not load posts. Check database configuration.")
+
+
+CONTENT_TOPICS = [
+    "Automate YouTube Shorts from idea to publishing",
+    "LinkedIn lead generation workflow with AI",
+    "Meta Ads reporting automation with Google Sheets",
+    "WhatsApp lead follow-up automation",
+    "Automate social media content from research to publishing",
+    "Claude AI workflow for marketing campaign briefs",
+    "ChatGPT to Canva: turn a brief into carousel content",
+    "Google Ads weekly reporting automation",
+    "GA4 insights to an automated weekly report",
+    "Connect apps using Make without coding",
+    "Zapier workflow to capture and follow up leads",
+    "n8n workflow for content approval",
+    "MCP explained: connect AI to your work tools",
+    "AI content calendar in Google Sheets",
+    "Repurpose one long video into short-form content",
+    "Lead form to CRM to WhatsApp follow-up workflow",
+    "Human approval step in AI automation",
+    "Automated client onboarding for freelancers",
+    "Small business marketing dashboard automation",
+    "Instagram content approval workflow"
+]
+
+
+@app.get("/api/content/ideas")
+async def content_ideas():
+    return {
+        "brand": "Kiran Kumar • AI Automation",
+        "language": "English",
+        "posts_per_day": 2,
+        "topics": CONTENT_TOPICS,
+        "note": "Topic ideas only. AI-written content and image generation are not connected in this MVP."
+    }
+
+
+@app.get("/planner", response_class=HTMLResponse)
+async def content_planner():
+    topics_html = "".join(
+        "<option>" + topic.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + "</option>"
+        for topic in CONTENT_TOPICS
+    )
+    return """<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SocialPilot AI Planner</title><style>
+    body{font:16px system-ui;max-width:720px;margin:20px auto;padding:0 14px;background:#0b1220;color:#edf3ff}
+    section{background:#152238;padding:18px;border-radius:14px;margin:12px 0}label{display:block;margin:12px 0 5px;font-weight:600}
+    input,select,textarea{width:100%;padding:12px;box-sizing:border-box;border-radius:8px;border:1px solid #52627a;background:#0b1220;color:white}
+    button,a{display:inline-block;margin:8px 5px 0 0;padding:12px 14px;background:#2877ee;color:white;border:0;border-radius:8px;text-decoration:none;font:inherit}
+    #result{white-space:pre-wrap;overflow-wrap:anywhere}</style></head><body>
+    <h1>SocialPilot AI — Content Planner</h1><p>Choose a topic, prepare a caption, and schedule a post.</p>
+    <section><p><a href="/auth/instagram/start">Connect Instagram</a> <a href="/health">Check service</a></p>
+    <label>Topic</label><select id="topic">""" + topics_html + """</select>
+    <label>Public HTTPS image URL</label><input id="img" placeholder="https://.../post-image.jpg">
+    <label>Instagram user ID</label><input id="uid" value="28750627681259473">
+    <label>Schedule date and time (India)</label><input id="when" type="datetime-local">
+    <label>Automation API key (entered only for this session)</label><input id="key" type="password" autocomplete="off">
+    <label>Caption (editable)</label><textarea id="caption" rows="6"></textarea>
+    <button onclick="preview()">Make caption</button><button onclick="schedule()">Schedule post</button>
+    <div id="result">Caption is a template. AI image generation is not connected yet.</div></section>
+    <section><h2>Post queue</h2><button onclick="refreshPosts()">Refresh posts</button><div id="queue">No queue loaded.</div></section>
+    <script>
+    function makeCaption(){return document.getElementById('topic').value+'\\n\\nSave this workflow for later and share it with someone who needs it.\\n\\nFollow @officialkiraankumar for practical AI automation workflows.\\n\\n#AIAutomation #DigitalMarketing #Automation #AITools #KiranKumar'}
+    function preview(){document.getElementById('caption').value=makeCaption();document.getElementById('result').textContent='Caption template prepared.'}
+    async function schedule(){const out=document.getElementById('result');try{const key=document.getElementById('key').value.trim();const img=document.getElementById('img').value.trim();const when=document.getElementById('when').value;if(!key)throw Error('Enter the automation key set in Render.');if(!img.startsWith('https://'))throw Error('Use a public HTTPS image URL.');if(!when)throw Error('Choose a schedule date and time.');const response=await fetch('/api/posts/schedule',{method:'POST',headers:{'Content-Type':'application/json','X-Automation-Key':key},body:JSON.stringify({topic:document.getElementById('topic').value,caption:document.getElementById('caption').value||makeCaption(),image_url:img,instagram_user_id:document.getElementById('uid').value.trim(),scheduled_at:new Date(when).toISOString()})});const data=await response.json();if(!response.ok)throw Error(data.detail||'Schedule request failed');out.textContent='Scheduled. Post ID: '+data.post_id+'; status: '+data.status;refreshPosts()}catch(e){out.textContent='Not scheduled: '+e.message}}
+    async function refreshPosts(){const box=document.getElementById('queue');try{const key=document.getElementById('key').value.trim();if(!key)throw Error('Enter the automation key first.');const response=await fetch('/api/posts',{headers:{'X-Automation-Key':key}});const data=await response.json();if(!response.ok)throw Error(data.detail||'Request failed');box.textContent=data.posts.length?data.posts.map(p=>'#'+p.id+' | '+p.status+' | '+p.scheduled_at+'\\n'+p.caption+(p.last_error?'\\nError: '+p.last_error:'')).join('\\n\\n'):'No scheduled posts.'}catch(e){box.textContent=e.message}}
+    preview();</script></body></html>"""
