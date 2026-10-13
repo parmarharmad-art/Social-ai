@@ -26,7 +26,7 @@ def test_health_endpoint():
 def test_instagram_start_requires_configuration(monkeypatch):
     import app.main as main
 
-    monkeypatch.setattr(main, "META_APP_ID", "")
+    monkeypatch.setattr(main, "INSTAGRAM_APP_ID", "")
     monkeypatch.setattr(main, "REDIRECT_URI", "")
     response = client.get("/auth/instagram/start")
     assert response.status_code == 503
