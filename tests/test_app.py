@@ -181,3 +181,11 @@ def test_automation_status_reports_daily_content_flag():
     response = client.get("/api/automation/status")
     assert response.status_code == 200
     assert "automatic_daily_content_enabled" in response.json()
+
+
+def test_webhook_post_rejects_missing_signature(monkeypatch):
+    import app.main as main
+
+    monkeypatch.setattr(main, "INSTAGRAM_APP_SECRET", "test-app-secret")
+    response = client.post("/webhooks/instagram", json={"entry": []})
+    assert response.status_code == 403
