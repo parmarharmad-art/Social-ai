@@ -4,7 +4,7 @@ import logging
 import os
 import re
 import secrets
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from uuid import UUID, uuid4
 from zoneinfo import ZoneInfo
 from urllib.parse import urlencode
@@ -689,7 +689,7 @@ async def automation_status():
         "database_configured": bool(DATABASE_URL),
         "token_encryption_configured": bool(TOKEN_ENCRYPTION_KEY),
         "automation_key_configured": bool(AUTOMATION_API_KEY),
-        "comment_auto_reply_enabled": AUTO_REPLY_ENABLED,
+        "comment_auto_reply_enabled": AUTO_REPLY_ENABLED,\n        "automatic_daily_content_enabled": AUTO_CONTENT_ENABLED,\n        "automatic_daily_content_schedule": "10:00 and 18:00 Asia/Kolkata",
         "comment_auto_reply_requires": ["Meta webhook subscription", "META_WEBHOOK_VERIFY_TOKEN", "AUTO_REPLY_ENABLED=true", "OPENAI_API_KEY", "Instagram comment-management permission"],
     }
 
@@ -747,7 +747,7 @@ async def queue_daily_posts(instagram_user_id: str, target_date: str):
 async def queue_daily_endpoint(payload: dict, x_automation_key: str | None = Header(default=None)):
     require_automation_key(x_automation_key)
     user_id = str(payload.get("instagram_user_id") or INSTAGRAM_USER_ID).strip()
-    target_date = str(payload.get("target_date") or (datetime.now(ZoneInfo("Asia/Kolkata")).date() + __import__("datetime").timedelta(days=1)).isoformat())
+    target_date = str(payload.get("target_date") or (datetime.now(ZoneInfo("Asia/Kolkata")).date() + timedelta(days=1)).isoformat())
     if not user_id:
         raise HTTPException(status_code=400, detail="instagram_user_id is required or configure INSTAGRAM_USER_ID.")
     return await queue_daily_posts(user_id, target_date)
@@ -764,17 +764,31 @@ async def maybe_queue_daily_content():
                 CREATE TABLE IF NOT EXISTS automation_daily_batches (
                     target_date DATE NOT NULL,
                     instagram_user_id TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'processing',
+                    last_error TEXT,
                     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                     PRIMARY KEY (target_date, instagram_user_id)
                 )
             """)
-            cur.execute("SELECT 1 FROM automation_daily_batches WHERE target_date=%s AND instagram_user_id=%s", (tomorrow, INSTAGRAM_USER_ID))
-            already_done = cur.fetchone()
+            cur.execute("ALTER TABLE automation_daily_batches ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'processing'")
+            cur.execute("ALTER TABLE automation_daily_batches ADD COLUMN IF NOT EXISTS last_error TEXT")
+            cur.execute(
+                "INSERT INTO automation_daily_batches (target_date, instagram_user_id, status) VALUES (%s,%s,'processing') ON CONFLICT DO NOTHING RETURNING target_date",
+                (tomorrow, INSTAGRAM_USER_ID),
+            )
+            claimed = cur.fetchone()
         conn.commit()
-    if already_done:
+    if not claimed:
         return
-    await queue_daily_posts(INSTAGRAM_USER_ID, target_date)
-    with database_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("INSERT INTO automation_daily_batches (target_date, instagram_user_id) VALUES (%s,%s) ON CONFLICT DO NOTHING", (tomorrow, INSTAGRAM_USER_ID))
-        conn.commit()
+    try:
+        await queue_daily_posts(INSTAGRAM_USER_ID, target_date)
+        with database_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE automation_daily_batches SET status='completed', last_error=NULL WHERE target_date=%s AND instagram_user_id=%s", (tomorrow, INSTAGRAM_USER_ID))
+            conn.commit()
+    except Exception as exc:
+        with database_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE automation_daily_batches SET status='failed', last_error=%s WHERE target_date=%s AND instagram_user_id=%s", (str(exc)[:500], tomorrow, INSTAGRAM_USER_ID))
+            conn.commit()
+        raise
