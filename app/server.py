@@ -1,5 +1,2 @@
-"""Production ASGI entry point: existing API plus authenticated MCP endpoint."""
+"""Production ASGI entry point. MCP is mounted by app.main for backward compatibility."""
 from app.main import app
-from app.mcp_server import mount_mcp
-
-mount_mcp(app)
