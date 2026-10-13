@@ -11,7 +11,8 @@ Mobile-first Instagram automation project for **Kiran Kumar • AI Automation**.
 - Instagram Login OAuth start/callback with encrypted PostgreSQL token storage.
 - Scheduled Instagram image publishing queue and status tracking.
 - Mobile content planner with topic ideas, editable captions, scheduling and queue.
-- AI content-package generation endpoint and planner control, using OpenAI when configured.\n- Optional daily queue generation for two posts at 10:00 and 18:00 India time, with duplicate-attempt protection. Manual trigger: `POST /api/automation/queue-daily`. Background daily generation is OFF by default and requires `AUTO_CONTENT_ENABLED=true` and `INSTAGRAM_USER_ID`.
+- AI content-package generation endpoint and planner control, using OpenAI when configured.
+- Optional daily queue generation for two posts at 10:00 and 18:00 India time, with duplicate-attempt protection. Manual trigger: `POST /api/automation/queue-daily`. Background daily generation is OFF by default and requires `AUTO_CONTENT_ENABLED=true` and `INSTAGRAM_USER_ID`.
 - AI image generation endpoint; generated image bytes are stored in PostgreSQL and exposed through a public HTTPS asset URL for Instagram to fetch.
 - Recent Instagram media report with likes and comment counts.
 - Instagram comment webhook verification and a webhook handler for AI-generated replies, with a database table to avoid replying to the same comment twice.
