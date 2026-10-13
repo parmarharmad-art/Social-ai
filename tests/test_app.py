@@ -189,3 +189,17 @@ def test_webhook_post_rejects_missing_signature(monkeypatch):
     monkeypatch.setattr(main, "INSTAGRAM_APP_SECRET", "test-app-secret")
     response = client.post("/webhooks/instagram", json={"entry": []})
     assert response.status_code == 403
+
+
+def test_daily_queue_rejects_past_date_before_database_access(monkeypatch):
+    import app.main as main
+
+    monkeypatch.setattr(main, "AUTOMATION_API_KEY", "test-key")
+    monkeypatch.setattr(main, "OPENAI_API_KEY", "test-openai-key")
+    response = client.post(
+        "/api/automation/queue-daily",
+        headers={"X-Automation-Key": "test-key"},
+        json={"instagram_user_id": "123", "target_date": "2020-01-01"},
+    )
+    assert response.status_code == 400
+    assert "future date" in response.json()["detail"]
