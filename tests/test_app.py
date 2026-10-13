@@ -166,3 +166,17 @@ def test_instagram_report_requires_automation_key(monkeypatch):
     monkeypatch.setattr(main, "AUTOMATION_API_KEY", "test-key")
     response = client.get("/api/reports/instagram?instagram_user_id=123")
     assert response.status_code == 401
+
+
+def test_daily_queue_requires_automation_key(monkeypatch):
+    import app.main as main
+
+    monkeypatch.setattr(main, "AUTOMATION_API_KEY", "test-key")
+    response = client.post("/api/automation/queue-daily", json={"instagram_user_id": "123"})
+    assert response.status_code == 401
+
+
+def test_automation_status_reports_daily_content_flag():
+    response = client.get("/api/automation/status")
+    assert response.status_code == 200
+    assert "automatic_daily_content_enabled" in response.json()
