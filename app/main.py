@@ -27,7 +27,11 @@ REDIRECT_URI = os.getenv(
 ).strip()
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 TOKEN_ENCRYPTION_KEY = os.getenv("TOKEN_ENCRYPTION_KEY", "").strip()
-AUTOMATION_API_KEY = os.getenv("AUTOMATION_API_KEY", "").strip()\nOPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()\nAPP_BASE_URL = os.getenv("APP_BASE_URL", "https://socialpilot-ai-mvp.onrender.com").strip().rstrip("/")\nMETA_WEBHOOK_VERIFY_TOKEN = os.getenv("META_WEBHOOK_VERIFY_TOKEN", "").strip()\nAUTO_REPLY_ENABLED = os.getenv("AUTO_REPLY_ENABLED", "false").strip().lower() == "true"
+AUTOMATION_API_KEY = os.getenv("AUTOMATION_API_KEY", "").strip()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+APP_BASE_URL = os.getenv("APP_BASE_URL", "https://socialpilot-ai-mvp.onrender.com").strip().rstrip("/")
+META_WEBHOOK_VERIFY_TOKEN = os.getenv("META_WEBHOOK_VERIFY_TOKEN", "").strip()
+AUTO_REPLY_ENABLED = os.getenv("AUTO_REPLY_ENABLED", "false").strip().lower() == "true"
 
 oauth_states: dict[str, str] = {}
 
