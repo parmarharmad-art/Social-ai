@@ -90,9 +90,45 @@ async def dashboard():
     <title>SocialPilot AI</title><style>body{font:16px system-ui;max-width:760px;margin:40px auto;padding:0 18px;color:#18212f}
     .card{border:1px solid #d9e0e8;border-radius:16px;padding:22px}a{display:inline-block;background:#1769e0;color:white;padding:12px 16px;border-radius:9px;text-decoration:none}</style></head>
     <body><div class="card"><h1>SocialPilot AI</h1><p>Instagram Creator account connection.</p>
-    <p><a href="/auth/instagram/start">Connect Instagram</a> <a href="/studio">Open Post & Video Studio</a> <a href="/planner">Content Planner</a></p>
+    <p><a href="/setup">Setup checklist</a> <a href="/auth/instagram/start">Connect Instagram</a> <a href="/studio">Open Post & Video Studio</a> <a href="/planner">Content Planner</a></p>
     <p>Encrypted token storage requires DATABASE_URL and TOKEN_ENCRYPTION_KEY configuration.</p></div></body></html>
     """
+
+
+@app.get("/setup", response_class=HTMLResponse)
+async def setup_page():
+    """Non-technical setup checklist; shows configuration status without exposing secrets."""
+    checks = [
+        ("OpenAI API key", bool(OPENAI_API_KEY), "Required for AI captions and image generation. Add OPENAI_API_KEY in Render Environment."),
+        ("Persistent database", bool(DATABASE_URL), "Required to save the Instagram connection, post queue and generated images. Create/attach PostgreSQL in Render and set DATABASE_URL."),
+        ("Token encryption key", bool(TOKEN_ENCRYPTION_KEY), "Required to store the Instagram token safely. Generate a Fernet key once and save it as TOKEN_ENCRYPTION_KEY. Do not rotate it after connecting without a migration."),
+        ("Automation API key", bool(AUTOMATION_API_KEY), "Required by planner APIs and MCP tools. Set a long random secret as AUTOMATION_API_KEY."),
+        ("Meta app secret", bool(INSTAGRAM_APP_SECRET), "Required for Instagram OAuth. Set META_APP_ID and META_APP_SECRET from your Meta developer app."),
+        ("MCP access token", bool(os.getenv("MCP_ACCESS_TOKEN", "").strip() or AUTOMATION_API_KEY), "Required to protect remote MCP access. Set MCP_ACCESS_TOKEN (or use AUTOMATION_API_KEY as the fallback)."),
+        ("Webhook verify token", bool(META_WEBHOOK_VERIFY_TOKEN), "Required only for comment webhooks. Set the same private value in Render and Meta."),
+    ]
+    rows = "".join(
+        "<li><strong>" + ("READY" if ok else "NEEDS SETUP") + " — " + name + ".</strong> " + help_text + "</li>"
+        for name, ok, help_text in checks
+    )
+    ready_count = sum(1 for _, ok, _ in checks if ok)
+    return """<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SocialPilot AI Setup</title><style>body{font:16px/1.55 system-ui;max-width:820px;margin:24px auto;padding:0 16px;color:#172033;background:#f7f9fc}
+    main{background:white;border:1px solid #dce3ed;border-radius:16px;padding:22px}a{color:#075dd8}li{margin:14px 0}code{overflow-wrap:anywhere}
+    .note{background:#f1f5fb;padding:12px;border-radius:10px}.links a{display:inline-block;margin:5px 8px 5px 0}</style></head><body><main>
+    <h1>SocialPilot AI — Setup checklist</h1>
+    <p>Use this page to see which server settings are present. It never displays the secret values.</p>
+    <p><strong>Configuration checks passing: """ + str(ready_count) + """ / """ + str(len(checks)) + """</strong></p><ul>""" + rows + """</ul>
+    <h2>Finish setup in this order</h2><ol>
+    <li>In Render, open the <strong>socialpilot-ai-mvp</strong> service → Environment. Add the missing variables listed above, then save and redeploy.</li>
+    <li>Attach a persistent PostgreSQL database and set DATABASE_URL. Generate a Fernet key for TOKEN_ENCRYPTION_KEY and keep it safe.</li>
+    <li>In Meta for Developers, configure Instagram Login and the exact redirect URL: <code>https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback</code>. Account must be eligible Creator/Business and app permissions must be approved.</li>
+    <li>Open Connect Instagram below and approve the requested access. After callback, confirm token_saved is true.</li>
+    <li>Test a draft and image in Planner/Studio first. Schedule one test post before enabling daily automation.</li>
+    <li>Keep automatic replies and automatic daily content disabled until a controlled test succeeds. Comment webhooks require Meta webhook setup and the relevant permissions.</li>
+    </ol><p class="note"><strong>Important:</strong> never send API keys, app secrets, access tokens, or database URLs in chat or commit them to GitHub. A green configuration check only means a value exists; it does not prove Meta permissions or publishing work.</p>
+    <p class="links"><a href="/">Dashboard</a><a href="/auth/instagram/start">Connect Instagram</a><a href="/planner">Content Planner</a><a href="/studio">Post & Video Studio</a><a href="/api/automation/status">Configuration status</a></p>
+    </main></body></html>"""
 
 
 @app.get("/health")
