@@ -20,6 +20,7 @@ Open `/studio` on the deployed service for the in-app mobile-friendly design edi
 - AI image generation endpoint; generated image bytes are stored in PostgreSQL and exposed through a public HTTPS asset URL for Instagram to fetch.
 - Recent Instagram media report with likes and comment counts.
 - Instagram comment webhook verification and a webhook handler for AI-generated replies, with a database table to avoid replying to the same comment twice.
+- ChatGPT MCP Instagram agent skill runner covering 13 workflows: Reels, research/swipe analysis, captions, carousels, Stories, profile audits, weekly planning, humanizing drafts, comment drafts, comment replies, opt-in DM drafts, repurposing, and performance audits. These generate drafts only; they do not post, comment, or send DMs.
 - GitHub Actions smoke tests.
 
 ## Important limitations
