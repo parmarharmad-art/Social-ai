@@ -14,6 +14,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
 from app import main as api
+from app.instagram_skills import SKILLS, run_instagram_skill
 
 mcp = FastMCP(
     "SocialPilot AI",
@@ -117,6 +118,15 @@ async def get_studio_info() -> dict[str, Any]:
         ],
         "limitations": ["WebM only; no MP4 export", "Single-design animated video, not a multi-scene timeline", "AI features may incur API charges"],
     }
+
+
+@mcp.tool()
+async def run_instagram_agent_skill(skill_name: str, brief: str) -> dict[str, str]:
+    """Run one of 13 Instagram content workflows: ig-reel, ig-viral, ig-caption, ig-carousel, ig-story, ig-profile, ig-plan, ig-human, ig-comment, ig-reply, ig-dm, ig-repurpose, or ig-audit. Provide a clear brief and any source text/metrics. Returns drafts only; it never publishes, comments, or sends DMs. AI usage may incur charges."""
+    try:
+        return await run_instagram_skill(skill_name, brief, api.openai_chat)
+    except ValueError as exc:
+        raise ValueError(str(exc)) from exc
 
 
 def mount_mcp(application: FastAPI) -> None:
