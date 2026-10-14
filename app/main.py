@@ -21,7 +21,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, Resp
 
 load_dotenv()
 
-app = FastAPI(title="SocialPilot AI MVP", version="0.2.0")
+app = FastAPI(title="SocialPilot AI MVP", version="0.2.1")
 logger = logging.getLogger(__name__)
 
 INSTAGRAM_APP_ID = (os.getenv("INSTAGRAM_APP_ID") or os.getenv("META_APP_ID") or "1559704026184551").strip()
