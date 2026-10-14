@@ -214,9 +214,29 @@ async def instagram_callback(request: Request, code: str | None = None,
                     "access_token": short_token},
         )
         if long_response.status_code >= 400:
+            try:
+                payload = long_response.json()
+                err = payload.get("error", payload) if isinstance(payload, dict) else {}
+                if not isinstance(err, dict):
+                    err = {}
+                err_type = err.get("type") or err.get("error_type")
+                err_code = err.get("code")
+                err_subcode = err.get("error_subcode")
+                err_message = str(err.get("message") or err.get("error_message") or "No error message returned")[:300]
+            except (ValueError, TypeError):
+                err_type = err_code = err_subcode = None
+                err_message = "No error message returned"
+            logger.warning("Instagram long-lived token exchange failed: status=%s type=%s code=%s subcode=%s message=%s",
+                           long_response.status_code, err_type or "unknown", err_code or "unknown",
+                           err_subcode or "unknown", err_message)
             return JSONResponse(status_code=502, content={
                 "connected": False,
-                "message": "Instagram login succeeded but long-lived token exchange failed. Check Meta API configuration.",
+                "error": "Instagram long-lived token exchange failed.",
+                "meta_http_status": long_response.status_code,
+                "meta_error_type": err_type,
+                "meta_error_code": err_code,
+                "meta_error_subcode": err_subcode,
+                "meta_error_message": err_message,
             })
         long_data = long_response.json()
         long_token = long_data.get("access_token")
