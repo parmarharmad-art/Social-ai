@@ -203,3 +203,45 @@ def test_daily_queue_rejects_past_date_before_database_access(monkeypatch):
     )
     assert response.status_code == 400
     assert "future date" in response.json()["detail"]
+
+
+def test_instagram_agent_skills_expose_all_thirteen_modes():
+    from app.instagram_skills import SKILLS
+
+    assert len(SKILLS) == 13
+    assert {"ig-reel", "ig-viral", "ig-caption", "ig-carousel", "ig-story",
+            "ig-profile", "ig-plan", "ig-human", "ig-comment", "ig-reply",
+            "ig-dm", "ig-repurpose", "ig-audit"} == set(SKILLS)
+
+
+def test_instagram_agent_skill_runner_uses_supplied_generator():
+    import asyncio
+    from app.instagram_skills import run_instagram_skill
+
+    async def fake_openai_chat(messages, max_tokens=900):
+        assert messages[1]["content"].find("WORKFLOW: Reel Script") >= 0
+        assert "Automate LinkedIn leads" in messages[1]["content"]
+        return "Draft output"
+
+    result = asyncio.run(run_instagram_skill(
+        "ig-reel", "Automate LinkedIn leads", fake_openai_chat
+    ))
+    assert result["ok"] is True
+    assert result["skill"] == "ig-reel"
+    assert result["draft_only"] == "true"
+    assert result["result"] == "Draft output"
+
+
+def test_instagram_agent_skill_runner_rejects_unknown_skill():
+    import asyncio
+    from app.instagram_skills import run_instagram_skill
+
+    async def fake_openai_chat(messages, max_tokens=900):
+        return "unused"
+
+    try:
+        asyncio.run(run_instagram_skill("ig-not-real", "test brief", fake_openai_chat))
+    except ValueError as exc:
+        assert "Unknown skill_name" in str(exc)
+    else:
+        raise AssertionError("Unknown skill should be rejected")
