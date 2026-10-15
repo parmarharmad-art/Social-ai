@@ -126,7 +126,7 @@ async def setup_page():
     <h2>Finish setup in this order</h2><ol>
     <li>In Render, open the <strong>socialpilot-ai-mvp</strong> service → Environment. Add the missing variables listed above, then save and redeploy.</li>
     <li>Attach a persistent PostgreSQL database and set DATABASE_URL. Generate a Fernet key for TOKEN_ENCRYPTION_KEY and keep it safe.</li>
-    <li>In Meta for Developers, configure Instagram Login and the exact redirect URL: <code>https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback</code>. Account must be eligible Creator/Business and app permissions must be approved.</li>
+    <li>For Instagram Login, configure redirect URL <code>https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback</code>. For the alternate Facebook Login flow, enable Facebook Login and add <code>https://socialpilot-ai-mvp.onrender.com/auth/facebook/callback</code> under Valid OAuth Redirect URIs. Request the Page and Instagram permissions used by that flow.</li>
     <li>Open Connect Instagram below and approve the requested access. After callback, confirm token_saved is true.</li>
     <li>Test a draft and image in Planner/Studio first. Schedule one test post before enabling daily automation.</li>
     <li>Keep automatic replies and automatic daily content disabled until a controlled test succeeds. Comment webhooks require Meta webhook setup and the relevant permissions.</li>
@@ -614,6 +614,7 @@ def ensure_ai_tables():
 def get_saved_connection(user_id: str) -> tuple[str, str]:
     with database_connection() as conn:
         with conn.cursor() as cur:
+            cur.execute("ALTER TABLE instagram_connections ADD COLUMN IF NOT EXISTS auth_method TEXT NOT NULL DEFAULT 'instagram_login'")
             cur.execute("SELECT encrypted_access_token, auth_method FROM instagram_connections WHERE instagram_user_id=%s", (user_id,))
             row = cur.fetchone()
     if not row:
