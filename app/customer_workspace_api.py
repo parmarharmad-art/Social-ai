@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import psycopg
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, UploadFile, File
 from pydantic import BaseModel, Field
 
 from app.customer_auth import SESSION_COOKIE, _read_session
@@ -69,6 +69,43 @@ class CustomerScheduleInput(BaseModel):
     caption: str = Field(min_length=1, max_length=2200)
     scheduled_at: datetime
     topic: str = Field(default="", max_length=300)
+
+
+
+@router.post("/media/upload")
+async def customer_upload_image(request: Request, file: UploadFile = File(...)):
+    workspace_id = _workspace_id(request)
+    content_type = (file.content_type or "").lower()
+    if content_type not in {"image/png", "image/jpeg", "image/webp"}:
+        raise HTTPException(status_code=415, detail="Upload a PNG, JPEG or WebP image.")
+    data = await file.read(8 * 1024 * 1024 + 1)
+    if not data or len(data) > 8 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Image must be smaller than 8 MB.")
+    signatures = {
+        "image/png": data.startswith(b"\x89PNG\r\n\x1a\n"),
+        "image/jpeg": data.startswith(b"\xff\xd8\xff"),
+        "image/webp": len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP",
+    }
+    if not signatures.get(content_type, False):
+        raise HTTPException(status_code=400, detail="The uploaded file does not match its image type.")
+    from uuid import uuid4
+    from app.main import APP_BASE_URL, ensure_ai_tables
+    asset_id = uuid4()
+    try:
+        ensure_ai_tables()
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("ALTER TABLE generated_assets ADD COLUMN IF NOT EXISTS workspace_id UUID")
+                cur.execute("""
+                    INSERT INTO generated_assets (asset_id, image_bytes, mime_type, workspace_id)
+                    VALUES (%s,%s,%s,%s)
+                """, (asset_id, data, content_type, workspace_id))
+            conn.commit()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Could not store the image. Check database availability.")
+    return {"ok": True, "asset_id": str(asset_id),
+            "image_url": f"{APP_BASE_URL}/assets/{asset_id}",
+            "message": "Image uploaded. You can use this public HTTPS URL for your scheduled post."}
 
 
 @router.get("/instagram/connections")
