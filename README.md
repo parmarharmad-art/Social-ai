@@ -1,10 +1,12 @@
 # SocialPilot AI MVP
 
-Mobile-first Instagram automation project for **Kiran Kumar • AI Automation**.
+Mobile-first multi-platform social media management SaaS for **Kiran Kumar • AI Automation**.
 
 - Repository: https://github.com/parmarharmad-art/Social-ai
 - Render service: https://socialpilot-ai-mvp.onrender.com
 - Dashboard (Metricool-style): https://socialpilot-ai-mvp.onrender.com/dashboard
+- Multi-platform connections: https://socialpilot-ai-mvp.onrender.com/platforms
+- Platform catalog API: https://socialpilot-ai-mvp.onrender.com/api/platforms
 - Planner: https://socialpilot-ai-mvp.onrender.com/planner
 - Customer workspace: https://socialpilot-ai-mvp.onrender.com/workspace
 - Customer account/login: https://socialpilot-ai-mvp.onrender.com/account
@@ -22,6 +24,10 @@ Open `/dashboard` for a mobile-first workspace with service/configuration status
 ## Built-in Post & Video Studio
 
 Open `/studio` on the deployed service for the in-app mobile-friendly design editor. It includes editable text and shapes, image upload, 4:5/square/story/landscape canvas sizes, starter templates, drag-to-position, basic layer ordering, PNG export, local browser project save/load, JSON project export, and browser-native animated WebM export. The studio does not require a Canva account or design-app SDK. AI copy/image buttons reuse the configured server AI API and may incur usage charges. Current video export is WebM only and animates one design; multi-scene timelines, AI voice generation, and MP4 export are not implemented in this initial version.
+
+## Multi-platform direction and current status
+
+The `/platforms` page lists Instagram, Facebook Pages, LinkedIn, YouTube, TikTok, Pinterest and X in one connection hub. Instagram Login and Facebook Login OAuth routes exist in code, but are not considered production-ready until a real connection and publish test passes. Meta currently returns `API access blocked` on the Instagram long-lived-token exchange. LinkedIn, YouTube, TikTok, Pinterest and X are listed as planned integrations only; their OAuth flows and publishing adapters still need implementation, provider credentials, permissions/approval, and end-to-end tests. Never show these planned channels as connected or claim publishing works until verified. The shared publishing architecture should use provider-specific adapters, per-workspace encrypted tokens, capability checks, platform-specific media validation, retry handling and audit logs.
 
 ## Features implemented in code
 
