@@ -40,7 +40,8 @@ AUTO_REPLY_ENABLED = os.getenv("AUTO_REPLY_ENABLED", "false").strip().lower() ==
 AUTO_CONTENT_ENABLED = os.getenv("AUTO_CONTENT_ENABLED", "false").strip().lower() == "true"
 INSTAGRAM_USER_ID = os.getenv("INSTAGRAM_USER_ID", "").strip()
 
-oauth_states: dict[str, str] = {}
+oauth_states: dict[str, dict] = {}
+META_GRAPH_API_VERSION = os.getenv("META_GRAPH_API_VERSION", "v25.0").strip() or "v25.0"
 
 
 def database_connection():
@@ -58,7 +59,7 @@ def token_cipher():
     return Fernet(TOKEN_ENCRYPTION_KEY.encode("ascii"))
 
 
-def save_encrypted_token(user_id: str, access_token: str, expires_in: int | None):
+def save_encrypted_token(user_id: str, access_token: str, expires_in: int | None, auth_method: str = "instagram_login"):
     encrypted = token_cipher().encrypt(access_token.encode("utf-8")).decode("ascii")
     with database_connection() as conn:
         with conn.cursor() as cur:
@@ -67,19 +68,22 @@ def save_encrypted_token(user_id: str, access_token: str, expires_in: int | None
                     instagram_user_id TEXT PRIMARY KEY,
                     encrypted_access_token TEXT NOT NULL,
                     token_expires_in BIGINT,
+                    auth_method TEXT NOT NULL DEFAULT 'instagram_login',
                     connected_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
                 )
             """)
+            cur.execute("ALTER TABLE instagram_connections ADD COLUMN IF NOT EXISTS auth_method TEXT NOT NULL DEFAULT 'instagram_login'")
             cur.execute("""
                 INSERT INTO instagram_connections
-                    (instagram_user_id, encrypted_access_token, token_expires_in)
-                VALUES (%s, %s, %s)
+                    (instagram_user_id, encrypted_access_token, token_expires_in, auth_method)
+                VALUES (%s, %s, %s, %s)
                 ON CONFLICT (instagram_user_id) DO UPDATE SET
                     encrypted_access_token = EXCLUDED.encrypted_access_token,
                     token_expires_in = EXCLUDED.token_expires_in,
+                    auth_method = EXCLUDED.auth_method,
                     updated_at = NOW()
-            """, (user_id, encrypted, expires_in))
+            """, (user_id, encrypted, expires_in, auth_method))
         conn.commit()
 
 
@@ -90,7 +94,7 @@ async def dashboard():
     <title>SocialPilot AI</title><style>body{font:16px system-ui;max-width:760px;margin:40px auto;padding:0 18px;color:#18212f}
     .card{border:1px solid #d9e0e8;border-radius:16px;padding:22px}a{display:inline-block;background:#1769e0;color:white;padding:12px 16px;border-radius:9px;text-decoration:none}</style></head>
     <body><div class="card"><h1>SocialPilot AI</h1><p>Instagram Creator account connection.</p>
-    <p><a href="/setup">Setup checklist</a> <a href="/auth/instagram/start">Connect Instagram</a> <a href="/studio">Open Post & Video Studio</a> <a href="/planner">Content Planner</a></p>
+    <p><a href="/setup">Setup checklist</a> <a href="/auth/instagram/start">Instagram Login</a> <a href="/auth/facebook/start">Facebook Login</a> <a href="/studio">Open Post & Video Studio</a> <a href="/planner">Content Planner</a></p>
     <p>Encrypted token storage requires DATABASE_URL and TOKEN_ENCRYPTION_KEY configuration.</p></div></body></html>
     """
 
@@ -127,7 +131,7 @@ async def setup_page():
     <li>Test a draft and image in Planner/Studio first. Schedule one test post before enabling daily automation.</li>
     <li>Keep automatic replies and automatic daily content disabled until a controlled test succeeds. Comment webhooks require Meta webhook setup and the relevant permissions.</li>
     </ol><p class="note"><strong>Important:</strong> never send API keys, app secrets, access tokens, or database URLs in chat or commit them to GitHub. A green configuration check only means a value exists; it does not prove Meta permissions or publishing work.</p>
-    <p class="links"><a href="/">Dashboard</a><a href="/auth/instagram/start">Connect Instagram</a><a href="/planner">Content Planner</a><a href="/studio">Post & Video Studio</a><a href="/api/automation/status">Configuration status</a></p>
+    <p class="links"><a href="/">Dashboard</a><a href="/auth/instagram/start">Instagram Login</a><a href="/auth/facebook/start">Facebook Login</a><a href="/planner">Content Planner</a><a href="/studio">Post & Video Studio</a><a href="/api/automation/status">Configuration status</a></p>
     </main></body></html>"""
 
 
@@ -152,10 +156,10 @@ async def instagram_start():
     if not INSTAGRAM_APP_ID or not REDIRECT_URI:
         raise HTTPException(status_code=503, detail="Configure Instagram App ID and redirect URI.")
     state = secrets.token_urlsafe(32)
-    oauth_states[state] = REDIRECT_URI
+    oauth_states[state] = {"redirect_uri": REDIRECT_URI, "auth_method": "instagram_login"}
     params = {
         "client_id": INSTAGRAM_APP_ID,
-        "redirect_uri": oauth_states[state],
+        "redirect_uri": REDIRECT_URI,
         "response_type": "code",
         "scope": "instagram_business_basic,instagram_business_content_publish,instagram_business_manage_comments,instagram_business_manage_insights",
         "state": state,
@@ -170,7 +174,8 @@ async def instagram_callback(request: Request, code: str | None = None,
         return JSONResponse(status_code=400, content={"connected": False, "error": "Instagram authorization was cancelled or denied."})
     if not code or not state or state not in oauth_states:
         raise HTTPException(status_code=400, detail="Invalid or expired OAuth state.")
-    exchange_redirect_uri = oauth_states.pop(state)
+    state_data = oauth_states.pop(state)
+    exchange_redirect_uri = state_data["redirect_uri"]
     if not INSTAGRAM_APP_ID or not INSTAGRAM_APP_SECRET or not exchange_redirect_uri:
         raise HTTPException(status_code=503, detail="Instagram OAuth environment is not configured.")
 
@@ -249,7 +254,7 @@ async def instagram_callback(request: Request, code: str | None = None,
         raise HTTPException(status_code=502, detail="Instagram did not return a user ID.")
 
     try:
-        save_encrypted_token(instagram_user_id, long_token, expires_in)
+        save_encrypted_token(instagram_user_id, long_token, expires_in, "instagram_login")
     except Exception:
         logger.exception("Secure Instagram token storage failed; token value was not logged.")
         return JSONResponse(status_code=503, content={
@@ -265,6 +270,81 @@ async def instagram_callback(request: Request, code: str | None = None,
         "user_id": instagram_user_id,
         "expires_in": expires_in,
     }
+
+
+@app.get("/auth/facebook/start")
+async def facebook_login_start():
+    """Alternate official Instagram API with Facebook Login for Instagram professional accounts linked to a Page."""
+    if not INSTAGRAM_APP_ID or not INSTAGRAM_APP_SECRET:
+        raise HTTPException(status_code=503, detail="Configure Meta App ID and App Secret in Render.")
+    redirect_uri = APP_BASE_URL + "/auth/facebook/callback"
+    state = secrets.token_urlsafe(32)
+    oauth_states[state] = {"redirect_uri": redirect_uri, "auth_method": "facebook_login"}
+    permissions = "pages_show_list,pages_read_engagement,instagram_basic,instagram_content_publish,instagram_manage_comments,instagram_manage_insights"
+    params = {"client_id": INSTAGRAM_APP_ID, "redirect_uri": redirect_uri, "response_type": "code",
+              "scope": permissions, "state": state}
+    return RedirectResponse(f"https://www.facebook.com/{META_GRAPH_API_VERSION}/dialog/oauth?" + urlencode(params), status_code=302)
+
+
+@app.get("/auth/facebook/callback")
+async def facebook_login_callback(code: str | None = None, state: str | None = None,
+                                  error: str | None = None, error_description: str | None = None):
+    if error:
+        return JSONResponse(status_code=400, content={"connected": False, "auth_method": "facebook_login",
+            "error": "Facebook authorization was cancelled or denied.", "meta_error": str(error)[:100]})
+    if not code or not state or state not in oauth_states:
+        raise HTTPException(status_code=400, detail="Invalid or expired OAuth state.")
+    state_data = oauth_states.pop(state)
+    if state_data.get("auth_method") != "facebook_login":
+        raise HTTPException(status_code=400, detail="OAuth state does not match Facebook Login.")
+    redirect_uri = state_data["redirect_uri"]
+    base = f"https://graph.facebook.com/{META_GRAPH_API_VERSION}"
+    async with httpx.AsyncClient(timeout=30) as client:
+        token_response = await client.get(f"{base}/oauth/access_token", params={
+            "client_id": INSTAGRAM_APP_ID, "client_secret": INSTAGRAM_APP_SECRET,
+            "redirect_uri": redirect_uri, "code": code})
+        if token_response.status_code >= 400:
+            logger.warning("Facebook OAuth code exchange failed with HTTP %s", token_response.status_code)
+            return JSONResponse(status_code=502, content={"connected": False, "auth_method": "facebook_login",
+                "error": "Facebook OAuth code exchange failed.", "meta_http_status": token_response.status_code})
+        short_token = token_response.json().get("access_token")
+        if not short_token:
+            raise HTTPException(status_code=502, detail="Facebook did not return a user access token.")
+        long_response = await client.get(f"{base}/oauth/access_token", params={
+            "grant_type": "fb_exchange_token", "client_id": INSTAGRAM_APP_ID,
+            "client_secret": INSTAGRAM_APP_SECRET, "fb_exchange_token": short_token})
+        if long_response.status_code >= 400:
+            logger.warning("Facebook long-lived token exchange failed with HTTP %s", long_response.status_code)
+            return JSONResponse(status_code=502, content={"connected": False, "auth_method": "facebook_login",
+                "error": "Facebook long-lived token exchange failed.", "meta_http_status": long_response.status_code})
+        user_data = long_response.json()
+        user_token = user_data.get("access_token")
+        if not user_token:
+            raise HTTPException(status_code=502, detail="Facebook did not return a long-lived user token.")
+        pages_response = await client.get(f"{base}/me/accounts", params={
+            "fields": "id,name,access_token,tasks,instagram_business_account", "access_token": user_token})
+        if pages_response.status_code >= 400:
+            logger.warning("Facebook Page lookup failed with HTTP %s", pages_response.status_code)
+            return JSONResponse(status_code=502, content={"connected": False, "auth_method": "facebook_login",
+                "error": "Could not list Facebook Pages. Check Page-list and engagement permissions.",
+                "meta_http_status": pages_response.status_code})
+        pages = pages_response.json().get("data", [])
+        linked_page = next((p for p in pages if p.get("instagram_business_account", {}).get("id") and p.get("access_token")), None)
+        if not linked_page:
+            return JSONResponse(status_code=400, content={"connected": False, "auth_method": "facebook_login",
+                "error": "No accessible Facebook Page linked to an Instagram professional account was found. Check Page access and linkage."})
+        instagram_user_id = str(linked_page["instagram_business_account"]["id"])
+        page_token = linked_page["access_token"]
+        expires_in = user_data.get("expires_in")
+    try:
+        save_encrypted_token(instagram_user_id, page_token, expires_in, "facebook_login")
+    except Exception:
+        logger.exception("Secure Facebook Login token storage failed; token value was not logged.")
+        return JSONResponse(status_code=503, content={"connected": False, "auth_method": "facebook_login",
+            "error": "Facebook login succeeded, but secure token storage failed. Check database and encryption configuration."})
+    return {"connected": True, "token_saved": True, "auth_method": "facebook_login",
+            "instagram_user_id": instagram_user_id, "facebook_page_name": linked_page.get("name"),
+            "message": "Facebook Login connected. Test publishing before enabling automation.", "expires_in": expires_in}
 
 
 # Scheduled publishing MVP. Requires a persistent PostgreSQL database and a public HTTPS image URL.
@@ -326,14 +406,16 @@ async def publish_due_posts():
             try:
                 with database_connection() as conn:
                     with conn.cursor() as cur:
-                        cur.execute("SELECT encrypted_access_token FROM instagram_connections WHERE instagram_user_id=%s", (user_id,))
+                        cur.execute("SELECT encrypted_access_token, auth_method FROM instagram_connections WHERE instagram_user_id=%s", (user_id,))
                         row = cur.fetchone()
                 if not row:
                     raise RuntimeError("No saved Instagram connection for this account.")
                 token = token_cipher().decrypt(row[0].encode("ascii")).decode("utf-8")
+                auth_method = row[1] or "instagram_login"
+                api_prefix = f"https://graph.facebook.com/{META_GRAPH_API_VERSION}" if auth_method == "facebook_login" else "https://graph.instagram.com"
                 async with httpx.AsyncClient(timeout=30) as client:
                     media = await client.post(
-                        f"https://graph.instagram.com/{user_id}/media",
+                        f"{api_prefix}/{user_id}/media",
                         data={"image_url": image_url, "caption": caption, "access_token": token},
                     )
                     media.raise_for_status()
@@ -341,7 +423,7 @@ async def publish_due_posts():
                     if not media_id:
                         raise RuntimeError("Instagram did not return a media container ID.")
                     published = await client.post(
-                        f"https://graph.instagram.com/{user_id}/media_publish",
+                        f"{api_prefix}/{user_id}/media_publish",
                         data={"creation_id": media_id, "access_token": token},
                     )
                     published.raise_for_status()
@@ -479,7 +561,7 @@ async def content_planner():
     button,a{display:inline-block;margin:8px 5px 0 0;padding:12px 14px;background:#2877ee;color:white;border:0;border-radius:8px;text-decoration:none;font:inherit}
     #result{white-space:pre-wrap;overflow-wrap:anywhere}</style></head><body>
     <h1>SocialPilot AI — Content Planner</h1><p><a href="/studio">Open built-in Post & Video Studio</a> · Choose a topic, prepare a caption, and schedule a post.</p>
-    <section><p><a href="/auth/instagram/start">Connect Instagram</a> <a href="/health">Check service</a></p>
+    <section><p><a href="/auth/instagram/start">Instagram Login</a> <a href="/auth/facebook/start">Facebook Login (alternate)</a> <a href="/health">Check service</a></p>
     <label>Topic</label><select id="topic">""" + topics_html + """</select>
     <label>Public HTTPS image URL</label><input id="img" placeholder="Generated image URL appears here">
     <label>Instagram user ID</label><input id="uid" value="28750627681259473">
@@ -529,17 +611,19 @@ def ensure_ai_tables():
         conn.commit()
 
 
-def get_saved_token(user_id: str) -> str:
+def get_saved_connection(user_id: str) -> tuple[str, str]:
     with database_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT encrypted_access_token FROM instagram_connections WHERE instagram_user_id=%s",
-                (user_id,),
-            )
+            cur.execute("SELECT encrypted_access_token, auth_method FROM instagram_connections WHERE instagram_user_id=%s", (user_id,))
             row = cur.fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="Instagram account is not connected with a saved token.")
-    return token_cipher().decrypt(row[0].encode("ascii")).decode("utf-8")
+    token = token_cipher().decrypt(row[0].encode("ascii")).decode("utf-8")
+    return token, (row[1] or "instagram_login")
+
+
+def get_saved_token(user_id: str) -> str:
+    return get_saved_connection(user_id)[0]
 
 
 async def openai_chat(messages: list[dict], max_tokens: int = 900) -> str:
@@ -648,10 +732,11 @@ async def serve_generated_asset(asset_id: UUID):
 @app.get("/api/reports/instagram")
 async def instagram_report(instagram_user_id: str, x_automation_key: str | None = Header(default=None)):
     require_automation_key(x_automation_key)
-    token = get_saved_token(instagram_user_id)
+    token, auth_method = get_saved_connection(instagram_user_id)
+    graph_url = f"https://graph.facebook.com/{META_GRAPH_API_VERSION}" if auth_method == "facebook_login" else "https://graph.instagram.com"
     async with httpx.AsyncClient(timeout=30) as client:
         response = await client.get(
-            f"https://graph.instagram.com/{instagram_user_id}/media",
+            f"{graph_url}/{instagram_user_id}/media",
             params={"fields": "id,caption,like_count,comments_count,timestamp,permalink", "limit": 25, "access_token": token},
         )
     if response.status_code >= 400:
@@ -702,10 +787,11 @@ async def verify_instagram_webhook(request: Request):
 
 
 async def reply_to_instagram_comment(comment_id: str, text: str, user_id: str):
-    token = get_saved_token(user_id)
+    token, auth_method = get_saved_connection(user_id)
+    graph_url = f"https://graph.facebook.com/{META_GRAPH_API_VERSION}" if auth_method == "facebook_login" else "https://graph.instagram.com"
     async with httpx.AsyncClient(timeout=30) as client:
         response = await client.post(
-            f"https://graph.instagram.com/{comment_id}/replies",
+            f"{graph_url}/{comment_id}/replies",
             data={"message": text[:1000], "access_token": token},
         )
     if response.status_code >= 400:
