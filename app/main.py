@@ -182,6 +182,12 @@ async def setup_page():
         ("Facebook Login credentials", bool(FACEBOOK_APP_ID and FACEBOOK_APP_SECRET), "Optional alternate route. META_APP_ID and META_APP_SECRET must come from the Facebook Login app."),
         ("MCP access token", bool(os.getenv("MCP_ACCESS_TOKEN", "").strip() or AUTOMATION_API_KEY), "Required to protect remote MCP access. Set MCP_ACCESS_TOKEN (or use AUTOMATION_API_KEY as the fallback)."),
         ("Webhook verify token", bool(META_WEBHOOK_VERIFY_TOKEN), "Required only for comment webhooks. Set the same private value in Render and Meta."),
+        ("LinkedIn developer credentials", bool(os.getenv("LINKEDIN_CLIENT_ID", "").strip() and os.getenv("LINKEDIN_CLIENT_SECRET", "").strip()), "Required for LinkedIn OAuth and text posts. Callback: /auth/linkedin/callback."),
+        ("Google / YouTube credentials", bool(os.getenv("GOOGLE_CLIENT_ID", "").strip() and os.getenv("GOOGLE_CLIENT_SECRET", "").strip()), "Required for YouTube channel connection. Callback: /auth/youtube/callback."),
+        ("X developer credentials", bool(os.getenv("X_CLIENT_ID", "").strip() and os.getenv("X_CLIENT_SECRET", "").strip()), "Required for X OAuth and text posts. Callback: /auth/x/callback."),
+        ("Pinterest developer credentials", bool(os.getenv("PINTEREST_APP_ID", "").strip() and os.getenv("PINTEREST_APP_SECRET", "").strip()), "Required for Pinterest OAuth and image pins. Callback: /auth/pinterest/callback."),
+        ("TikTok developer credentials", bool(os.getenv("TIKTOK_CLIENT_KEY", "").strip() and os.getenv("TIKTOK_CLIENT_SECRET", "").strip()), "Required for TikTok OAuth and URL-based video publishing. Callback: /auth/tiktok/callback."),
+        ("Customer session secret", len(os.getenv("CUSTOMER_SESSION_SECRET", os.getenv("SESSION_SECRET", "")).strip()) >= 32, "Required for secure customer login; use a random secret with at least 32 characters."),
     ]
     rows = "".join(
         "<li><strong>" + ("READY" if ok else "NEEDS SETUP") + " — " + name + ".</strong> " + help_text + "</li>"
@@ -198,12 +204,12 @@ async def setup_page():
     <h2>Finish setup in this order</h2><ol>
     <li>In Render, open the <strong>socialpilot-ai-mvp</strong> service → Environment. Add the missing variables listed above, then save and redeploy.</li>
     <li>Attach a persistent PostgreSQL database and set DATABASE_URL. Generate a Fernet key for TOKEN_ENCRYPTION_KEY and keep it safe.</li>
-    <li>For Instagram Login, set INSTAGRAM_APP_ID and INSTAGRAM_APP_SECRET from the same Instagram Login app and configure redirect URL <code>https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback</code>. For the alternate Facebook Login flow, set META_APP_ID and META_APP_SECRET from the Facebook Login app, enable Facebook Login, and add <code>https://socialpilot-ai-mvp.onrender.com/auth/facebook/callback</code> under Valid OAuth Redirect URIs. Request the Page and Instagram permissions used by that flow.</li>
-    <li>Open Connect Instagram below and approve the requested access. After callback, confirm token_saved is true.</li>
+    <li>Instagram connection is intentionally pending per product owner request. For Facebook Login, set META_APP_ID and META_APP_SECRET from the Facebook Login app, enable Facebook Login, and add <code>https://socialpilot-ai-mvp.onrender.com/auth/facebook/callback</code> under Valid OAuth Redirect URIs. Request the Page and Instagram permissions used by that flow.</li>
+    <li>Open Platforms and connect an approved non-Instagram provider after its developer credentials and callback URL are configured. Confirm the account appears only after a successful provider callback.</li>
     <li>Test a draft and image in Planner/Studio first. Schedule one test post before enabling daily automation.</li>
     <li>Keep automatic replies and automatic daily content disabled until a controlled test succeeds. Comment webhooks require Meta webhook setup and the relevant permissions.</li>
     </ol><p class="note"><strong>Important:</strong> never send API keys, app secrets, access tokens, or database URLs in chat or commit them to GitHub. A green configuration check only means a value exists; it does not prove Meta permissions or publishing work.</p>
-    <p class="links"><a href="/">Dashboard</a><a href="/auth/instagram/start">Instagram Login</a><a href="/auth/facebook/start">Facebook Login</a><a href="/planner">Content Planner</a><a href="/studio">Post & Video Studio</a><a href="/api/automation/status">Configuration status</a></p>
+    <p class="links"><a href="/">Dashboard</a><a href="/platforms">All platforms</a><a href="/auth/facebook/start">Facebook Login</a><a href="/planner">Content Planner</a><a href="/studio">Post & Video Studio</a><a href="/api/automation/status">Configuration status</a></p>
     </main></body></html>"""
 
 
@@ -225,6 +231,7 @@ async def oauth_config_check():
 
 @app.get("/auth/instagram/start")
 async def instagram_start(request: Request):
+    raise HTTPException(status_code=410, detail="Instagram connection is intentionally pending. Use /platforms to connect other social platforms.")
     if not INSTAGRAM_APP_ID or not REDIRECT_URI:
         raise HTTPException(status_code=503, detail="Configure Instagram App ID and redirect URI.")
     workspace_id = customer_workspace_id(request)
