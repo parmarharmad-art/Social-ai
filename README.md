@@ -13,9 +13,9 @@ Mobile-first multi-platform social media management SaaS for **Kiran Kumar • A
 
 ## Important: OAuth credential separation
 
-Instagram Login and Facebook Login use separate credentials in this project. In Render, configure `INSTAGRAM_APP_ID` and `INSTAGRAM_APP_SECRET` from the same **Instagram API with Instagram Login** app. Configure `META_APP_ID` and `META_APP_SECRET` only for the separate Facebook Login fallback. Do not swap the two app IDs or secrets. The Instagram callback must exactly match `https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback`; the Facebook callback is `https://socialpilot-ai-mvp.onrender.com/auth/facebook/callback`.
+Instagram Login and Facebook Login use separate credentials in this project. In Render, configure `INSTAGRAM_APP_ID` and `INSTAGRAM_APP_SECRET` from the same **Instagram API with Instagram Login** app. Configure `META_APP_ID` and `META_APP_SECRET` for Facebook Page Login and Page publishing. Do not swap the two app IDs or secrets. The Instagram callback must exactly match `https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback`; the Facebook callback is `https://socialpilot-ai-mvp.onrender.com/auth/facebook/callback`.
 
-The Render Blueprint now declares both Instagram Login variables. After syncing/deploying the latest GitHub commit, fill in the new values in Render Environment. This code change does not grant Meta permissions or remove a Meta-side API block.
+Instagram remains disabled by request. Facebook Page OAuth needs a Meta app with the Page permissions and review required by Meta. Merely configuring credentials does not grant provider approval.
 
 ## Metricool-style Dashboard
 
@@ -25,14 +25,14 @@ Open `/dashboard` for a mobile-first workspace with service/configuration status
 
 Open `/studio` on the deployed service for the in-app mobile-friendly design editor. It includes editable text and shapes, image upload, 4:5/square/story/landscape canvas sizes, starter templates, drag-to-position, basic layer ordering, PNG export, local browser project save/load, JSON project export, and browser-native animated WebM export. The studio does not require a Canva account or design-app SDK. AI copy/image buttons reuse the configured server AI API and may incur usage charges. Current video export is WebM only and animates one design; multi-scene timelines, AI voice generation, and MP4 export are not implemented in this initial version.
 
-## Multi-platform direction and current status
+## Multi-platform integrations and current status
 
-The `/platforms` page lists Instagram, Facebook Pages, LinkedIn, YouTube, TikTok, Pinterest and X in one connection hub. Instagram Login and Facebook Login OAuth routes exist in code, but are not considered production-ready until a real connection and publish test passes. Meta currently returns `API access blocked` on the Instagram long-lived-token exchange. LinkedIn OAuth/text publishing, YouTube OAuth/channel verification, X OAuth 2.0 PKCE/text publishing, Pinterest OAuth/image-pin publishing, and TikTok OAuth/URL-based video publishing have code in the repository. They still require their own provider credentials, app permissions/approval, and end-to-end live-account tests. YouTube video upload is not implemented yet. Never show these planned channels as connected or claim publishing works until verified. The shared publishing architecture should use provider-specific adapters, per-workspace encrypted tokens, capability checks, platform-specific media validation, retry handling and audit logs.
+The `/platforms` page lists Instagram, Facebook Pages, LinkedIn, YouTube, TikTok, Pinterest and X in one connection hub. Instagram Login and Facebook Login OAuth routes exist in code, but are not considered production-ready until a real connection and publish test passes. Meta currently returns `API access blocked` on the Instagram long-lived-token exchange. LinkedIn OAuth/text publishing, YouTube OAuth/channel verification, X OAuth 2.0 PKCE/text publishing, Pinterest OAuth/image-pin publishing, and TikTok OAuth/URL-based video publishing have code in the repository. They still require their own provider credentials, app permissions/approval, and end-to-end live-account tests. YouTube resumable video upload is implemented in code. Never show these planned channels as connected or claim publishing works until verified. The shared publishing architecture should use provider-specific adapters, per-workspace encrypted tokens, capability checks, platform-specific media validation, retry handling and audit logs.
 
 ## Features implemented in code
 
 - Instagram Login OAuth start/callback with encrypted PostgreSQL token storage.
-- Scheduled Instagram image publishing queue and status tracking.
+- Existing Instagram queue code remains in the project but is not part of the active launch scope. Facebook Page text/link, LinkedIn text, X text, Pinterest image-pin and TikTok video publish endpoints are implemented in code; YouTube resumable video upload is also implemented. Provider credentials and live-account verification are still required.
 - Mobile content planner with topic ideas, editable captions, scheduling and queue.
 - AI content-package generation endpoint and planner control, using OpenAI when configured.
 - Optional daily queue generation for two posts at 10:00 and 18:00 India time, with duplicate-attempt protection. Manual trigger: `POST /api/automation/queue-daily`. Background daily generation is OFF by default and requires `AUTO_CONTENT_ENABLED=true` and `INSTAGRAM_USER_ID`.
@@ -40,13 +40,13 @@ The `/platforms` page lists Instagram, Facebook Pages, LinkedIn, YouTube, TikTok
 - Recent Instagram media report with likes and comment counts.
 - Instagram comment webhook verification and a webhook handler for AI-generated replies, with a database table to avoid replying to the same comment twice.
 - ChatGPT MCP Instagram agent skill runner covering 13 workflows: Reels, research/swipe analysis, captions, carousels, Stories, profile audits, weekly planning, humanizing drafts, comment drafts, comment replies, opt-in DM drafts, repurposing, and performance audits. These generate drafts only; they do not post, comment, or send DMs.
-- Customer account foundation with salted PBKDF2 password hashes and signed HttpOnly session cookies; public signup remains disabled by default.
+- Customer account foundation with salted PBKDF2 password hashes and signed HttpOnly session cookies; signup is enabled in the current Render environment for testing; this is not yet a production onboarding approval.
 - Session-authenticated customer APIs for workspace-scoped Instagram connections, content drafting, image uploads, scheduled-post listing and cancellation.
 - GitHub Actions smoke tests.
 
 ## Go-live and sale-readiness checklist
 
-Before selling this as a hosted SaaS, complete and verify all of the following: (1) a successful real Instagram OAuth connection on the deployed service; (2) one successful test image publish and token refresh/expiry handling; (3) durable scheduling while the service sleeps/restarts; (4) production verification of cross-workspace isolation, session expiry/revocation, rate limiting, email verification, usage limits and customer onboarding; (5) privacy policy, terms, data deletion and support process; (6) Meta webhook verification and permission review where needed; and (7) automated tests plus a full end-to-end test on the production deployment. Do not advertise features as live until their real integration test passes.
+Before selling this as a hosted SaaS, complete and verify all of the following: (1) a successful OAuth connection for each supported non-Instagram provider; (2) successful live test publishing on each provider and token refresh/expiry handling; (3) durable multi-platform scheduling while the service sleeps/restarts; (4) production verification of cross-workspace isolation, session expiry/revocation, rate limiting, email verification, usage limits and customer onboarding; (5) privacy policy, terms, data deletion and support process; (6) Meta webhook verification and permission review where needed; and (7) automated tests plus a full end-to-end test on the production deployment. Do not advertise features as live until their real integration test passes.
 
 ## Important limitations
 
@@ -66,9 +66,9 @@ Set secrets in Render's Environment page. Never commit secrets or paste them int
 
 | Variable | Required for | Notes |
 | --- | --- | --- |
-| `META_APP_ID` | Instagram login | Meta app ID |
-| `META_APP_SECRET` | Instagram login | Private app secret |
-| `INSTAGRAM_REDIRECT_URI` | Instagram login | Must exactly match Meta: `https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback` |
+| `META_APP_ID` | Facebook Page login | Meta app ID |
+| `META_APP_SECRET` | Facebook Page login | Private app secret |
+| `INSTAGRAM_REDIRECT_URI` | Legacy/pending Instagram route | Not used while Instagram connection remains disabled. |
 | `DATABASE_URL` | Token storage, queue, generated assets | Persistent PostgreSQL connection URL |
 | `TOKEN_ENCRYPTION_KEY` | Token storage | Valid Fernet key; keep stable and private |
 | `AUTOMATION_API_KEY` | Planner API | Strong private key for schedule, AI and report endpoints |
@@ -110,7 +110,7 @@ The Render Blueprint uses `sync: false` for private settings; that does not popu
 1. Set the environment variables in Render and attach a persistent PostgreSQL database.
 2. Ensure the Meta app's Instagram Login redirect URL exactly matches the callback above.
 3. Confirm the Meta app has the needed permissions and the Instagram account is eligible.
-4. Open `/auth/instagram/start`, authorize, and confirm the callback says `token_saved: true`.
+4. Open `/platforms`, connect one non-Instagram channel whose credentials are configured, then verify a real test post on that platform.
 5. Open `/api/automation/status` and verify the expected configuration booleans.
 6. Open `/planner`, generate a sample caption and image, schedule a test post a few minutes in the future, and verify the post becomes `published`. The same page can queue tomorrow's two posts after configuration.
 7. Configure and verify the Meta webhook while auto-replies remain disabled. Test with a controlled comment before setting `AUTO_REPLY_ENABLED=true`.
@@ -144,3 +144,8 @@ TikTok OAuth and URL-based video publishing routes are implemented at `/auth/tik
 ## YouTube video upload
 
 `POST /api/youtube/videos` accepts multipart fields `video` (video file, max 256 MB), `title`, optional `description`, and `privacy_status` (`private` by default, or `unlisted` / `public`). It uses YouTube resumable upload and refreshes expired access tokens when a refresh token is stored. Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `YOUTUBE_REDIRECT_URI`, and enable YouTube Data API v3 with upload scope. Public publishing should only be enabled after account and processing tests. This endpoint is implemented in code but not yet tested with a real channel.
+
+
+## Facebook Page publishing
+
+Facebook Page OAuth uses `/auth/facebook/start` and `/auth/facebook/callback`. The callback saves the selected available Page token encrypted in the workspace `social_connections` table. `POST /api/facebook/pages/posts` accepts `{ "message": "...", "link": "https://..." }` with an authenticated customer session and publishes a text/link post to the connected Page. It requires `pages_show_list`, `pages_read_engagement`, and `pages_manage_posts` access, plus any Meta app review required for the app. No live Page connection/post has been verified yet.
