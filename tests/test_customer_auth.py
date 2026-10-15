@@ -82,3 +82,13 @@ def test_customer_workspace_routes_require_login():
         "caption": "Test", "scheduled_at": "2030-01-01T10:00:00+05:30"
     })
     assert response.status_code == 401
+
+
+def test_customer_workspace_console_routes():
+    friendly = client.get("/workspace", follow_redirects=False)
+    assert friendly.status_code == 307
+    assert friendly.headers["location"] == "/api/customer/workspace"
+    page = client.get("/api/customer/workspace")
+    assert page.status_code == 200
+    assert "Connect Instagram" in page.text
+    assert "/api/customer/posts" in page.text
