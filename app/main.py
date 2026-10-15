@@ -1180,3 +1180,8 @@ from app.billing import router as billing_router
 app.include_router(billing_router)
 
 
+
+
+# LinkedIn OAuth and text publishing integration.
+from app.linkedin import router as linkedin_router
+app.include_router(linkedin_router)
