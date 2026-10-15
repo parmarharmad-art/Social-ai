@@ -1194,3 +1194,7 @@ app.include_router(youtube_router)
 
 from app.x_platform import router as x_router
 app.include_router(x_router)
+
+
+from app.pinterest import router as pinterest_router
+app.include_router(pinterest_router)
