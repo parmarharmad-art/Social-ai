@@ -110,7 +110,7 @@ def customer_workspace_id(request: Request) -> str:
     token = request.cookies.get(SESSION_COOKIE, "")
     session = _read_session(token) if token else None
     if not session:
-        raise HTTPException(status_code=401, detail="Log in at /account before connecting Instagram.")
+        raise HTTPException(status_code=401, detail="Log in at /account before connecting a social account.")
     with database_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
