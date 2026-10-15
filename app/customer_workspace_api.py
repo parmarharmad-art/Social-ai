@@ -127,6 +127,29 @@ async def customer_posts(request: Request):
     ]}
 
 
+
+
+class CustomerContentInput(BaseModel):
+    topic: str = Field(min_length=3, max_length=300)
+
+
+@router.post("/content")
+async def customer_generate_content(payload: CustomerContentInput, request: Request):
+    # Require a valid session and workspace before spending any provider credits.
+    _workspace_id(request)
+    topic = " ".join(payload.topic.split()).strip()
+    from app.main import OPENAI_API_KEY, make_template_content_package, openai_chat
+    if not OPENAI_API_KEY:
+        return {"ok": True, "mode": "template", "topic": topic,
+                "content": make_template_content_package(topic),
+                "note": "Template draft generated. AI writing requires the operator to configure the provider key."}
+    generated = await openai_chat([
+        {"role": "system", "content": "You are a practical Instagram content strategist for AI automation, digital marketing and small businesses. Write clear professional English, with concrete steps and no fabricated results."},
+        {"role": "user", "content": "Create an Instagram carousel package with HOOK, SLIDE 1, SLIDE 2, SLIDE 3, SLIDE 4, CAPTION, CTA, HASHTAGS, IMAGE PROMPT sections. Keep each slide mobile-readable and practical. Topic: " + topic},
+    ], max_tokens=1400)
+    return {"ok": True, "mode": "ai", "topic": topic, "content": generated}
+
+
 @router.post("/posts")
 async def customer_schedule_post(payload: CustomerScheduleInput, request: Request):
     workspace_id = _workspace_id(request)
