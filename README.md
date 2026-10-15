@@ -6,6 +6,8 @@ Mobile-first Instagram automation project for **Kiran Kumar • AI Automation**.
 - Render service: https://socialpilot-ai-mvp.onrender.com
 - Dashboard (Metricool-style): https://socialpilot-ai-mvp.onrender.com/dashboard
 - Planner: https://socialpilot-ai-mvp.onrender.com/planner
+- Customer workspace: https://socialpilot-ai-mvp.onrender.com/workspace
+- Customer account/login: https://socialpilot-ai-mvp.onrender.com/account
 
 ## Important: OAuth credential separation
 
@@ -32,11 +34,13 @@ Open `/studio` on the deployed service for the in-app mobile-friendly design edi
 - Recent Instagram media report with likes and comment counts.
 - Instagram comment webhook verification and a webhook handler for AI-generated replies, with a database table to avoid replying to the same comment twice.
 - ChatGPT MCP Instagram agent skill runner covering 13 workflows: Reels, research/swipe analysis, captions, carousels, Stories, profile audits, weekly planning, humanizing drafts, comment drafts, comment replies, opt-in DM drafts, repurposing, and performance audits. These generate drafts only; they do not post, comment, or send DMs.
+- Customer account foundation with salted PBKDF2 password hashes and signed HttpOnly session cookies; public signup remains disabled by default.
+- Session-authenticated customer APIs for workspace-scoped Instagram connections, content drafting, image uploads, scheduled-post listing and cancellation.
 - GitHub Actions smoke tests.
 
 ## Go-live and sale-readiness checklist
 
-Before selling this as a hosted SaaS, complete and verify all of the following: (1) a successful real Instagram OAuth connection on the deployed service; (2) one successful test image publish and token refresh/expiry handling; (3) durable scheduling while the service sleeps/restarts; (4) tenant isolation, account-level authentication, billing/subscriptions, usage limits and customer onboarding; (5) privacy policy, terms, data deletion and support process; (6) Meta webhook verification and permission review where needed; and (7) automated tests plus a full end-to-end test on the production deployment. Do not advertise features as live until their real integration test passes.
+Before selling this as a hosted SaaS, complete and verify all of the following: (1) a successful real Instagram OAuth connection on the deployed service; (2) one successful test image publish and token refresh/expiry handling; (3) durable scheduling while the service sleeps/restarts; (4) production verification of cross-workspace isolation, session expiry/revocation, rate limiting, email verification, usage limits and customer onboarding; (5) privacy policy, terms, data deletion and support process; (6) Meta webhook verification and permission review where needed; and (7) automated tests plus a full end-to-end test on the production deployment. Do not advertise features as live until their real integration test passes.
 
 ## Important limitations
 
@@ -109,4 +113,4 @@ pytest -q
 
 Razorpay billing routes are available in code at `/billing`, `/api/billing/status`, `/api/billing/create-subscription`, and `/webhooks/razorpay`. The billing code has automated safety tests, but it is not active until merchant KYC/account approval, a monthly plan, API credentials, webhook configuration and a live/test-mode end-to-end test are completed. Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_PLAN_ID`, and `RAZORPAY_WEBHOOK_SECRET` in Render Environment. Do not share secrets in chat or commit them.
 
-The subscription-creation route is admin-key protected for owner-led testing. **Customer self-service checkout, customer login, tenant isolation and automatic paid-access enforcement are not implemented yet. Do not sell subscriptions or grant customer access based only on a checkout URL.** Razorpay setup is intentionally pending until the owner is ready.
+The subscription-creation route is admin-key protected for owner-led testing. **Customer self-service checkout and automatic paid-access enforcement are not implemented yet. Customer login/workspace APIs are in code but are not considered production-ready until the latest deploy and cross-workspace tests are verified. Do not sell subscriptions or grant customer access based only on a checkout URL.** Razorpay setup is intentionally pending until the owner is ready.
