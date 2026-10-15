@@ -27,7 +27,7 @@ Open `/studio` on the deployed service for the in-app mobile-friendly design edi
 
 ## Multi-platform direction and current status
 
-The `/platforms` page lists Instagram, Facebook Pages, LinkedIn, YouTube, TikTok, Pinterest and X in one connection hub. Instagram Login and Facebook Login OAuth routes exist in code, but are not considered production-ready until a real connection and publish test passes. Meta currently returns `API access blocked` on the Instagram long-lived-token exchange. LinkedIn OAuth and text-post publishing, YouTube OAuth/channel verification, and X OAuth 2.0 PKCE/text-post publishing have code in the repository. They still require their own provider credentials, app permissions/approval, and end-to-end live-account tests. YouTube video upload and TikTok/Pinterest integrations are not implemented yet. Never show these planned channels as connected or claim publishing works until verified. The shared publishing architecture should use provider-specific adapters, per-workspace encrypted tokens, capability checks, platform-specific media validation, retry handling and audit logs.
+The `/platforms` page lists Instagram, Facebook Pages, LinkedIn, YouTube, TikTok, Pinterest and X in one connection hub. Instagram Login and Facebook Login OAuth routes exist in code, but are not considered production-ready until a real connection and publish test passes. Meta currently returns `API access blocked` on the Instagram long-lived-token exchange. LinkedIn OAuth and text-post publishing, YouTube OAuth/channel verification, X OAuth 2.0 PKCE/text-post publishing, and Pinterest OAuth/image-pin publishing have code in the repository. They still require their own provider credentials, app permissions/approval, and end-to-end live-account tests. YouTube video upload and TikTok publishing are not implemented yet. Never show these planned channels as connected or claim publishing works until verified. The shared publishing architecture should use provider-specific adapters, per-workspace encrypted tokens, capability checks, platform-specific media validation, retry handling and audit logs.
 
 ## Features implemented in code
 
@@ -82,6 +82,8 @@ Set secrets in Render's Environment page. Never commit secrets or paste them int
 | `YOUTUBE_REDIRECT_URI` | YouTube OAuth | Must exactly match Google Cloud OAuth client; defaults to `https://socialpilot-ai-mvp.onrender.com/auth/youtube/callback` |
 | `X_CLIENT_ID` / `X_CLIENT_SECRET` | X OAuth and text posts | X developer app with OAuth 2.0 enabled; callback `/auth/x/callback` |
 | `X_REDIRECT_URI` | X OAuth | Must exactly match X app callback; defaults to `https://socialpilot-ai-mvp.onrender.com/auth/x/callback` |
+| `PINTEREST_APP_ID` / `PINTEREST_APP_SECRET` | Pinterest OAuth and pins | Pinterest developer app and approved scopes; callback `/auth/pinterest/callback` |
+| `PINTEREST_REDIRECT_URI` | Pinterest OAuth | Must exactly match Pinterest app callback; defaults to `https://socialpilot-ai-mvp.onrender.com/auth/pinterest/callback` |
 | `AUTO_REPLY_ENABLED` | Auto-replies | Leave `false` until webhook verification and comment permission are tested |
 | `AUTO_CONTENT_ENABLED` | Daily content queue | Leave `false` until AI and publishing have been tested; set `true` to queue the next day's two posts automatically |
 | `INSTAGRAM_USER_ID` | Daily content queue | Connected Instagram account ID |
@@ -125,3 +127,8 @@ pytest -q
 Razorpay billing routes are available in code at `/billing`, `/api/billing/status`, `/api/billing/create-subscription`, and `/webhooks/razorpay`. The billing code has automated safety tests, but it is not active until merchant KYC/account approval, a monthly plan, API credentials, webhook configuration and a live/test-mode end-to-end test are completed. Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_PLAN_ID`, and `RAZORPAY_WEBHOOK_SECRET` in Render Environment. Do not share secrets in chat or commit them.
 
 The subscription-creation route is admin-key protected for owner-led testing. **Customer self-service checkout and automatic paid-access enforcement are not implemented yet. Customer login/workspace APIs are in code but are not considered production-ready until the latest deploy and cross-workspace tests are verified. Do not sell subscriptions or grant customer access based only on a checkout URL.** Razorpay setup is intentionally pending until the owner is ready.
+
+
+## Pinterest publishing
+
+Pinterest OAuth and image-pin publishing routes are implemented at `/auth/pinterest/start`, `/auth/pinterest/callback`, and `POST /api/pinterest/pins`. Pin payloads require a Pinterest board ID, title, description, public HTTPS image URL, and optional destination link. Configure `PINTEREST_APP_ID`, `PINTEREST_APP_SECRET`, and matching `PINTEREST_REDIRECT_URI`; the app must be approved for the required API scopes. Real-account OAuth and pin publishing have not yet been verified.
