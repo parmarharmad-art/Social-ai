@@ -1190,3 +1190,7 @@ app.include_router(linkedin_router)
 # YouTube Google OAuth connection and channel verification.
 from app.youtube import router as youtube_router
 app.include_router(youtube_router)
+
+
+from app.x_platform import router as x_router
+app.include_router(x_router)
