@@ -47,6 +47,11 @@ async def integration_readiness():
         "facebook_credentials": configured("META_APP_ID") and configured("META_APP_SECRET"),
         "linkedin_credentials": configured("LINKEDIN_CLIENT_ID") and configured("LINKEDIN_CLIENT_SECRET"),
         "youtube_credentials": configured("GOOGLE_CLIENT_ID") and configured("GOOGLE_CLIENT_SECRET"),
+        "x_credentials": configured("X_CLIENT_ID") and configured("X_CLIENT_SECRET"),
+        "pinterest_credentials": configured("PINTEREST_APP_ID") and configured("PINTEREST_APP_SECRET"),
+        "database_configured": configured("DATABASE_URL"),
+        "token_encryption_key": configured("TOKEN_ENCRYPTION_KEY"),
+        "customer_session_secret": len(os.getenv("CUSTOMER_SESSION_SECRET", os.getenv("SESSION_SECRET", "")).strip()) >= 32,
         "instagram": "pending_by_user_request",
         "razorpay": "pending_by_user_request",
         "note": "Credentials being present does not prove provider approval or a successful live publish."
