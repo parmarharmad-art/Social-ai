@@ -74,6 +74,10 @@ class CustomerScheduleInput(BaseModel):
     topic: str = Field(default="", max_length=300)
 
 
+class CustomerContentInput(BaseModel):
+    topic: str = Field(min_length=3, max_length=300)
+
+
 
 
 @router.post("/media/generate")
@@ -217,8 +221,6 @@ async def customer_posts(request: Request):
 
 
 
-class CustomerContentInput(BaseModel):
-    topic: str = Field(min_length=3, max_length=300)
 
 
 @router.post("/content")
