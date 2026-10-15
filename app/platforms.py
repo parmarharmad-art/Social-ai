@@ -12,7 +12,7 @@ PLATFORMS = [
     {"id":"youtube","name":"YouTube","group":"Video","status":"oauth_implemented","note":"Google OAuth and channel verification code added. Requires Google OAuth credentials, YouTube Data API v3 and consent-screen approval; video upload is not yet implemented."},
     {"id":"tiktok","name":"TikTok","group":"Video","status":"planned","note":"Requires TikTok developer app approval and Content Posting API access."},
     {"id":"pinterest","name":"Pinterest","group":"Discovery","status":"planned","note":"Requires Pinterest app credentials and approved API scopes."},
-    {"id":"x","name":"X","group":"Conversation","status":"planned","note":"Requires X developer access and API credentials; access and pricing depend on X plan."},
+    {"id":"x","name":"X","group":"Conversation","status":"oauth_implemented","note":"OAuth 2.0 PKCE and text-post publishing code added. Requires X developer app, OAuth 2.0 user authentication and API access."},
 ]
 
 @router.get("/api/platforms")
@@ -25,7 +25,8 @@ async def platform_catalog():
                 None if p["id"] == "instagram" else
                 "/auth/facebook/start" if p["id"] == "facebook" else
                 "/auth/linkedin/start" if p["id"] == "linkedin" else
-                "/auth/youtube/start" if p["id"] == "youtube" else None
+                "/auth/youtube/start" if p["id"] == "youtube" else
+                "/auth/x/start" if p["id"] == "x" else None
             )} for p in PLATFORMS
         ],
         "notice": "A listed OAuth flow is not proof of successful connection or publishing. Provider approval and live tests are required."
@@ -57,7 +58,7 @@ async def platforms_page():
         ready = p["status"] == "oauth_implemented"
         label = "OAuth flow in code — test required" if ready else ("Blocked / pending" if p["id"] == "instagram" else "Integration planned")
         action = (
-            f'<a class="btn" href="{"/auth/linkedin/start" if p["id"]=="linkedin" else "/auth/youtube/start" if p["id"]=="youtube" else "/auth/facebook/start"}">Try connect</a>'
+            f'<a class="btn" href="{"/auth/linkedin/start" if p["id"]=="linkedin" else "/auth/youtube/start" if p["id"]=="youtube" else "/auth/x/start" if p["id"]=="x" else "/auth/facebook/start"}">Try connect</a>'
             if ready and p["id"] != "instagram" else ('<span class="btn disabled">Pending by request</span>' if p["id"] == "instagram" else '<span class="btn disabled">Coming soon</span>')
         )
         cards.append(
@@ -79,5 +80,5 @@ h2{font-size:20px;margin:18px 0 8px}p{color:#bac5dd;line-height:1.5;font-size:14
 nav{display:flex;gap:16px;margin-top:22px;flex-wrap:wrap}nav a{color:#8be9ff}
 </style><main><div class="eyebrow">SocialPilot AI · Connect channels</div><h1>All your social platforms.<br>One workspace.</h1><p class="sub">Plan content for multiple channels from one place. Connections are being added provider by provider. We show the current integration state honestly—no fake connected badges.</p>
 <div class="grid">""" + "".join(cards) + """</div>
-<div class="notice"><strong>Important:</strong> “OAuth flow in code” does not mean the provider has approved the app or that publishing works. Meta currently blocks the Instagram token exchange. LinkedIn OAuth/text-post and YouTube OAuth/channel verification code are available but need provider credentials and approval. YouTube video upload, TikTok, Pinterest and X publishing are not yet implemented.</div>
+<div class="notice"><strong>Important:</strong> “OAuth flow in code” does not mean the provider has approved the app or that publishing works. Meta currently blocks the Instagram token exchange. LinkedIn OAuth/text-post and YouTube OAuth/channel verification code are available but need provider credentials and approval. YouTube video upload, TikTok and Pinterest publishing are not yet implemented. X text posting is implemented in code but requires credentials and a live-account test.</div>
 <nav><a href="/dashboard">Dashboard</a><a href="/workspace">Workspace</a><a href="/account">Account / Login</a><a href="/setup">Setup checklist</a></nav></main></html>""")
