@@ -72,3 +72,13 @@ def test_facebook_oauth_requires_customer_login(monkeypatch):
     response = client.get("/auth/facebook/start", follow_redirects=False)
     assert response.status_code == 401
     assert "Log in" in response.json()["detail"]
+
+
+def test_customer_workspace_routes_require_login():
+    assert client.get("/api/customer/instagram/connections").status_code == 401
+    assert client.get("/api/customer/posts").status_code == 401
+    response = client.post("/api/customer/posts", json={
+        "instagram_user_id": "123", "image_url": "https://example.com/post.jpg",
+        "caption": "Test", "scheduled_at": "2030-01-01T10:00:00+05:30"
+    })
+    assert response.status_code == 401
