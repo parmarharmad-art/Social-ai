@@ -89,17 +89,10 @@ def save_encrypted_token(user_id: str, access_token: str, expires_in: int | None
         conn.commit()
 
 
-@app.get("/", response_class=HTMLResponse)
-async def dashboard():
-    return """
-    <!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SocialPilot AI</title><style>body{font:16px system-ui;max-width:760px;margin:40px auto;padding:0 18px;color:#18212f}
-    .card{border:1px solid #d9e0e8;border-radius:16px;padding:22px}a{display:inline-block;background:#1769e0;color:white;padding:12px 16px;border-radius:9px;text-decoration:none}</style></head>
-    <body><div class="card"><h1>SocialPilot AI</h1><p>Instagram Creator account connection.</p>
-    <p><a href="/dashboard">Open SocialPilot Dashboard</a> <a href="/studio">Post & Video Studio</a> <a href="/planner">Content Planner</a> <a href="/setup">Setup checklist</a></p><p>Connect Instagram only after the correct app credentials and Meta permissions are configured.</p>
-    <p>Encrypted token storage requires DATABASE_URL and TOKEN_ENCRYPTION_KEY configuration.</p></div></body></html>
-    """
-
+@app.get("/", include_in_schema=False)
+async def dashboard_home():
+    """Send users to the full dashboard instead of the minimal legacy landing page."""
+    return RedirectResponse(url="/dashboard", status_code=307)
 
 @app.get("/setup", response_class=HTMLResponse)
 async def setup_page():
@@ -1002,10 +995,3 @@ mount_mcp(app)
 from app.dashboard import router as dashboard_router
 app.include_router(dashboard_router)
 
-
-# Send the base URL to the main dashboard for easier mobile access.
-from fastapi.responses import RedirectResponse
-
-@app.get("/", include_in_schema=False)
-async def dashboard_home():
-    return RedirectResponse(url="/dashboard", status_code=307)
