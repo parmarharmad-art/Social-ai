@@ -187,6 +187,25 @@ async def customer_generate_content(payload: CustomerContentInput, request: Requ
     return {"ok": True, "mode": "ai", "topic": topic, "content": generated}
 
 
+
+@router.delete("/posts/{post_id}")
+async def customer_cancel_post(post_id: int, request: Request):
+    workspace_id = _workspace_id(request)
+    with _db() as conn:
+        with conn.cursor() as cur:
+            _ensure_posts_table(cur)
+            cur.execute("""
+                UPDATE scheduled_posts SET status='cancelled'
+                WHERE id=%s AND workspace_id=%s AND status='scheduled'
+                RETURNING id
+            """, (post_id, workspace_id))
+            row = cur.fetchone()
+        conn.commit()
+    if not row:
+        raise HTTPException(status_code=404, detail="Scheduled post not found in this workspace or it has already started.")
+    return {"ok": True, "post_id": row[0], "status": "cancelled"}
+
+
 @router.post("/posts")
 async def customer_schedule_post(payload: CustomerScheduleInput, request: Request):
     workspace_id = _workspace_id(request)
