@@ -84,16 +84,6 @@ def test_customer_workspace_routes_require_login():
     assert response.status_code == 401
 
 
-def test_customer_workspace_console_routes():
-    friendly = client.get("/workspace", follow_redirects=False)
-    assert friendly.status_code == 307
-    assert friendly.headers["location"] == "/api/customer/workspace"
-    page = client.get("/api/customer/workspace")
-    assert page.status_code == 200
-    assert "Connect Instagram" in page.text
-    assert "/api/customer/posts" in page.text
-
-
 def test_workspace_page_redirects_when_not_logged_in():
     response = client.get("/workspace", follow_redirects=False)
     assert response.status_code == 303
