@@ -25,6 +25,8 @@ app = FastAPI(title="SocialPilot AI MVP", version="0.2.1")
 
 from app.customer_auth import router as customer_auth_router
 app.include_router(customer_auth_router)
+from app.customer_workspace_api import router as customer_workspace_router
+app.include_router(customer_workspace_router)
 logger = logging.getLogger(__name__)
 
 INSTAGRAM_APP_ID = (os.getenv("INSTAGRAM_APP_ID") or "").strip()
@@ -471,9 +473,11 @@ def ensure_posts_table():
                     instagram_media_id TEXT,
                     last_error TEXT,
                     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    published_at TIMESTAMPTZ
+                    published_at TIMESTAMPTZ,
+                    workspace_id UUID
                 )
             """)
+            cur.execute("ALTER TABLE scheduled_posts ADD COLUMN IF NOT EXISTS workspace_id UUID")
         conn.commit()
 
 
@@ -493,7 +497,7 @@ async def publish_due_posts():
         with database_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    SELECT id, instagram_user_id, image_url, caption
+                    SELECT id, instagram_user_id, image_url, caption, workspace_id
                     FROM scheduled_posts
                     WHERE status='scheduled' AND scheduled_at <= NOW()
                     ORDER BY scheduled_at
@@ -504,14 +508,16 @@ async def publish_due_posts():
                 for job in jobs:
                     cur.execute("UPDATE scheduled_posts SET status='processing' WHERE id=%s", (job[0],))
             conn.commit()
-        for post_id, user_id, image_url, caption in jobs:
+        for post_id, user_id, image_url, caption, workspace_id in jobs:
             try:
                 with database_connection() as conn:
                     with conn.cursor() as cur:
-                        cur.execute("SELECT encrypted_access_token, auth_method FROM instagram_connections WHERE instagram_user_id=%s", (user_id,))
+                        cur.execute("SELECT encrypted_access_token, auth_method, workspace_id FROM instagram_connections WHERE instagram_user_id=%s", (user_id,))
                         row = cur.fetchone()
                 if not row:
                     raise RuntimeError("No saved Instagram connection for this account.")
+                if workspace_id and str(row[2]) != str(workspace_id):
+                    raise RuntimeError("Workspace ownership mismatch for scheduled Instagram post.")
                 token = token_cipher().decrypt(row[0].encode("ascii")).decode("utf-8")
                 auth_method = row[1] or "instagram_login"
                 api_prefix = f"https://graph.facebook.com/{META_GRAPH_API_VERSION}" if auth_method == "facebook_login" else "https://graph.instagram.com"
