@@ -31,6 +31,25 @@ async def platform_catalog():
         "notice": "A listed OAuth flow is not proof of successful connection or publishing. Provider approval and live tests are required."
     }
 
+
+@router.get("/api/integration-readiness")
+async def integration_readiness():
+    """Safe configuration checklist; never returns secret values."""
+    def configured(name):
+        return bool(os.getenv(name, "").strip())
+    return {
+        "signup_enabled": os.getenv("CUSTOMER_SIGNUP_ENABLED", "false").strip().lower() == "true",
+        "openai_api_key": configured("OPENAI_API_KEY"),
+        "automation_api_key": configured("AUTOMATION_API_KEY"),
+        "mcp_access_token": configured("MCP_ACCESS_TOKEN") or configured("AUTOMATION_API_KEY"),
+        "facebook_credentials": configured("META_APP_ID") and configured("META_APP_SECRET"),
+        "linkedin_credentials": configured("LINKEDIN_CLIENT_ID") and configured("LINKEDIN_CLIENT_SECRET"),
+        "youtube_credentials": configured("GOOGLE_CLIENT_ID") and configured("GOOGLE_CLIENT_SECRET"),
+        "instagram": "pending_by_user_request",
+        "razorpay": "pending_by_user_request",
+        "note": "Credentials being present does not prove provider approval or a successful live publish."
+    }
+
 @router.get("/platforms", response_class=HTMLResponse)
 async def platforms_page():
     cards = []
