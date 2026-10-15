@@ -93,3 +93,11 @@ def test_workspace_page_redirects_when_not_logged_in():
 def test_customer_content_generation_requires_login():
     response = client.post("/api/customer/content", json={"topic": "Instagram lead generation"})
     assert response.status_code == 401
+
+
+def test_customer_image_upload_requires_login():
+    response = client.post(
+        "/api/customer/media/upload",
+        files={"file": ("test.png", b"\\x89PNG\\r\\n\\x1a\\n", "image/png")},
+    )
+    assert response.status_code == 401
