@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#070b16">
+<meta name="description" content="A 3D animated freelance learning blueprint by Kiran Kumar. Explore practical steps to start building freelance skills.">
+<title>Kiran Kumar — Freelance Freedom Blueprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#070b16;--panel:#10182b;--line:rgba(255,255,255,.12);--muted:#aab5ca;--white:#f7f9ff;--cyan:#5ee7f7;--violet:#a78bfa;--gold:#f6ca62}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 75% 12%,#1b2050 0,transparent 35%),var(--bg);color:var(--white);font-family:'DM Sans',sans-serif;overflow-x:hidden}a{color:inherit;text-decoration:none}button{font:inherit}.wrap{width:min(1120px,calc(100% - 40px));margin:auto}
+nav{height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid rgba(255,255,255,.08);position:relative;z-index:5}.logo{font:700 1.05rem 'Space Grotesk',sans-serif;letter-spacing:-.04em}.logo span{color:var(--cyan)}.navlinks{display:flex;gap:26px;color:var(--muted);font-size:.9rem}.navlinks a:hover{color:white}.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:1px solid transparent;border-radius:13px;padding:13px 18px;font-weight:700;cursor:pointer;transition:transform .2s,box-shadow .2s}.btn:hover{transform:translateY(-2px)}.primary{background:linear-gradient(110deg,var(--cyan),#a5f3fc);color:#07101c;box-shadow:0 8px 30px #5ee7f72b}.ghost{border-color:var(--line);background:#ffffff08;color:var(--white)}.hero{min-height:650px;display:grid;grid-template-columns:1.02fr .98fr;align-items:center;gap:24px;padding:70px 0 60px;position:relative}.eyebrow{display:inline-flex;align-items:center;gap:9px;border:1px solid #5ee7f74a;background:#5ee7f710;color:#b9f8ff;padding:8px 12px;border-radius:99px;font-size:.78rem;letter-spacing:.07em;text-transform:uppercase}.dot{width:7px;height:7px;background:var(--cyan);border-radius:50%;box-shadow:0 0 16px var(--cyan)}h1,h2,h3,p{margin-top:0}h1{font:700 clamp(2.7rem,6vw,5rem)/1.02 'Space Grotesk',sans-serif;letter-spacing:-.065em;margin:24px 0}.gradient{background:linear-gradient(100deg,#fff 4%,var(--cyan) 48%,var(--violet));color:transparent;background-clip:text}.lead{max-width:540px;color:var(--muted);font-size:1.08rem;line-height:1.8}.actions{display:flex;flex-wrap:wrap;gap:12px;margin:28px 0 20px}.note{font-size:.78rem;color:#8190aa}.scene{height:500px;position:relative;isolation:isolate}.scene canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;touch-action:pan-y}.scene-glow{position:absolute;width:70%;aspect-ratio:1;top:15%;left:15%;background:radial-gradient(circle,#5ee7f72b,transparent 65%);filter:blur(10px)}.scene-label{position:absolute;z-index:3;border:1px solid var(--line);background:#10182bce;backdrop-filter:blur(14px);padding:12px 15px;border-radius:14px;box-shadow:0 14px 50px #0004;font-size:.82rem}.scene-label strong{display:block;margin-bottom:3px}.scene-label span{color:var(--muted);font-size:.72rem}.label-a{top:13%;right:0}.label-b{bottom:16%;left:0}.section{padding:72px 0}.section-head{max-width:650px;margin-bottom:28px}.kicker{color:var(--cyan);font-size:.76rem;text-transform:uppercase;letter-spacing:.13em;font-weight:700}.section h2{font:700 clamp(2rem,4vw,3rem)/1.12 'Space Grotesk',sans-serif;letter-spacing:-.05em;margin:12px 0}.section-head p{color:var(--muted);line-height:1.7}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{background:linear-gradient(145deg,#ffffff0b,#ffffff03);border:1px solid var(--line);border-radius:20px;padding:24px;min-height:210px;transition:transform .25s,border-color .25s}.card:hover{transform:translateY(-5px);border-color:#5ee7f766}.card .icon{font-size:1.7rem;margin-bottom:18px}.card h3{font:600 1.15rem 'Space Grotesk',sans-serif}.card p{color:var(--muted);font-size:.92rem;line-height:1.7;margin-bottom:0}.path{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.step{padding:20px;border:1px solid var(--line);border-radius:16px;background:#ffffff05}.num{color:var(--cyan);font:700 1.6rem 'Space Grotesk',sans-serif}.step h3{margin:10px 0 7px;font-size:1rem}.step p{font-size:.85rem;color:var(--muted);line-height:1.6;margin:0}.cta{padding:34px;border:1px solid #5ee7f742;border-radius:26px;background:radial-gradient(ellipse at 90% 10%,#a78bfa20,transparent 45%),linear-gradient(120deg,#101a2c,#0b1020);display:flex;align-items:center;justify-content:space-between;gap:22px}.cta h2{font:700 clamp(1.7rem,4vw,2.5rem) 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin:0 0 8px}.cta p{color:var(--muted);margin:0;line-height:1.6}.cta-actions{display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0}footer{padding:30px 0 38px;border-top:1px solid #ffffff12;color:#8794ad;font-size:.8rem;margin-top:70px}.foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s,transform .7s}.reveal.visible{opacity:1;transform:none}.mobile-menu{display:none}
+@media(max-width:780px){.wrap{width:min(100% - 32px,600px)}nav{height:66px}.navlinks{display:none}.hero{grid-template-columns:1fr;padding:52px 0 25px;gap:0}.hero-copy{position:relative;z-index:3}.scene{height:340px;margin-top:-4px}.label-a{right:1%;top:8%}.label-b{bottom:9%}.cards{grid-template-columns:1fr}.card{min-height:0}.path{grid-template-columns:1fr 1fr}.section{padding:52px 0}.cta{align-items:flex-start;flex-direction:column;padding:25px}.cta-actions{flex-shrink:1}}@media(max-width:420px){h1{font-size:2.65rem}.scene{height:290px}.path{grid-template-columns:1fr}.actions .btn{width:100%}.scene-label{padding:9px 11px;font-size:.75rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<nav class="wrap"><a class="logo" href="#">KIRAN<span> / KU</span></a><div class="navlinks"><a href="#learn">What you'll learn</a><a href="#roadmap">Roadmap</a><a href="#start">Get started</a></div><a class="btn ghost" href="#roadmap">Explore roadmap ↗</a></nav>
+<main>
+<section class="hero wrap">
+<div class="hero-copy"><div class="eyebrow"><span class="dot"></span> A practical freelance roadmap</div><h1>Build skills.<br><span class="gradient">Create freedom.</span></h1><p class="lead">A clear starting point for learning useful freelance skills, creating sample work, and taking your first steps toward finding clients—one practical action at a time.</p><div class="actions"><a class="btn primary" href="#roadmap">Explore the roadmap <span>↗</span></a><a class="btn ghost" href="#learn">See what you'll learn</a></div><p class="note">Educational resource · Progress and earnings depend on your skills, effort, and market demand.</p></div>
+<div class="scene" id="scene"><div class="scene-glow"></div><div class="scene-label label-a"><strong>Learn → Build → Share</strong><span>A repeatable practice loop</span></div><div class="scene-label label-b"><strong>01 / Start small</strong><span>Make your first portfolio project</span></div></div>
+</section>
+<section class="section wrap" id="learn"><div class="section-head reveal"><div class="kicker">The skill stack</div><h2>Turn learning into <span class="gradient">real work.</span></h2><p>Start with a focused service, build proof through sample projects, and improve from feedback instead of trying to learn every tool at once.</p></div><div class="cards">
+<article class="card reveal"><div class="icon">✳</div><h3>AI-assisted content</h3><p>Practice research, content outlines, captions, and quality checks with AI tools while keeping your own judgment in the loop.</p></article>
+<article class="card reveal"><div class="icon">◈</div><h3>Marketing workflows</h3><p>Map a simple process from brief to draft, review, approval, and reporting. Document each step so the workflow is repeatable.</p></article>
+<article class="card reveal"><div class="icon">▧</div><h3>Portfolio projects</h3><p>Create realistic demo work, explain the problem it solves, and show the process clearly before pitching a service.</p></article>
+</div></section>
+<section class="section wrap" id="roadmap"><div class="section-head reveal"><div class="kicker">Your first four steps</div><h2>A roadmap you can <span class="gradient">actually follow.</span></h2><p>Keep each stage small enough to complete and review. Don't promise results you haven't earned yet.</p></div><div class="path">
+<article class="step reveal"><div class="num">01</div><h3>Choose one service</h3><p>Pick a focused offer such as content repurposing, simple reporting, or workflow documentation.</p></article>
+<article class="step reveal"><div class="num">02</div><h3>Learn by doing</h3><p>Follow one small tutorial and recreate the result yourself, noting what you can and cannot do yet.</p></article>
+<article class="step reveal"><div class="num">03</div><h3>Build a demo</h3><p>Create two or three sample projects and explain the before, process, and deliverable.</p></article>
+<article class="step reveal"><div class="num">04</div><h3>Get feedback</h3><p>Share relevant samples, ask specific questions, and refine your offer based on real responses.</p></article>
+</div></section>
+<section class="wrap reveal" id="start"><div class="cta"><div><h2>Start with one useful project.</h2><p>Choose a skill, make a sample, and use it to guide your next step.</p></div><div class="cta-actions"><a class="btn primary" href="#roadmap">View the roadmap ↗</a><button class="btn ghost" id="motionToggle" type="button" aria-pressed="false">Pause 3D motion</button></div></div></section>
+</main>
+<footer><div class="wrap foot"><span>© <span id="year"></span> Kiran Kumar · Freelance learning blueprint</span><span>Designed for mobile · Built with Three.js</span></div></footer>
+<script type="module">
+const year = document.querySelector('#year'); year.textContent = new Date().getFullYear();
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const toggle = document.querySelector('#motionToggle');
+let renderer, frameId, paused = reduceMotion;
+const sceneRoot = document.querySelector('#scene');
+function fallback(){sceneRoot.style.background='radial-gradient(circle at 50% 45%,#5ee7f726,transparent 62%)';}
+try {
+  const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(42, sceneRoot.clientWidth/sceneRoot.clientHeight, .1, 100);
+  camera.position.set(0,0,8);
+  renderer = new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1,1.7));
+  renderer.setSize(sceneRoot.clientWidth,sceneRoot.clientHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  sceneRoot.prepend(renderer.domElement);
+  const group = new THREE.Group(); scene.add(group);
+  const coreGeo = new THREE.IcosahedronGeometry(1.42,1);
+  const coreMat = new THREE.MeshPhysicalMaterial({color:0x6ceaf7,metalness:.48,roughness:.19,wireframe:true,transparent:true,opacity:.8});
+  const core = new THREE.Mesh(coreGeo,coreMat); group.add(core);
+  const inner = new THREE.Mesh(new THREE.IcosahedronGeometry(.94,2),new THREE.MeshStandardMaterial({color:0x7c6cff,metalness:.5,roughness:.28,flatShading:true})); group.add(inner);
+  const ringMat = new THREE.MeshBasicMaterial({color:0x75efff,transparent:true,opacity:.72});
+  const ring1 = new THREE.Mesh(new THREE.TorusGeometry(2.05,.012,8,120),ringMat); ring1.rotation.x=1.05;ring1.rotation.y=.24;group.add(ring1);
+  const ring2 = new THREE.Mesh(new THREE.TorusGeometry(1.78,.009,8,120),new THREE.MeshBasicMaterial({color:0xa78bfa,transparent:true,opacity:.8}));ring2.rotation.x=.5;ring2.rotation.y=1.05;group.add(ring2);
+  const particlesGeo = new THREE.BufferGeometry(), positions=[];
+  for(let i=0;i<260;i++){positions.push((Math.random()-.5)*8,(Math.random()-.5)*7,(Math.random()-.5)*4);}
+  particlesGeo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  const stars = new THREE.Points(particlesGeo,new THREE.PointsMaterial({color:0xb9f8ff,size:.022,transparent:true,opacity:.8}));scene.add(stars);
+  scene.add(new THREE.AmbientLight(0xffffff,1.6));
+  const light = new THREE.PointLight(0x5ee7f7,25);light.position.set(3,3,5);scene.add(light);
+  const violetLight = new THREE.PointLight(0xa78bfa,18);violetLight.position.set(-3,-2,2);scene.add(violetLight);
+  let pointerX=0,pointerY=0;
+  sceneRoot.addEventListener('pointermove',e=>{const r=sceneRoot.getBoundingClientRect();pointerX=((e.clientX-r.left)/r.width-.5)*.7;pointerY=((e.clientY-r.top)/r.height-.5)*.5;},{passive:true});
+  function resize(){const w=sceneRoot.clientWidth,h=sceneRoot.clientHeight;if(!w||!h)return;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);}
+  const observer = new ResizeObserver(resize);observer.observe(sceneRoot);
+  function animate(){frameId=requestAnimationFrame(animate);if(paused)return;const t=performance.now()*.00035;group.rotation.y+=.003;group.rotation.x+=.0014;ring1.rotation.z=t*.6;ring2.rotation.y-=.002;stars.rotation.y=-t*.25;camera.position.x+=(pointerX-camera.position.x)*.025;camera.position.y+=(-pointerY-camera.position.y)*.025;camera.lookAt(0,0,0);renderer.render(scene,camera);}
+  animate();
+  toggle.addEventListener('click',()=>{paused=!paused;toggle.textContent=paused?'Resume 3D motion':'Pause 3D motion';toggle.setAttribute('aria-pressed',String(paused));if(!paused&&!frameId)animate();});
+  if(reduceMotion){toggle.textContent='Resume 3D motion';toggle.setAttribute('aria-pressed','true');}
+} catch(e){fallback();toggle.disabled=true;toggle.textContent='3D unavailable';}
+const revealObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');revealObserver.unobserve(entry.target);}}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>revealObserver.observe(el));
+</script>
+</body></html>
