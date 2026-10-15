@@ -42,7 +42,8 @@ AUTO_REPLY_ENABLED = os.getenv("AUTO_REPLY_ENABLED", "false").strip().lower() ==
 AUTO_CONTENT_ENABLED = os.getenv("AUTO_CONTENT_ENABLED", "false").strip().lower() == "true"
 INSTAGRAM_USER_ID = os.getenv("INSTAGRAM_USER_ID", "").strip()
 
-oauth_states: dict[str, dict] = {}
+# OAuth state is persisted so a callback can be completed after a Render restart.
+# Never log or expose state values; they are short-lived CSRF protection tokens.
 META_GRAPH_API_VERSION = os.getenv("META_GRAPH_API_VERSION", "v25.0").strip() or "v25.0"
 
 
@@ -53,6 +54,43 @@ def database_connection():
     if url.startswith("postgres://"):
         url = "postgresql://" + url[len("postgres://"):]
     return psycopg.connect(url, connect_timeout=10)
+
+
+def store_oauth_state(state: str, redirect_uri: str, auth_method: str):
+    """Persist a single-use OAuth state for cross-instance/restart-safe callbacks."""
+    with database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS oauth_states (
+                    state_hash TEXT PRIMARY KEY,
+                    redirect_uri TEXT NOT NULL,
+                    auth_method TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+            cur.execute("DELETE FROM oauth_states WHERE created_at < NOW() - INTERVAL '15 minutes'")
+            cur.execute("""
+                INSERT INTO oauth_states (state_hash, redirect_uri, auth_method)
+                VALUES (%s, %s, %s)
+            """, (hashlib.sha256(state.encode("utf-8")).hexdigest(), redirect_uri, auth_method))
+        conn.commit()
+
+
+def consume_oauth_state(state: str):
+    """Consume a state once, only if it is no older than 15 minutes."""
+    state_hash = hashlib.sha256(state.encode("utf-8")).hexdigest()
+    with database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                DELETE FROM oauth_states
+                WHERE state_hash=%s AND created_at >= NOW() - INTERVAL '15 minutes'
+                RETURNING redirect_uri, auth_method
+            """, (state_hash,))
+            row = cur.fetchone()
+        conn.commit()
+    if not row:
+        return None
+    return {"redirect_uri": row[0], "auth_method": row[1]}
 
 
 def token_cipher():
@@ -153,7 +191,11 @@ async def instagram_start():
     if not INSTAGRAM_APP_ID or not REDIRECT_URI:
         raise HTTPException(status_code=503, detail="Configure Instagram App ID and redirect URI.")
     state = secrets.token_urlsafe(32)
-    oauth_states[state] = {"redirect_uri": REDIRECT_URI, "auth_method": "instagram_login"}
+    try:
+        store_oauth_state(state, REDIRECT_URI, "instagram_login")
+    except Exception:
+        logger.exception("Could not persist Instagram OAuth state")
+        raise HTTPException(status_code=503, detail="Persistent database is required for secure Instagram login. Check DATABASE_URL.")
     params = {
         "client_id": INSTAGRAM_APP_ID,
         "redirect_uri": REDIRECT_URI,
@@ -169,9 +211,15 @@ async def instagram_callback(request: Request, code: str | None = None,
                              state: str | None = None, error: str | None = None):
     if error:
         return JSONResponse(status_code=400, content={"connected": False, "error": "Instagram authorization was cancelled or denied."})
-    if not code or not state or state not in oauth_states:
+    if not code or not state:
         raise HTTPException(status_code=400, detail="Invalid or expired OAuth state.")
-    state_data = oauth_states.pop(state)
+    try:
+        state_data = consume_oauth_state(state)
+    except Exception:
+        logger.exception("Could not consume Instagram OAuth state")
+        raise HTTPException(status_code=503, detail="Could not validate OAuth state. Check persistent database availability.")
+    if not state_data or state_data.get("auth_method") != "instagram_login":
+        raise HTTPException(status_code=400, detail="Invalid, expired, or already-used OAuth state.")
     exchange_redirect_uri = state_data["redirect_uri"]
     if not INSTAGRAM_APP_ID or not INSTAGRAM_APP_SECRET or not exchange_redirect_uri:
         raise HTTPException(status_code=503, detail="Instagram OAuth environment is not configured.")
@@ -294,7 +342,11 @@ async def facebook_login_start():
         raise HTTPException(status_code=503, detail="Configure META_APP_ID and META_APP_SECRET for Facebook Login in Render.")
     redirect_uri = APP_BASE_URL + "/auth/facebook/callback"
     state = secrets.token_urlsafe(32)
-    oauth_states[state] = {"redirect_uri": redirect_uri, "auth_method": "facebook_login"}
+    try:
+        store_oauth_state(state, redirect_uri, "facebook_login")
+    except Exception:
+        logger.exception("Could not persist Facebook OAuth state")
+        raise HTTPException(status_code=503, detail="Persistent database is required for secure Facebook login. Check DATABASE_URL.")
     permissions = "pages_show_list,pages_read_engagement,instagram_basic,instagram_content_publish,instagram_manage_comments,instagram_manage_insights"
     params = {"client_id": FACEBOOK_APP_ID, "redirect_uri": redirect_uri, "response_type": "code",
               "scope": permissions, "state": state}
@@ -307,10 +359,14 @@ async def facebook_login_callback(code: str | None = None, state: str | None = N
     if error:
         return JSONResponse(status_code=400, content={"connected": False, "auth_method": "facebook_login",
             "error": "Facebook authorization was cancelled or denied.", "meta_error": str(error)[:100]})
-    if not code or not state or state not in oauth_states:
+    if not code or not state:
         raise HTTPException(status_code=400, detail="Invalid or expired OAuth state.")
-    state_data = oauth_states.pop(state)
-    if state_data.get("auth_method") != "facebook_login":
+    try:
+        state_data = consume_oauth_state(state)
+    except Exception:
+        logger.exception("Could not consume Facebook OAuth state")
+        raise HTTPException(status_code=503, detail="Could not validate OAuth state. Check persistent database availability.")
+    if not state_data or state_data.get("auth_method") != "facebook_login":
         raise HTTPException(status_code=400, detail="OAuth state does not match Facebook Login.")
     redirect_uri = state_data["redirect_uri"]
     base = f"https://graph.facebook.com/{META_GRAPH_API_VERSION}"
