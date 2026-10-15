@@ -104,7 +104,7 @@ async def setup_page():
         ("Automation API key", bool(AUTOMATION_API_KEY), "Required by planner APIs and MCP tools. Set a long random secret as AUTOMATION_API_KEY."),
         ("Instagram Login App ID", bool(INSTAGRAM_APP_ID), "Required for Instagram Login. Set INSTAGRAM_APP_ID from the exact Instagram API with Instagram Login app."),
         ("Instagram Login App Secret", bool(INSTAGRAM_APP_SECRET), "Required for Instagram Login. Set INSTAGRAM_APP_SECRET from that same Instagram Login app; do not substitute the Facebook app secret."),
-        ("Facebook Login credentials", bool(FACEBOOK_APP_ID and FACEBOOK_APP_SECRET), "Optional alternate route. META_APP_ID and META_APP_SECRET must come from the Facebook Login app.")
+        ("Facebook Login credentials", bool(FACEBOOK_APP_ID and FACEBOOK_APP_SECRET), "Optional alternate route. META_APP_ID and META_APP_SECRET must come from the Facebook Login app."),
         ("MCP access token", bool(os.getenv("MCP_ACCESS_TOKEN", "").strip() or AUTOMATION_API_KEY), "Required to protect remote MCP access. Set MCP_ACCESS_TOKEN (or use AUTOMATION_API_KEY as the fallback)."),
         ("Webhook verify token", bool(META_WEBHOOK_VERIFY_TOKEN), "Required only for comment webhooks. Set the same private value in Render and Meta."),
     ]
@@ -863,6 +863,28 @@ async def receive_instagram_webhook(request: Request):
             except Exception:
                 logger.exception("Could not auto-reply to Instagram comment %s", comment_id)
     return {"received": True, "auto_replied": handled, "auto_reply_enabled": True}
+
+
+@app.get("/api/instagram/connections")
+async def instagram_connections(x_automation_key: str | None = Header(default=None)):
+    """Return saved Instagram account IDs without exposing access tokens."""
+    require_automation_key(x_automation_key)
+    if not DATABASE_URL:
+        raise HTTPException(status_code=503, detail="DATABASE_URL is not configured.")
+    try:
+        with database_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT instagram_user_id, auth_method, connected_at FROM instagram_connections ORDER BY connected_at DESC")
+                rows = cur.fetchall()
+        return {"connections": [
+            {"instagram_user_id": str(row[0]), "auth_method": row[1], "connected_at": row[2].isoformat()}
+            for row in rows
+        ]}
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Could not list saved Instagram connections")
+        raise HTTPException(status_code=503, detail="Could not load connected Instagram accounts. Check database configuration.")
 
 
 @app.get("/api/automation/status")
