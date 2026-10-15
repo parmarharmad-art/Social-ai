@@ -88,3 +88,8 @@ def test_workspace_page_redirects_when_not_logged_in():
     response = client.get("/workspace", follow_redirects=False)
     assert response.status_code == 303
     assert response.headers["location"] == "/account"
+
+
+def test_customer_content_generation_requires_login():
+    response = client.post("/api/customer/content", json={"topic": "Instagram lead generation"})
+    assert response.status_code == 401
