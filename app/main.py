@@ -91,8 +91,8 @@ def save_encrypted_token(user_id: str, access_token: str, expires_in: int | None
 
 @app.get("/", include_in_schema=False)
 async def dashboard_home():
-    """Send users to the full dashboard instead of the minimal legacy landing page."""
-    return RedirectResponse(url="/dashboard", status_code=307)
+    """Public product page; the workspace remains available at /dashboard."""
+    return RedirectResponse(url="/sell", status_code=307)
 
 @app.get("/setup", response_class=HTMLResponse)
 async def setup_page():
@@ -1067,4 +1067,9 @@ mount_mcp(app)
 # Metricool-style mobile dashboard for content creation, scheduling and reporting.
 from app.dashboard import router as dashboard_router
 app.include_router(dashboard_router)
+
+# Public product overview and draft legal notices.
+from app.sales_pages import router as sales_pages_router
+app.include_router(sales_pages_router)
+
 
