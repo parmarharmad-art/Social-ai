@@ -48,7 +48,7 @@ This repository now contains code for these workflows, but **not every workflow 
 - The report endpoint summarizes recent media and engagement counts; it does not yet provide a full growth dashboard or every Insights metric.
 - This does not automatically create and queue two posts every day yet. Content generation and scheduling are available as separate operations.
 - Generated images are stored in PostgreSQL; monitor database size and retention as usage grows.
-- OAuth state currently resides in process memory, so production hardening should move state to a persistent secure store.
+- OAuth state is stored as a SHA-256 hash in PostgreSQL, expires after 15 minutes, and is consumed once. Instagram/Facebook OAuth therefore requires `DATABASE_URL` to be configured before starting login.
 
 ## Render environment variables
 
@@ -103,3 +103,10 @@ The Render Blueprint uses `sync: false` for private settings; that does not popu
 pip install -r requirements.txt
 pytest -q
 ```
+
+
+## Razorpay monthly subscriptions (integration code added; not live yet)
+
+Razorpay billing routes are available in code at `/billing`, `/api/billing/status`, `/api/billing/create-subscription`, and `/webhooks/razorpay`. The billing code has automated safety tests, but it is not active until merchant KYC/account approval, a monthly plan, API credentials, webhook configuration and a live/test-mode end-to-end test are completed. Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_PLAN_ID`, and `RAZORPAY_WEBHOOK_SECRET` in Render Environment. Do not share secrets in chat or commit them.
+
+The subscription-creation route is admin-key protected for owner-led testing. **Customer self-service checkout, customer login, tenant isolation and automatic paid-access enforcement are not implemented yet. Do not sell subscriptions or grant customer access based only on a checkout URL.** Razorpay setup is intentionally pending until the owner is ready.
