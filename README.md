@@ -4,7 +4,12 @@ Mobile-first Instagram automation project for **Kiran Kumar • AI Automation**.
 
 - Repository: https://github.com/parmarharmad-art/Social-ai
 - Render service: https://socialpilot-ai-mvp.onrender.com
+- Dashboard (Metricool-style): https://socialpilot-ai-mvp.onrender.com/dashboard
 - Planner: https://socialpilot-ai-mvp.onrender.com/planner
+
+## Metricool-style Dashboard
+
+Open `/dashboard` for a mobile-first workspace with service/configuration status, AI content and image generation, scheduling, post queue, recent Instagram engagement report, and shortcuts to the built-in editor and setup checklist. The dashboard uses the existing API; configure the server secrets, persistent database, OpenAI API access and Meta permissions before live actions will work.
 
 ## Built-in Post & Video Studio
 
