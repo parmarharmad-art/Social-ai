@@ -2,12 +2,13 @@
 import hashlib
 import os
 import secrets
+import time
 from urllib.parse import urlencode
 
 import httpx
 import psycopg
 from cryptography.fernet import Fernet
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Form
 from fastapi.responses import RedirectResponse, JSONResponse
 from app.customer_auth import SESSION_COOKIE, _read_session
 
@@ -130,3 +131,73 @@ async def youtube_callback(code: str | None = None, state: str | None = None, er
                     (str(row[0]), channel_id, title, encrypted, expires_in, expires_in))
             conn.commit()
     return RedirectResponse(BASE_URL + "/platforms?youtube=connected", status_code=303)
+
+
+@router.post("/api/youtube/videos")
+async def upload_youtube_video(
+    request: Request,
+    video: UploadFile = File(...),
+    title: str = Form(..., min_length=1, max_length=100),
+    description: str = Form(default="", max_length=5000),
+    privacy_status: str = Form(default="private", pattern="^(private|unlisted|public)$"),
+):
+    """Upload a video using YouTube's resumable upload API; starts private by default."""
+    workspace_id = workspace_for(request)
+    if not ENCRYPTION_KEY:
+        raise HTTPException(status_code=503, detail="TOKEN_ENCRYPTION_KEY is not configured.")
+    content_type = (video.content_type or "").lower()
+    if not content_type.startswith("video/"):
+        raise HTTPException(status_code=415, detail="Upload a video file with a video/* content type.")
+    video.file.seek(0, 2)
+    size = video.file.tell()
+    video.file.seek(0)
+    max_size = 256 * 1024 * 1024
+    if size <= 0 or size > max_size:
+        raise HTTPException(status_code=413, detail="Video must be between 1 byte and 256 MB.")
+    with db() as conn:
+        with conn.cursor() as cur:
+            ensure_tables(cur)
+            cur.execute("ALTER TABLE social_connections ADD COLUMN IF NOT EXISTS encrypted_refresh_token TEXT")
+            cur.execute("SELECT provider_user_id,encrypted_access_token,encrypted_refresh_token,expires_at FROM social_connections WHERE workspace_id=%s AND platform='youtube' ORDER BY updated_at DESC LIMIT 1", (workspace_id,))
+            row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=409, detail="Connect YouTube first at /auth/youtube/start.")
+    channel_id = str(row[0])
+    access = Fernet(ENCRYPTION_KEY.encode("ascii")).decrypt(row[1].encode("ascii")).decode()
+    refresh = Fernet(ENCRYPTION_KEY.encode("ascii")).decrypt(row[2].encode("ascii")).decode() if row[2] else None
+    if row[3] and row[3].timestamp() <= time.time():
+        if not refresh:
+            raise HTTPException(status_code=409, detail="Google access token expired; reconnect YouTube and grant offline access.")
+        async with httpx.AsyncClient(timeout=30) as client:
+            token_response = await client.post("https://oauth2.googleapis.com/token", data={"grant_type":"refresh_token","refresh_token":refresh,"client_id":CLIENT_ID,"client_secret":CLIENT_SECRET})
+            if token_response.is_error:
+                raise HTTPException(status_code=502, detail="Google token refresh failed; reconnect YouTube.")
+            td = token_response.json()
+        access = td["access_token"]
+        expires = int(td.get("expires_in") or 0)
+        with db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE social_connections SET encrypted_access_token=%s,expires_at=CASE WHEN %s>0 THEN NOW()+(%s*INTERVAL '1 second') ELSE NULL END,updated_at=NOW() WHERE workspace_id=%s AND platform='youtube' AND provider_user_id=%s", (Fernet(ENCRYPTION_KEY.encode("ascii")).encrypt(access.encode()).decode("ascii"),expires,expires,workspace_id,channel_id))
+            conn.commit()
+    metadata = {"snippet":{"title":title,"description":description},"status":{"privacyStatus":privacy_status}}
+    async with httpx.AsyncClient(timeout=60) as client:
+        init = await client.post(
+            "https://www.googleapis.com/upload/youtube/v3/videos",
+            params={"uploadType":"resumable","part":"snippet,status"},
+            json=metadata,
+            headers={"Authorization":"Bearer "+access,"Content-Type":"application/json; charset=UTF-8","X-Upload-Content-Type":content_type,"X-Upload-Content-Length":str(size)},
+        )
+        if init.is_error or not init.headers.get("location"):
+            raise HTTPException(status_code=502, detail={"message":"YouTube upload session could not be created. Check YouTube Data API v3, upload scope and quota.","provider_status":init.status_code})
+        upload_url = init.headers["location"]
+        async def chunks():
+            while True:
+                chunk = await video.read(1024 * 1024)
+                if not chunk:
+                    break
+                yield chunk
+        uploaded = await client.put(upload_url, content=chunks(), headers={"Content-Type":content_type,"Content-Length":str(size)})
+    if uploaded.is_error:
+        raise HTTPException(status_code=502, detail={"message":"YouTube rejected the video upload. Check quota, channel eligibility, file format and API access.","provider_status":uploaded.status_code})
+    data = uploaded.json()
+    return {"uploaded":True,"platform":"youtube","video_id":data.get("id"),"privacy_status":(data.get("status") or {}).get("privacyStatus"),"message":"YouTube returned a video ID. Verify processing status in YouTube Studio before sharing publicly."}
