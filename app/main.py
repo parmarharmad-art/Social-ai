@@ -974,3 +974,8 @@ app.include_router(studio_router)
 # Expose authenticated remote MCP tools from the same app entry point used by existing deployments.
 from app.mcp_server import mount_mcp
 mount_mcp(app)
+
+
+# Metricool-style mobile dashboard for content creation, scheduling and reporting.
+from app.dashboard import router as dashboard_router
+app.include_router(dashboard_router)
