@@ -27,7 +27,7 @@ Open `/studio` on the deployed service for the in-app mobile-friendly design edi
 
 ## Multi-platform direction and current status
 
-The `/platforms` page lists Instagram, Facebook Pages, LinkedIn, YouTube, TikTok, Pinterest and X in one connection hub. Instagram Login and Facebook Login OAuth routes exist in code, but are not considered production-ready until a real connection and publish test passes. Meta currently returns `API access blocked` on the Instagram long-lived-token exchange. LinkedIn OAuth and text-post publishing, YouTube OAuth/channel verification, X OAuth 2.0 PKCE/text-post publishing, and Pinterest OAuth/image-pin publishing have code in the repository. They still require their own provider credentials, app permissions/approval, and end-to-end live-account tests. YouTube video upload and TikTok publishing are not implemented yet. Never show these planned channels as connected or claim publishing works until verified. The shared publishing architecture should use provider-specific adapters, per-workspace encrypted tokens, capability checks, platform-specific media validation, retry handling and audit logs.
+The `/platforms` page lists Instagram, Facebook Pages, LinkedIn, YouTube, TikTok, Pinterest and X in one connection hub. Instagram Login and Facebook Login OAuth routes exist in code, but are not considered production-ready until a real connection and publish test passes. Meta currently returns `API access blocked` on the Instagram long-lived-token exchange. LinkedIn OAuth/text publishing, YouTube OAuth/channel verification, X OAuth 2.0 PKCE/text publishing, Pinterest OAuth/image-pin publishing, and TikTok OAuth/URL-based video publishing have code in the repository. They still require their own provider credentials, app permissions/approval, and end-to-end live-account tests. YouTube video upload is not implemented yet. Never show these planned channels as connected or claim publishing works until verified. The shared publishing architecture should use provider-specific adapters, per-workspace encrypted tokens, capability checks, platform-specific media validation, retry handling and audit logs.
 
 ## Features implemented in code
 
@@ -84,6 +84,8 @@ Set secrets in Render's Environment page. Never commit secrets or paste them int
 | `X_REDIRECT_URI` | X OAuth | Must exactly match X app callback; defaults to `https://socialpilot-ai-mvp.onrender.com/auth/x/callback` |
 | `PINTEREST_APP_ID` / `PINTEREST_APP_SECRET` | Pinterest OAuth and pins | Pinterest developer app and approved scopes; callback `/auth/pinterest/callback` |
 | `PINTEREST_REDIRECT_URI` | Pinterest OAuth | Must exactly match Pinterest app callback; defaults to `https://socialpilot-ai-mvp.onrender.com/auth/pinterest/callback` |
+| `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET` | TikTok OAuth and video publishing | TikTok developer app with Content Posting API approval; callback `/auth/tiktok/callback` |
+| `TIKTOK_REDIRECT_URI` | TikTok OAuth | Must exactly match TikTok app callback; defaults to `https://socialpilot-ai-mvp.onrender.com/auth/tiktok/callback` |
 | `AUTO_REPLY_ENABLED` | Auto-replies | Leave `false` until webhook verification and comment permission are tested |
 | `AUTO_CONTENT_ENABLED` | Daily content queue | Leave `false` until AI and publishing have been tested; set `true` to queue the next day's two posts automatically |
 | `INSTAGRAM_USER_ID` | Daily content queue | Connected Instagram account ID |
@@ -132,3 +134,8 @@ The subscription-creation route is admin-key protected for owner-led testing. **
 ## Pinterest publishing
 
 Pinterest OAuth and image-pin publishing routes are implemented at `/auth/pinterest/start`, `/auth/pinterest/callback`, and `POST /api/pinterest/pins`. Pin payloads require a Pinterest board ID, title, description, public HTTPS image URL, and optional destination link. Configure `PINTEREST_APP_ID`, `PINTEREST_APP_SECRET`, and matching `PINTEREST_REDIRECT_URI`; the app must be approved for the required API scopes. Real-account OAuth and pin publishing have not yet been verified.
+
+
+## TikTok publishing
+
+TikTok OAuth and URL-based video publishing routes are implemented at `/auth/tiktok/start`, `/auth/tiktok/callback`, and `POST /api/tiktok/videos`. The input requires a public HTTPS video URL, caption/title, and privacy level. Configure `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET`, and matching `TIKTOK_REDIRECT_URI`; TikTok requires Content Posting API approval, scope approval and URL-domain verification. The publish-init response is an accepted job, not proof the video is already public; check TikTok publish status before claiming success. Real-account OAuth and publishing have not been verified.
