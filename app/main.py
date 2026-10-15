@@ -174,11 +174,9 @@ async def setup_page():
     """Non-technical setup checklist; shows configuration status without exposing secrets."""
     checks = [
         ("OpenAI API key", bool(OPENAI_API_KEY), "Required for AI captions and image generation. Add OPENAI_API_KEY in Render Environment."),
-        ("Persistent database", bool(DATABASE_URL), "Required to save the Instagram connection, post queue and generated images. Create/attach PostgreSQL in Render and set DATABASE_URL."),
-        ("Token encryption key", bool(TOKEN_ENCRYPTION_KEY), "Required to store the Instagram token safely. Generate a Fernet key once and save it as TOKEN_ENCRYPTION_KEY. Do not rotate it after connecting without a migration."),
+        ("Persistent database", bool(DATABASE_URL), "Required for customer workspaces, encrypted social connections, post queue and generated assets. Create/attach PostgreSQL in Render and set DATABASE_URL."),
+        ("Token encryption key", bool(TOKEN_ENCRYPTION_KEY), "Required to store social-platform tokens safely. Generate a Fernet key once and save it as TOKEN_ENCRYPTION_KEY. Do not rotate it after connecting without a migration."),
         ("Automation API key", bool(AUTOMATION_API_KEY), "Required by planner APIs and MCP tools. Set a long random secret as AUTOMATION_API_KEY."),
-        ("Instagram Login App ID", bool(INSTAGRAM_APP_ID), "Required for Instagram Login. Set INSTAGRAM_APP_ID from the exact Instagram API with Instagram Login app."),
-        ("Instagram Login App Secret", bool(INSTAGRAM_APP_SECRET), "Required for Instagram Login. Set INSTAGRAM_APP_SECRET from that same Instagram Login app; do not substitute the Facebook app secret."),
         ("Facebook Login credentials", bool(FACEBOOK_APP_ID and FACEBOOK_APP_SECRET), "Optional alternate route. META_APP_ID and META_APP_SECRET must come from the Facebook Login app."),
         ("MCP access token", bool(os.getenv("MCP_ACCESS_TOKEN", "").strip() or AUTOMATION_API_KEY), "Required to protect remote MCP access. Set MCP_ACCESS_TOKEN (or use AUTOMATION_API_KEY as the fallback)."),
         ("Webhook verify token", bool(META_WEBHOOK_VERIFY_TOKEN), "Required only for comment webhooks. Set the same private value in Render and Meta."),
@@ -204,10 +202,10 @@ async def setup_page():
     <h2>Finish setup in this order</h2><ol>
     <li>In Render, open the <strong>socialpilot-ai-mvp</strong> service → Environment. Add the missing variables listed above, then save and redeploy.</li>
     <li>Attach a persistent PostgreSQL database and set DATABASE_URL. Generate a Fernet key for TOKEN_ENCRYPTION_KEY and keep it safe.</li>
-    <li>Instagram connection is intentionally pending per product owner request. For Facebook Login, set META_APP_ID and META_APP_SECRET from the Facebook Login app, enable Facebook Login, and add <code>https://socialpilot-ai-mvp.onrender.com/auth/facebook/callback</code> under Valid OAuth Redirect URIs. Request the Page and Instagram permissions used by that flow.</li>
+    <li>Instagram connection is intentionally pending per product owner request. For Facebook Pages, set META_APP_ID and META_APP_SECRET from the Facebook Login app, enable the relevant Facebook Login product, and add <code>https://socialpilot-ai-mvp.onrender.com/auth/facebook/callback</code> under Valid OAuth Redirect URIs. Request only the Page permissions required by the implemented flow.</li>
     <li>Open Platforms and connect an approved non-Instagram provider after its developer credentials and callback URL are configured. Confirm the account appears only after a successful provider callback.</li>
     <li>Test a draft and image in Planner/Studio first. Schedule one test post before enabling daily automation.</li>
-    <li>Keep automatic replies and automatic daily content disabled until a controlled test succeeds. Comment webhooks require Meta webhook setup and the relevant permissions.</li>
+    <li>Keep automatic replies and automatic daily content disabled until a controlled test succeeds. Instagram comment webhooks are not part of the current launch scope while Instagram is pending.</li>
     </ol><p class="note"><strong>Important:</strong> never send API keys, app secrets, access tokens, or database URLs in chat or commit them to GitHub. A green configuration check only means a value exists; it does not prove Meta permissions or publishing work.</p>
     <p class="links"><a href="/">Dashboard</a><a href="/platforms">All platforms</a><a href="/auth/facebook/start">Facebook Login</a><a href="/planner">Content Planner</a><a href="/studio">Post & Video Studio</a><a href="/api/automation/status">Configuration status</a></p>
     </main></body></html>"""
