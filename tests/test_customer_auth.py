@@ -101,3 +101,8 @@ def test_customer_image_upload_requires_login():
         files={"file": ("test.png", b"\\x89PNG\\r\\n\\x1a\\n", "image/png")},
     )
     assert response.status_code == 401
+
+
+def test_customer_cancel_post_requires_login():
+    response = client.delete("/api/customer/posts/123")
+    assert response.status_code == 401
