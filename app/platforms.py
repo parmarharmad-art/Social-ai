@@ -7,7 +7,7 @@ router = APIRouter()
 
 PLATFORMS = [
     {"id":"instagram","name":"Instagram","group":"Meta","status":"blocked","note":"Kept pending as requested: Meta is returning API access blocked; no Instagram connect action is offered."},
-    {"id":"facebook","name":"Facebook Pages","group":"Meta","status":"oauth_implemented","note":"Facebook Login fallback exists; requires matching Meta credentials and a Page-linked professional Instagram account where applicable."},
+    {"id":"facebook","name":"Facebook Pages","group":"Meta","status":"oauth_implemented","note":"Facebook Page OAuth and text/link publishing code added. Requires Meta app credentials, pages_show_list and pages_manage_posts permission plus app review."},
     {"id":"linkedin","name":"LinkedIn Profiles","group":"Professional","status":"oauth_implemented","note":"OAuth and text-post publishing endpoints added. Requires LinkedIn app credentials, OpenID Connect and w_member_social approval."},
     {"id":"youtube","name":"YouTube","group":"Video","status":"oauth_implemented","note":"Google OAuth, channel verification and resumable video-upload code added. Requires Google OAuth credentials, YouTube Data API v3 and consent-screen approval."},
     {"id":"tiktok","name":"TikTok","group":"Video","status":"oauth_implemented","note":"OAuth and URL-based video publishing code added. Requires TikTok developer approval, Content Posting API scope and verified public HTTPS video domain."},
