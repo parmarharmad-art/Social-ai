@@ -27,7 +27,7 @@ Open `/studio` on the deployed service for the in-app mobile-friendly design edi
 
 ## Multi-platform direction and current status
 
-The `/platforms` page lists Instagram, Facebook Pages, LinkedIn, YouTube, TikTok, Pinterest and X in one connection hub. Instagram Login and Facebook Login OAuth routes exist in code, but are not considered production-ready until a real connection and publish test passes. Meta currently returns `API access blocked` on the Instagram long-lived-token exchange. LinkedIn, YouTube, TikTok, Pinterest and X are listed as planned integrations only; their OAuth flows and publishing adapters still need implementation, provider credentials, permissions/approval, and end-to-end tests. Never show these planned channels as connected or claim publishing works until verified. The shared publishing architecture should use provider-specific adapters, per-workspace encrypted tokens, capability checks, platform-specific media validation, retry handling and audit logs.
+The `/platforms` page lists Instagram, Facebook Pages, LinkedIn, YouTube, TikTok, Pinterest and X in one connection hub. Instagram Login and Facebook Login OAuth routes exist in code, but are not considered production-ready until a real connection and publish test passes. Meta currently returns `API access blocked` on the Instagram long-lived-token exchange. LinkedIn OAuth and text-post publishing, YouTube OAuth/channel verification, and X OAuth 2.0 PKCE/text-post publishing have code in the repository. They still require their own provider credentials, app permissions/approval, and end-to-end live-account tests. YouTube video upload and TikTok/Pinterest integrations are not implemented yet. Never show these planned channels as connected or claim publishing works until verified. The shared publishing architecture should use provider-specific adapters, per-workspace encrypted tokens, capability checks, platform-specific media validation, retry handling and audit logs.
 
 ## Features implemented in code
 
@@ -77,6 +77,11 @@ Set secrets in Render's Environment page. Never commit secrets or paste them int
 | `OPENAI_IMAGE_MODEL` | Optional | Defaults to `gpt-image-1` |
 | `APP_BASE_URL` | Generated image links | `https://socialpilot-ai-mvp.onrender.com` |
 | `META_WEBHOOK_VERIFY_TOKEN` | Webhook verification | Choose a private value and use the same value in Meta |
+| `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` | LinkedIn OAuth and text posts | LinkedIn developer app with OpenID Connect and `w_member_social` approved; callback `/auth/linkedin/callback` |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | YouTube channel connection | Google OAuth client and YouTube Data API v3 enabled; callback `/auth/youtube/callback` |
+| `YOUTUBE_REDIRECT_URI` | YouTube OAuth | Must exactly match Google Cloud OAuth client; defaults to `https://socialpilot-ai-mvp.onrender.com/auth/youtube/callback` |
+| `X_CLIENT_ID` / `X_CLIENT_SECRET` | X OAuth and text posts | X developer app with OAuth 2.0 enabled; callback `/auth/x/callback` |
+| `X_REDIRECT_URI` | X OAuth | Must exactly match X app callback; defaults to `https://socialpilot-ai-mvp.onrender.com/auth/x/callback` |
 | `AUTO_REPLY_ENABLED` | Auto-replies | Leave `false` until webhook verification and comment permission are tested |
 | `AUTO_CONTENT_ENABLED` | Daily content queue | Leave `false` until AI and publishing have been tested; set `true` to queue the next day's two posts automatically |
 | `INSTAGRAM_USER_ID` | Daily content queue | Connected Instagram account ID |
