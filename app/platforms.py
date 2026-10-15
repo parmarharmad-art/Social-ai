@@ -50,6 +50,7 @@ async def integration_readiness():
         "youtube_credentials": configured("GOOGLE_CLIENT_ID") and configured("GOOGLE_CLIENT_SECRET"),
         "x_credentials": configured("X_CLIENT_ID") and configured("X_CLIENT_SECRET"),
         "pinterest_credentials": configured("PINTEREST_APP_ID") and configured("PINTEREST_APP_SECRET"),
+        "tiktok_credentials": configured("TIKTOK_CLIENT_KEY") and configured("TIKTOK_CLIENT_SECRET"),
         "database_configured": configured("DATABASE_URL"),
         "token_encryption_key": configured("TOKEN_ENCRYPTION_KEY"),
         "customer_session_secret": len(os.getenv("CUSTOMER_SESSION_SECRET", os.getenv("SESSION_SECRET", "")).strip()) >= 32,
