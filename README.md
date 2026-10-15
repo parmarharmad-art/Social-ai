@@ -7,6 +7,12 @@ Mobile-first Instagram automation project for **Kiran Kumar • AI Automation**.
 - Dashboard (Metricool-style): https://socialpilot-ai-mvp.onrender.com/dashboard
 - Planner: https://socialpilot-ai-mvp.onrender.com/planner
 
+## Important: OAuth credential separation
+
+Instagram Login and Facebook Login use separate credentials in this project. In Render, configure `INSTAGRAM_APP_ID` and `INSTAGRAM_APP_SECRET` from the same **Instagram API with Instagram Login** app. Configure `META_APP_ID` and `META_APP_SECRET` only for the separate Facebook Login fallback. Do not swap the two app IDs or secrets. The Instagram callback must exactly match `https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback`; the Facebook callback is `https://socialpilot-ai-mvp.onrender.com/auth/facebook/callback`.
+
+The Render Blueprint now declares both Instagram Login variables. After syncing/deploying the latest GitHub commit, fill in the new values in Render Environment. This code change does not grant Meta permissions or remove a Meta-side API block.
+
 ## Metricool-style Dashboard
 
 Open `/dashboard` for a mobile-first workspace with service/configuration status, AI content and image generation, scheduling, post queue, recent Instagram engagement report, and shortcuts to the built-in editor and setup checklist. The dashboard uses the existing API; configure the server secrets, persistent database, OpenAI API access and Meta permissions before live actions will work.
@@ -27,6 +33,10 @@ Open `/studio` on the deployed service for the in-app mobile-friendly design edi
 - Instagram comment webhook verification and a webhook handler for AI-generated replies, with a database table to avoid replying to the same comment twice.
 - ChatGPT MCP Instagram agent skill runner covering 13 workflows: Reels, research/swipe analysis, captions, carousels, Stories, profile audits, weekly planning, humanizing drafts, comment drafts, comment replies, opt-in DM drafts, repurposing, and performance audits. These generate drafts only; they do not post, comment, or send DMs.
 - GitHub Actions smoke tests.
+
+## Go-live and sale-readiness checklist
+
+Before selling this as a hosted SaaS, complete and verify all of the following: (1) a successful real Instagram OAuth connection on the deployed service; (2) one successful test image publish and token refresh/expiry handling; (3) durable scheduling while the service sleeps/restarts; (4) tenant isolation, account-level authentication, billing/subscriptions, usage limits and customer onboarding; (5) privacy policy, terms, data deletion and support process; (6) Meta webhook verification and permission review where needed; and (7) automated tests plus a full end-to-end test on the production deployment. Do not advertise features as live until their real integration test passes.
 
 ## Important limitations
 
