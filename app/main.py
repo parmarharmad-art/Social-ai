@@ -1198,3 +1198,7 @@ app.include_router(x_router)
 
 from app.pinterest import router as pinterest_router
 app.include_router(pinterest_router)
+
+
+from app.tiktok import router as tiktok_router
+app.include_router(tiktok_router)
