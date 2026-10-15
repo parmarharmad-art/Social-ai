@@ -27,8 +27,6 @@ from app.customer_auth import router as customer_auth_router
 app.include_router(customer_auth_router)
 from app.customer_workspace_api import router as customer_workspace_router
 app.include_router(customer_workspace_router)
-from app.customer_workspace_page import router as customer_workspace_page_router
-app.include_router(customer_workspace_page_router)
 logger = logging.getLogger(__name__)
 
 INSTAGRAM_APP_ID = (os.getenv("INSTAGRAM_APP_ID") or "").strip()
@@ -1162,6 +1160,10 @@ app.include_router(studio_router)
 from app.mcp_server import mount_mcp
 mount_mcp(app)
 
+
+# Load the workspace page after save_encrypted_token is defined; its guard wraps that function.
+from app.customer_workspace_page import router as customer_workspace_page_router
+app.include_router(customer_workspace_page_router)
 
 # Metricool-style mobile dashboard for content creation, scheduling and reporting.
 from app.dashboard import router as dashboard_router
