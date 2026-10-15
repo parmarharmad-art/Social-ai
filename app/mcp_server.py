@@ -15,13 +15,15 @@ from mcp.server.transport_security import TransportSecuritySettings
 
 from app import main as api
 from app.instagram_skills import SKILLS, run_instagram_skill
+from app.platforms import platform_catalog, integration_readiness
 
 mcp = FastMCP(
     "SocialPilot AI",
     instructions=(
-        "Tools for Kiran Kumar's Instagram AI automation workspace. "
-        "Check status before running actions. AI content/image generation may incur API charges. "
-        "Scheduling tools create real Instagram post jobs; do not call them unless the user asks."
+        "SocialPilot AI is a multi-platform social publishing workspace. Instagram is intentionally pending by product-owner request. "
+        "Use get_multi_platform_integration_status before recommending a provider connection. "
+        "Facebook Page, LinkedIn, YouTube, TikTok, Pinterest and X publishing require provider credentials and permissions; never claim success without provider confirmation. "
+        "Legacy Instagram tools remain in the server but must not be used while Instagram is pending. AI usage may incur charges."
     ),
     streamable_http_path="/",
     transport_security=TransportSecuritySettings(
