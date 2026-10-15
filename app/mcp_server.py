@@ -34,6 +34,12 @@ mcp = FastMCP(
 
 
 @mcp.tool()
+async def get_multi_platform_integration_status() -> dict[str, Any]:
+    """Show platform integration status and configured server credentials without exposing secret values or claiming accounts are connected."""
+    return {"catalog": await platform_catalog(), "readiness": await integration_readiness()}
+
+
+@mcp.tool()
 async def get_automation_status() -> dict[str, Any]:
     """Check which SocialPilot AI services are configured. Does not expose secret values."""
     return await api.automation_status()
