@@ -158,3 +158,29 @@ async def publish_tiktok_video(payload: TikTokVideoInput, request: Request):
         raise HTTPException(status_code=502, detail={"message":"TikTok rejected the video. Check Content Posting API approval, verified URL domain, privacy options and account eligibility.","provider_status":resp.status_code})
     data = resp.json().get("data") or {}
     return {"accepted":True,"platform":"tiktok","publish_id":data.get("publish_id"),"message":"TikTok accepted the publish request. Check status before claiming the video is live."}
+
+
+class TikTokStatusInput(BaseModel):
+    publish_id: str = Field(min_length=1, max_length=256)
+
+@router.post("/api/tiktok/videos/status")
+async def tiktok_video_status(payload: TikTokStatusInput, request: Request):
+    workspace_id = workspace_for(request)
+    if not ENCRYPTION_KEY:
+        raise HTTPException(status_code=503, detail="TOKEN_ENCRYPTION_KEY is not configured.")
+    with db() as conn:
+        with conn.cursor() as cur:
+            ensure_tables(cur)
+            cur.execute("SELECT encrypted_access_token,encrypted_refresh_token,expires_at FROM social_connections WHERE workspace_id=%s AND platform='tiktok' ORDER BY updated_at DESC LIMIT 1", (workspace_id,))
+            row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=409, detail="Connect TikTok first at /auth/tiktok/start.")
+    access = Fernet(ENCRYPTION_KEY.encode("ascii")).decrypt(row[0].encode("ascii")).decode()
+    if row[2] and row[2].timestamp() <= time.time():
+        raise HTTPException(status_code=409, detail="TikTok token expired. Reconnect TikTok before checking publish status.")
+    async with httpx.AsyncClient(timeout=25) as client:
+        resp = await client.post("https://open.tiktokapis.com/v2/post/publish/status/fetch/", json={"publish_id":payload.publish_id}, headers={"Authorization":"Bearer "+access,"Content-Type":"application/json; charset=UTF-8"})
+    if resp.is_error:
+        raise HTTPException(status_code=502, detail={"message":"TikTok status lookup failed; check publish ID, permissions and API access.","provider_status":resp.status_code})
+    body = resp.json()
+    return {"platform":"tiktok","publish_id":payload.publish_id,"status":(body.get("data") or {}).get("status"),"provider_response":body.get("data") or {}}
