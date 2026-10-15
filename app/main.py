@@ -234,6 +234,10 @@ async def instagram_callback(request: Request, code: str | None = None,
             logger.warning("Instagram long-lived token exchange failed: status=%s type=%s code=%s subcode=%s message=%s",
                            long_response.status_code, err_type or "unknown", err_code or "unknown",
                            err_subcode or "unknown", err_message)
+            blocked = (
+                err_code == 200
+                and "access blocked" in err_message.lower()
+            )
             return JSONResponse(status_code=502, content={
                 "connected": False,
                 "error": "Instagram long-lived token exchange failed.",
@@ -242,6 +246,20 @@ async def instagram_callback(request: Request, code: str | None = None,
                 "meta_error_code": err_code,
                 "meta_error_subcode": err_subcode,
                 "meta_error_message": err_message,
+                "diagnosis": (
+                    "Meta is blocking API access; this is not fixable by retrying or changing Python code alone."
+                    if blocked else
+                    "Check Instagram Login app credentials, token validity, and Meta permissions."
+                ),
+                "next_steps": (
+                    [
+                        "Open Meta Developers > your app > Alerts and App Review to check for restrictions.",
+                        "Confirm Instagram API with Instagram Login is configured for this exact Instagram App ID and its matching app secret.",
+                        "If the app has no restriction, try the existing Facebook Login flow at /auth/facebook/start only if the Creator account is linked to a Facebook Page and the required permissions are enabled.",
+                        "If code 200 persists, submit the error and fbtrace_id (if present in Meta response) to Meta Support; only Meta can lift an app/account-level block."
+                    ] if blocked else []
+                ),
+                "facebook_login_fallback": "/auth/facebook/start" if blocked else None,
             })
         long_data = long_response.json()
         long_token = long_data.get("access_token")
