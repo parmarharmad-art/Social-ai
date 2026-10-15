@@ -979,3 +979,11 @@ mount_mcp(app)
 # Metricool-style mobile dashboard for content creation, scheduling and reporting.
 from app.dashboard import router as dashboard_router
 app.include_router(dashboard_router)
+
+
+# Send the base URL to the main dashboard for easier mobile access.
+from fastapi.responses import RedirectResponse
+
+@app.get("/", include_in_schema=False)
+async def dashboard_home():
+    return RedirectResponse(url="/dashboard", status_code=307)
