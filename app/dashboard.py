@@ -1,6 +1,6 @@
 """Metricool-style mobile dashboard for SocialPilot AI."""
 from fastapi import APIRouter
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 
 router = APIRouter()
 
@@ -8,7 +8,7 @@ router = APIRouter()
 async def metricool_dashboard():
     return HTMLResponse(r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#101828"><title>SocialPilot AI — Dashboard</title>
+<meta name="theme-color" content="#101828"><meta name="description" content="Plan, create, schedule and review social media content with SocialPilot AI."><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/app-icon.svg" type="image/svg+xml"><title>SocialPilot AI — Dashboard</title>
 <style>
 :root{--bg:#f4f6fb;--ink:#182230;--muted:#667085;--line:#e4e7ec;--blue:#4263eb;--nav:#101828;--card:#fff;--green:#12b76a}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink)}
@@ -34,7 +34,7 @@ footer{text-align:center;padding:12px;color:var(--muted);font-size:12px}.hidden{
 @media(max-width:420px){.grid{gap:8px}.metric{padding:13px}.metric .num{font-size:22px}.card{padding:14px}.row{grid-template-columns:1fr}}
 </style></head>
 <body>
-<header><div class="brand">✦ SocialPilot <span>AI</span></div><div class="status" id="serviceStatus">● Checking service…</div></header>
+<header><div class="brand">✦ SocialPilot <span>AI</span></div><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><button id="installApp" class="secondary" style="display:none" onclick="installPWA()">＋ Install app</button><div class="status" id="serviceStatus">● Checking service…</div></div></header>
 <div class="layout">
 <nav aria-label="Main navigation">
 <a class="active" href="#overview">▦ Overview</a><a href="#create">✎ Create post</a><a href="#calendar">◷ Planner & queue</a><a href="#analytics">↗ Analytics</a><a href="/studio">▧ Design studio ↗</a><a href="/setup">⚙ Setup ↗</a>
@@ -94,5 +94,9 @@ function fallbackCopy(c){const t=document.createElement('textarea');t.value=c;do
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function safeUrl(s){try{const u=new URL(s);return u.protocol==='https:'?u.href:'#'}catch(e){return '#'}}
 async function refreshAll(){await checkService();await refreshStatus();if(apiKey&&uid){await refreshQueue();await loadReport()}}
+let installPrompt=null;
+window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;$('installApp').style.display='inline-flex'});
+async function installPWA(){if(!installPrompt){message('settingsMsg','On Android Chrome, open the browser menu and choose Install app or Add to Home screen.','');return}installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$('installApp').style.display='none'}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))}
 checkService();refreshStatus();
 </script></body></html>""")
