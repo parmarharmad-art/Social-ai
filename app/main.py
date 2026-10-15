@@ -662,12 +662,63 @@ async def openai_chat(messages: list[dict], max_tokens: int = 900) -> str:
         raise HTTPException(status_code=502, detail="AI provider returned an unexpected response.")
 
 
+def make_template_content_package(topic: str) -> str:
+    """Create a usable editable content draft when no AI provider key is configured."""
+    safe_topic = topic.strip().rstrip(".")
+    return f"""HOOK:
+Still doing {safe_topic.lower()} manually? Start with one repeatable workflow.
+
+SLIDE 1 — START WITH A CLEAR INPUT
+Write down the task, the trigger, the expected output and who approves it. Keep the first version small.
+
+SLIDE 2 — BUILD THE WORKFLOW
+1. Trigger: a new brief, lead, post idea or scheduled time.
+2. Prepare: collect the required details in one place.
+3. Create: use a reusable prompt and a consistent template.
+4. Review: check facts, links, brand voice and permissions.
+
+SLIDE 3 — ADD A HUMAN CHECK
+Do not auto-publish unreviewed content. Approve the draft, confirm the destination account and keep a record of failures.
+
+SLIDE 4 — MEASURE THE RESULT
+Track time saved, drafts approved, errors caught and the next step completed. Improve one step at a time.
+
+CAPTION:
+{safe_topic}
+
+A practical workflow is more than connecting tools. Define the input, the steps, the approval point and the final result before you automate.
+
+Try this:
+• Document the task you repeat most often.
+• Create one reusable template.
+• Add a human review before anything goes live.
+• Review the outcome weekly and fix the biggest bottleneck.
+
+CTA:
+Save this workflow and comment “WORKFLOW” if you want to build a version for your business.
+
+HASHTAGS:
+#AIAutomation #DigitalMarketing #ContentWorkflow #MarketingAutomation #SmallBusiness
+
+IMAGE PROMPT:
+Create a premium 4:5 Instagram infographic about {safe_topic}. Show a clean four-step workflow: Input → Prepare → Create → Human Review → Publish/Measure. Dark navy background, white cards, electric blue and cyan accents, large readable typography, clear arrows, generous spacing, no fake logos, no tiny text. Add a small footer: Kiran Kumar • AI Automation."""
+
+
 @app.post("/api/ai/generate")
 async def generate_content(payload: dict, x_automation_key: str | None = Header(default=None)):
     require_automation_key(x_automation_key)
     topic = " ".join(str(payload.get("topic", "")).split()).strip()
     if not topic:
         raise HTTPException(status_code=400, detail="topic is required.")
+    if not OPENAI_API_KEY:
+        return {
+            "ok": True,
+            "mode": "template",
+            "topic": topic,
+            "brand": "Kiran Kumar • AI Automation",
+            "content": make_template_content_package(topic),
+            "note": "Template mode: add OPENAI_API_KEY in Render for AI-written drafts and image generation.",
+        }
     prompt = (
         "Create an Instagram carousel content package for the brand Kiran Kumar • AI Automation. "
         "Write in clear professional English for Indian freelancers, digital marketers and small businesses. "
@@ -679,7 +730,7 @@ async def generate_content(payload: dict, x_automation_key: str | None = Header(
         {"role": "system", "content": "You are an expert practical AI automation educator and social media content strategist."},
         {"role": "user", "content": prompt},
     ], max_tokens=1400)
-    return {"ok": True, "topic": topic, "brand": "Kiran Kumar • AI Automation", "content": generated}
+    return {"ok": True, "mode": "ai", "topic": topic, "brand": "Kiran Kumar • AI Automation", "content": generated}
 
 
 @app.post("/api/ai/image")
