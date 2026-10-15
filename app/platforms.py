@@ -24,7 +24,8 @@ async def platform_catalog():
             {**p, "connect_url": (
                 None if p["id"] == "instagram" else
                 "/auth/facebook/start" if p["id"] == "facebook" else
-                "/auth/linkedin/start" if p["id"] == "linkedin" else\n                "/auth/youtube/start" if p["id"] == "youtube" else None
+                "/auth/linkedin/start" if p["id"] == "linkedin" else
+                "/auth/youtube/start" if p["id"] == "youtube" else None
             )} for p in PLATFORMS
         ],
         "notice": "A listed OAuth flow is not proof of successful connection or publishing. Provider approval and live tests are required."
