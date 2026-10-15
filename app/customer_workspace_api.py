@@ -4,6 +4,9 @@ These routes deliberately do not accept the global automation API key. All custo
 queries are scoped to the workspace resolved from the signed customer session.
 """
 import os
+import base64
+
+import httpx
 from datetime import datetime, timezone
 from typing import Any
 
@@ -70,6 +73,54 @@ class CustomerScheduleInput(BaseModel):
     scheduled_at: datetime
     topic: str = Field(default="", max_length=300)
 
+
+
+
+@router.post("/media/generate")
+async def customer_generate_image(payload: CustomerContentInput, request: Request):
+    workspace_id = _workspace_id(request)
+    from uuid import uuid4
+    from app.main import OPENAI_API_KEY, APP_BASE_URL, ensure_ai_tables
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=503, detail="AI image generation is not configured yet.")
+    topic = " ".join(payload.topic.split()).strip()
+    prompt = (
+        "Create a polished Instagram 4:5 social media infographic about " + topic +
+        ". Use a clear headline, 3 to 5 concise workflow steps, readable large typography, "
+        "dark navy background with white cards and electric blue/cyan accents, generous spacing, "
+        "professional SaaS design, no fake logos, no tiny text. Footer: Kiran Kumar • AI Automation."
+    )
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/images/generations",
+                headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
+                json={"model": os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1"),
+                      "prompt": prompt, "size": "1024x1024"},
+            )
+            if response.status_code >= 400:
+                raise HTTPException(status_code=502, detail="Image generation failed. Check AI provider access and quota.")
+            raw = response.json()["data"][0].get("b64_json")
+            if not raw:
+                raise HTTPException(status_code=502, detail="Image provider returned no image data.")
+            image_bytes = base64.b64decode(raw)
+        ensure_ai_tables()
+        asset_id = uuid4()
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("ALTER TABLE generated_assets ADD COLUMN IF NOT EXISTS workspace_id UUID")
+                cur.execute("""
+                    INSERT INTO generated_assets (asset_id, image_bytes, mime_type, workspace_id)
+                    VALUES (%s,%s,%s,%s)
+                """, (asset_id, image_bytes, "image/png", workspace_id))
+            conn.commit()
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=503, detail="Could not generate or store image. Check AI and database configuration.")
+    return {"ok": True, "asset_id": str(asset_id),
+            "image_url": f"{APP_BASE_URL}/assets/{asset_id}",
+            "message": "Generated image saved to this workspace's media record."}
 
 
 @router.post("/media/upload")
