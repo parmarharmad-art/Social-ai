@@ -100,3 +100,48 @@ async function installPWA(){if(!installPrompt){message('settingsMsg','On Android
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))}
 checkService();refreshStatus();
 </script></body></html>""")
+
+
+@router.get("/manifest.webmanifest", include_in_schema=False)
+async def app_manifest():
+    return Response(
+        content='{"id":"/dashboard","name":"SocialPilot AI","short_name":"SocialPilot","description":"Create, plan and manage social content","start_url":"/dashboard","scope":"/","display":"standalone","background_color":"#f4f6fb","theme_color":"#101828","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}',
+        media_type="application/manifest+json",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
+@router.get("/app-icon.svg", include_in_schema=False)
+async def app_icon():
+    svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#101828"/><path d="M256 74 300 190 420 234 300 278 256 398 212 278 92 234 212 190Z" fill="#91a7ff"/><circle cx="256" cy="234" r="36" fill="#fff"/></svg>'
+    return Response(content=svg, media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@router.get("/sw.js", include_in_schema=False)
+async def service_worker():
+    script = """
+const CACHE = 'socialpilot-shell-v1';
+const SHELL = ['/dashboard', '/studio', '/planner', '/setup', '/app-icon.svg', '/manifest.webmanifest'];
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
+});
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+});
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/') || url.pathname === '/mcp') return;
+  event.respondWith(fetch(request).then(response => {
+    if (response.ok && (url.pathname === '/dashboard' || url.pathname === '/studio' || url.pathname === '/planner' || url.pathname === '/setup' || url.pathname === '/app-icon.svg' || url.pathname === '/manifest.webmanifest')) {
+      const copy = response.clone();
+      caches.open(CACHE).then(cache => cache.put(request, copy));
+    }
+    return response;
+  }).catch(async () => {
+    const cached = await caches.match(request);
+    return cached || caches.match('/dashboard');
+  }));
+});
+"""
+    return Response(content=script, media_type="application/javascript", headers={"Cache-Control": "no-cache"})
