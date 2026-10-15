@@ -473,8 +473,7 @@ async def facebook_login_callback(code: str | None = None, state: str | None = N
         logger.exception("Secure Facebook Login token storage failed; token value was not logged.")
         return JSONResponse(status_code=503, content={"connected": False, "auth_method": "facebook_login",
             "error": "Facebook login succeeded, but secure token storage failed. Check database and encryption configuration."})
-    return {"connected": True, "token_saved": True, "platform": "facebook", "page_id": page_id, "page_name": page_name,
-            "message": "Facebook Page connected. Test a Page post before enabling automation.", "expires_in": expires_in}
+    return RedirectResponse(APP_BASE_URL + "/platforms?facebook=connected", status_code=303)
 
 
 @app.post("/api/facebook/pages/posts")
