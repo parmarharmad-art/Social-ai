@@ -106,3 +106,8 @@ def test_customer_image_upload_requires_login():
 def test_customer_cancel_post_requires_login():
     response = client.delete("/api/customer/posts/123")
     assert response.status_code == 401
+
+
+def test_customer_image_generation_requires_login():
+    response = client.post("/api/customer/media/generate", json={"topic": "Instagram lead generation"})
+    assert response.status_code == 401
