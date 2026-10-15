@@ -1,6 +1,8 @@
 """Honest multi-platform connection hub for SocialPilot AI."""
 import os
-from fastapi import APIRouter
+import psycopg
+from fastapi import APIRouter, Request, HTTPException
+from app.customer_auth import SESSION_COOKIE, _read_session
 from fastapi.responses import HTMLResponse
 
 router = APIRouter()
@@ -59,6 +61,29 @@ async def integration_readiness():
         "note": "Credentials being present does not prove provider approval or a successful live publish."
     }
 
+
+@router.get("/api/social/connections")
+async def social_connections(request: Request):
+    token = request.cookies.get(SESSION_COOKIE, "")
+    session = _read_session(token) if token else None
+    if not session:
+        raise HTTPException(status_code=401, detail="Log in to view your connected social accounts.")
+    database_url = os.getenv("DATABASE_URL", "").strip()
+    if not database_url:
+        raise HTTPException(status_code=503, detail="DATABASE_URL is not configured.")
+    if database_url.startswith("postgres://"):
+        database_url = "postgresql://" + database_url[len("postgres://"):]
+    with psycopg.connect(database_url, connect_timeout=10) as conn:
+        with conn.cursor() as cur:
+            cur.execute("""SELECT c.platform,c.provider_user_id,c.display_name,c.updated_at
+                FROM social_connections c
+                JOIN customer_workspaces w ON w.id=c.workspace_id
+                JOIN customer_accounts a ON a.id=w.owner_account_id
+                WHERE a.id=%s AND a.is_active=TRUE
+                ORDER BY c.updated_at DESC""", (session["sub"],))
+            rows = cur.fetchall()
+    return {"connections":[{"platform":row[0],"account_id":row[1],"display_name":row[2],"updated_at":row[3].isoformat() if row[3] else None} for row in rows]}
+
 @router.get("/platforms", response_class=HTMLResponse)
 async def platforms_page():
     cards = []
@@ -70,7 +95,7 @@ async def platforms_page():
             if ready and p["id"] != "instagram" else ('<span class="btn disabled">Pending by request</span>' if p["id"] == "instagram" else '<span class="btn disabled">Coming soon</span>')
         )
         cards.append(
-            f'<article><div class="top"><span class="group">{p["group"]}</span><span class="status {"code" if ready else "planned"}">{label}</span></div>'
+            f'<article data-platform="{p["id"]}"><div class="top"><span class="group">{p["group"]}</span><span class="status {"code" if ready else "planned"}">{label}</span></div>'
             f'<h2>{p["name"]}</h2><p>{p["note"]}</p>{action}</article>'
         )
     return HTMLResponse("""<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SocialPilot AI · Platforms</title>
@@ -81,7 +106,7 @@ h1{font-size:clamp(30px,6vw,46px);line-height:1.08;margin:12px 0} .sub{color:#ba
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:14px;margin-top:26px}
 article{border:1px solid #293450;background:#121a2e;border-radius:16px;padding:18px;display:flex;flex-direction:column;min-height:225px}
 .top{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.group{font-size:12px;color:#b9c8e7}
-.status{font-size:11px;border-radius:999px;padding:5px 8px}.code{background:#203b4a;color:#9cecff}.planned{background:#303246;color:#d6d7e7}
+.status{font-size:11px;border-radius:999px;padding:5px 8px}.code{background:#203b4a;color:#9cecff}.planned{background:#303246;color:#d6d7e7}.connected{background:#163d2d;color:#a8f0c6}
 h2{font-size:20px;margin:18px 0 8px}p{color:#bac5dd;line-height:1.5;font-size:14px;flex:1}
 .btn{display:inline-block;text-align:center;padding:10px 13px;border-radius:9px;background:#b8f2ff;color:#07121d;font-weight:700;text-decoration:none;width:max-content;max-width:100%}
 .disabled{background:#282f43;color:#b8c0d5}.notice{margin-top:22px;border-left:3px solid #8be9ff;padding:12px 14px;background:#121a2e;color:#c5d0e5;line-height:1.5;font-size:13px}
@@ -89,4 +114,4 @@ nav{display:flex;gap:16px;margin-top:22px;flex-wrap:wrap}nav a{color:#8be9ff}
 </style><main><div class="eyebrow">SocialPilot AI · Connect channels</div><h1>All your social platforms.<br>One workspace.</h1><p class="sub">Plan content for multiple channels from one place. Connections are being added provider by provider. We show the current integration state honestly—no fake connected badges.</p>
 <div class="grid">""" + "".join(cards) + """</div>
 <div class="notice"><strong>Important:</strong> “OAuth flow in code” does not mean the provider has approved the app or that publishing works. Meta currently blocks the Instagram token exchange. Facebook Page text/link publishing, LinkedIn text publishing, YouTube resumable video upload, TikTok URL-video publishing, Pinterest image pins, and X text posting have code in place. Each requires provider credentials, app permissions/approval, and a real-account test before being considered live. Instagram is intentionally pending by request.</div>
-<nav><a href="/dashboard">Dashboard</a><a href="/workspace">Workspace</a><a href="/account">Account / Login</a><a href="/setup">Setup checklist</a></nav></main></html>""")
+<nav><a href="/dashboard">Dashboard</a><a href="/workspace">Workspace</a><a href="/account">Account / Login</a><a href="/setup">Setup checklist</a></nav><script>fetch("/api/social/connections",{credentials:"same-origin"}).then(r=>r.ok?r.json():null).then(d=>{if(!d)return;for(const c of d.connections||[]){const card=document.querySelector('[data-platform="'+c.platform+'"]');if(!card)continue;const status=card.querySelector(".status");if(status){status.textContent="Connected · "+(c.display_name||c.account_id);status.className="status connected";}const link=card.querySelector("a.btn");if(link)link.textContent="Reconnect";}}).catch(()=>{});</script></main></html>""")
