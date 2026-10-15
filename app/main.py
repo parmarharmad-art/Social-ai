@@ -27,6 +27,8 @@ from app.customer_auth import router as customer_auth_router
 app.include_router(customer_auth_router)
 from app.customer_workspace_api import router as customer_workspace_router
 app.include_router(customer_workspace_router)
+from app.platforms import router as platforms_router
+app.include_router(platforms_router)
 logger = logging.getLogger(__name__)
 
 INSTAGRAM_APP_ID = (os.getenv("INSTAGRAM_APP_ID") or "").strip()
