@@ -13,7 +13,7 @@ Mobile-first multi-platform social media management SaaS for **Kiran Kumar • A
 
 ## Important: OAuth credential separation
 
-Instagram Login and Facebook Login use separate credentials in this project. In Render, configure `INSTAGRAM_APP_ID` and `INSTAGRAM_APP_SECRET` from the same **Instagram API with Instagram Login** app. Configure `META_APP_ID` and `META_APP_SECRET` for Facebook Page Login and Page publishing. Do not swap the two app IDs or secrets. The Instagram callback must exactly match `https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback`; the Facebook callback is `https://socialpilot-ai-mvp.onrender.com/auth/facebook/callback`.
+Instagram connection is intentionally disabled/pending by product-owner request. For Facebook Page Login and Page publishing, configure `META_APP_ID` and `META_APP_SECRET` from the Meta app and use callback `https://socialpilot-ai-mvp.onrender.com/auth/facebook/callback`. Facebook Page posting is exposed at `POST /api/facebook/pages/posts`. Do not attempt Instagram connection while it remains pending.
 
 Instagram remains disabled by request. Facebook Page OAuth needs a Meta app with the Page permissions and review required by Meta. Merely configuring credentials does not grant provider approval.
 
@@ -27,7 +27,7 @@ Open `/studio` on the deployed service for the in-app mobile-friendly design edi
 
 ## Multi-platform integrations and current status
 
-The `/platforms` page lists Instagram, Facebook Pages, LinkedIn, YouTube, TikTok, Pinterest and X in one connection hub. Instagram Login and Facebook Login OAuth routes exist in code, but are not considered production-ready until a real connection and publish test passes. Meta currently returns `API access blocked` on the Instagram long-lived-token exchange. LinkedIn OAuth/text publishing, YouTube OAuth/channel verification, X OAuth 2.0 PKCE/text publishing, Pinterest OAuth/image-pin publishing, and TikTok OAuth/URL-based video publishing have code in the repository. They still require their own provider credentials, app permissions/approval, and end-to-end live-account tests. YouTube resumable video upload is implemented in code. Never show these planned channels as connected or claim publishing works until verified. The shared publishing architecture should use provider-specific adapters, per-workspace encrypted tokens, capability checks, platform-specific media validation, retry handling and audit logs.
+The `/platforms` page lists Instagram, Facebook Pages, LinkedIn, YouTube, TikTok, Pinterest and X in one connection hub. Instagram is disabled/pending by request. Facebook Page text/link publishing, LinkedIn text publishing, YouTube resumable video upload, X text publishing, Pinterest image pins and TikTok URL-based video publishing have code in the repository. Every provider still requires its own credentials, permissions/approval, and end-to-end tests against a real account before publishing can be considered live. Do not show a channel as connected or claim publishing works until verified.
 
 ## Features implemented in code
 
