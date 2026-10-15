@@ -245,3 +245,24 @@ def test_instagram_agent_skill_runner_rejects_unknown_skill():
         assert "Unknown skill_name" in str(exc)
     else:
         raise AssertionError("Unknown skill should be rejected")
+
+
+def test_public_sales_page_loads():
+    response = client.get("/sell")
+    assert response.status_code == 200
+    assert "Plan better content" in response.text
+    assert 'href="/privacy"' in response.text
+    assert 'href="/terms"' in response.text
+
+
+def test_privacy_notice_is_explicitly_a_draft():
+    response = client.get("/privacy")
+    assert response.status_code == 200
+    assert "Privacy notice" in response.text
+    assert "must be reviewed and completed" in response.text
+
+
+def test_terms_page_does_not_claim_checkout_exists():
+    response = client.get("/terms")
+    assert response.status_code == 200
+    assert "No self-serve paid subscription or checkout is currently offered" in response.text
