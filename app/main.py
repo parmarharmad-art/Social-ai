@@ -59,7 +59,7 @@ def database_connection():
     return psycopg.connect(url, connect_timeout=10)
 
 
-def store_oauth_state(state: str, redirect_uri: str, auth_method: str):
+def store_oauth_state(state: str, redirect_uri: str, auth_method: str, workspace_id: str | None = None):
     """Persist a single-use OAuth state for cross-instance/restart-safe callbacks."""
     with database_connection() as conn:
         with conn.cursor() as cur:
@@ -68,14 +68,16 @@ def store_oauth_state(state: str, redirect_uri: str, auth_method: str):
                     state_hash TEXT PRIMARY KEY,
                     redirect_uri TEXT NOT NULL,
                     auth_method TEXT NOT NULL,
+                    workspace_id UUID,
                     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
                 )
             """)
+            cur.execute("ALTER TABLE oauth_states ADD COLUMN IF NOT EXISTS workspace_id UUID")
             cur.execute("DELETE FROM oauth_states WHERE created_at < NOW() - INTERVAL '15 minutes'")
             cur.execute("""
-                INSERT INTO oauth_states (state_hash, redirect_uri, auth_method)
-                VALUES (%s, %s, %s)
-            """, (hashlib.sha256(state.encode("utf-8")).hexdigest(), redirect_uri, auth_method))
+                INSERT INTO oauth_states (state_hash, redirect_uri, auth_method, workspace_id)
+                VALUES (%s, %s, %s, %s)
+            """, (hashlib.sha256(state.encode("utf-8")).hexdigest(), redirect_uri, auth_method, workspace_id))
         conn.commit()
 
 
@@ -87,14 +89,35 @@ def consume_oauth_state(state: str):
             cur.execute("""
                 DELETE FROM oauth_states
                 WHERE state_hash=%s AND created_at >= NOW() - INTERVAL '15 minutes'
-                RETURNING redirect_uri, auth_method
+                RETURNING redirect_uri, auth_method, workspace_id
             """, (state_hash,))
             row = cur.fetchone()
         conn.commit()
     if not row:
         return None
-    return {"redirect_uri": row[0], "auth_method": row[1]}
+    return {"redirect_uri": row[0], "auth_method": row[1], "workspace_id": str(row[2]) if row[2] else None}
 
+
+
+
+def customer_workspace_id(request: Request) -> str:
+    """Require an authenticated customer session before linking a social account."""
+    from app.customer_auth import SESSION_COOKIE, _read_session
+    token = request.cookies.get(SESSION_COOKIE, "")
+    session = _read_session(token) if token else None
+    if not session:
+        raise HTTPException(status_code=401, detail="Log in at /account before connecting Instagram.")
+    with database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT w.id FROM customer_workspaces w
+                JOIN customer_accounts a ON a.id=w.owner_account_id
+                WHERE a.id=%s AND a.is_active=TRUE
+            """, (session["sub"],))
+            row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=401, detail="Customer workspace not found or disabled.")
+    return str(row[0])
 
 def token_cipher():
     if not TOKEN_ENCRYPTION_KEY:
@@ -102,7 +125,7 @@ def token_cipher():
     return Fernet(TOKEN_ENCRYPTION_KEY.encode("ascii"))
 
 
-def save_encrypted_token(user_id: str, access_token: str, expires_in: int | None, auth_method: str = "instagram_login"):
+def save_encrypted_token(user_id: str, access_token: str, expires_in: int | None, auth_method: str = "instagram_login", workspace_id: str | None = None):
     encrypted = token_cipher().encrypt(access_token.encode("utf-8")).decode("ascii")
     with database_connection() as conn:
         with conn.cursor() as cur:
@@ -112,21 +135,24 @@ def save_encrypted_token(user_id: str, access_token: str, expires_in: int | None
                     encrypted_access_token TEXT NOT NULL,
                     token_expires_in BIGINT,
                     auth_method TEXT NOT NULL DEFAULT 'instagram_login',
+                    workspace_id UUID,
                     connected_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
                 )
             """)
             cur.execute("ALTER TABLE instagram_connections ADD COLUMN IF NOT EXISTS auth_method TEXT NOT NULL DEFAULT 'instagram_login'")
+            cur.execute("ALTER TABLE instagram_connections ADD COLUMN IF NOT EXISTS workspace_id UUID")
             cur.execute("""
                 INSERT INTO instagram_connections
-                    (instagram_user_id, encrypted_access_token, token_expires_in, auth_method)
-                VALUES (%s, %s, %s, %s)
+                    (instagram_user_id, encrypted_access_token, token_expires_in, auth_method, workspace_id)
+                VALUES (%s, %s, %s, %s, %s)
                 ON CONFLICT (instagram_user_id) DO UPDATE SET
                     encrypted_access_token = EXCLUDED.encrypted_access_token,
                     token_expires_in = EXCLUDED.token_expires_in,
                     auth_method = EXCLUDED.auth_method,
+                    workspace_id = COALESCE(instagram_connections.workspace_id, EXCLUDED.workspace_id),
                     updated_at = NOW()
-            """, (user_id, encrypted, expires_in, auth_method))
+            """, (user_id, encrypted, expires_in, auth_method, workspace_id))
         conn.commit()
 
 
@@ -190,12 +216,13 @@ async def oauth_config_check():
 
 
 @app.get("/auth/instagram/start")
-async def instagram_start():
+async def instagram_start(request: Request):
     if not INSTAGRAM_APP_ID or not REDIRECT_URI:
         raise HTTPException(status_code=503, detail="Configure Instagram App ID and redirect URI.")
+    workspace_id = customer_workspace_id(request)
     state = secrets.token_urlsafe(32)
     try:
-        store_oauth_state(state, REDIRECT_URI, "instagram_login")
+        store_oauth_state(state, REDIRECT_URI, "instagram_login", workspace_id)
     except Exception:
         logger.exception("Could not persist Instagram OAuth state")
         raise HTTPException(status_code=503, detail="Persistent database is required for secure Instagram login. Check DATABASE_URL.")
@@ -320,7 +347,7 @@ async def instagram_callback(request: Request, code: str | None = None,
         raise HTTPException(status_code=502, detail="Instagram did not return a user ID.")
 
     try:
-        save_encrypted_token(instagram_user_id, long_token, expires_in, "instagram_login")
+        save_encrypted_token(instagram_user_id, long_token, expires_in, "instagram_login", state_data.get("workspace_id"))
     except Exception:
         logger.exception("Secure Instagram token storage failed; token value was not logged.")
         return JSONResponse(status_code=503, content={
@@ -339,14 +366,15 @@ async def instagram_callback(request: Request, code: str | None = None,
 
 
 @app.get("/auth/facebook/start")
-async def facebook_login_start():
+async def facebook_login_start(request: Request):
     """Alternate official Instagram API with Facebook Login for Instagram professional accounts linked to a Page."""
     if not FACEBOOK_APP_ID or not FACEBOOK_APP_SECRET:
         raise HTTPException(status_code=503, detail="Configure META_APP_ID and META_APP_SECRET for Facebook Login in Render.")
     redirect_uri = APP_BASE_URL + "/auth/facebook/callback"
+    workspace_id = customer_workspace_id(request)
     state = secrets.token_urlsafe(32)
     try:
-        store_oauth_state(state, redirect_uri, "facebook_login")
+        store_oauth_state(state, redirect_uri, "facebook_login", workspace_id)
     except Exception:
         logger.exception("Could not persist Facebook OAuth state")
         raise HTTPException(status_code=503, detail="Persistent database is required for secure Facebook login. Check DATABASE_URL.")
@@ -411,7 +439,7 @@ async def facebook_login_callback(code: str | None = None, state: str | None = N
         page_token = linked_page["access_token"]
         expires_in = user_data.get("expires_in")
     try:
-        save_encrypted_token(instagram_user_id, page_token, expires_in, "facebook_login")
+        save_encrypted_token(instagram_user_id, page_token, expires_in, "facebook_login", state_data.get("workspace_id"))
     except Exception:
         logger.exception("Secure Facebook Login token storage failed; token value was not logged.")
         return JSONResponse(status_code=503, content={"connected": False, "auth_method": "facebook_login",
