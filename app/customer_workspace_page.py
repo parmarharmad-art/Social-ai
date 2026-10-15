@@ -32,31 +32,3 @@ $('schedule').onclick=async()=>{try{if(!$('when').value)throw Error('Choose a pu
 $('logout').onclick=async()=>{await api('/api/account/logout',{method:'POST'});location.href='/account'};
 load();
 </script></body></html>""")
-
-
-def _install_workspace_token_guard():
-    """Prevent an OAuth callback from overwriting a token owned by another workspace."""
-    from app import main as main_app
-
-    if getattr(main_app.save_encrypted_token, "_workspace_guarded", False):
-        return
-    original_save = main_app.save_encrypted_token
-
-    def guarded_save(user_id, access_token, expires_in, auth_method="instagram_login", workspace_id=None):
-        if workspace_id:
-            with main_app.database_connection() as conn:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        "SELECT workspace_id FROM instagram_connections WHERE instagram_user_id=%s",
-                        (user_id,),
-                    )
-                    row = cur.fetchone()
-            if row and row[0] and str(row[0]) != str(workspace_id):
-                raise ValueError("This Instagram account is already linked to another customer workspace.")
-        return original_save(user_id, access_token, expires_in, auth_method, workspace_id)
-
-    guarded_save._workspace_guarded = True
-    main_app.save_encrypted_token = guarded_save
-
-
-_install_workspace_token_guard()
