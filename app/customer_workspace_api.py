@@ -144,3 +144,31 @@ async def customer_schedule_post(payload: CustomerScheduleInput, request: Reques
         conn.commit()
     return {"ok": True, "post_id": row[0], "status": row[1],
             "scheduled_at": row[2].isoformat(), "workspace_id": workspace_id}
+
+
+@router.get("/workspace", include_in_schema=False)
+async def customer_workspace_page():
+    """Simple session-authenticated customer console for account linking and post scheduling."""
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse("""<!doctype html>
+<html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SocialPilot AI Workspace</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#eef3ff;font:16px/1.5 system-ui}
+main{max-width:900px;margin:auto;padding:20px}.top,.panel{background:#151d32;border:1px solid #2b3855;border-radius:16px;padding:18px;margin:14px 0}
+h1,h2{margin-top:0}p,small{color:#b8c5df}a{color:#8fb5ff}input,textarea,button,select{font:inherit;width:100%;padding:12px;margin:6px 0;border-radius:9px;border:1px solid #3d4b69;background:#0b1020;color:#eef3ff}
+button{background:#4779ed;border:0;font-weight:700;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}.item{padding:12px;border:1px solid #33415d;border-radius:10px;margin:8px 0;overflow-wrap:anywhere}.status{white-space:pre-wrap;color:#bfe6c9}.warn{background:#2a2436;border-radius:10px;padding:12px;color:#ffe4b5}
+</style></head><body><main>
+<section class="top"><h1>SocialPilot AI</h1><p>Your workspace for Instagram connections and scheduled posts.</p><p><a href="/account">Account & login</a> · <a href="/studio">Post & Video Studio</a> · <a href="/setup">Setup status</a> · <a href="/sell">Product overview</a></p><div class="warn">Early access: connect your Instagram account first. Scheduling requires a public HTTPS image URL. Confirm a test post before relying on automated publishing.</div><p id="message" class="status">Checking your session…</p><button id="refresh" type="button">Refresh workspace</button><button id="logout" type="button">Log out</button></section>
+<div class="grid"><section class="panel"><h2>1. Connect Instagram</h2><p>Sign in with the Instagram account you want this workspace to manage.</p><a href="/auth/instagram/start"><button type="button">Connect Instagram</button></a><div id="connections"></div></section>
+<section class="panel"><h2>2. Schedule an image post</h2><form id="schedule"><label>Instagram account</label><select id="account" required><option value="">Connect an account first</option></select><label>Public HTTPS image URL</label><input id="image" type="url" placeholder="https://example.com/post.jpg" required><label>Caption</label><textarea id="caption" rows="5" maxlength="2200" required placeholder="Write your caption…"></textarea><label>Publish date & time (your phone's local time)</label><input id="when" type="datetime-local" required><button type="submit">Schedule post</button></form><small>Use an image URL that Instagram can access without logging in. Studio export is not automatically uploaded to a hosted media library yet.</small></section></div>
+<section class="panel"><h2>Scheduled & recent posts</h2><div id="posts"><p>Loading…</p></div></section>
+</main><script>
+const $=id=>document.getElementById(id);const msg=$('message');
+async function request(url,opts={}){const r=await fetch(url,{credentials:'same-origin',...opts});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.detail||d.error||('Request failed ('+r.status+')'));return d}
+function localIso(v){const d=new Date(v);const off=-d.getTimezoneOffset();const sign=off>=0?'+':'-';const z=n=>String(Math.floor(Math.abs(n))).padStart(2,'0');return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'T'+z(d.getHours())+':'+z(d.getMinutes())+':00'+sign+z(off/60)+':'+z(off%60)}
+async function refresh(){try{const me=await request('/api/account/me');msg.textContent='Signed in as '+me.account.email+' · Workspace: '+me.workspace.name;const c=await request('/api/customer/instagram/connections');$('connections').innerHTML=c.connections.length?c.connections.map(x=>'<div class="item"><b>Instagram ID:</b> '+x.instagram_user_id+'<br><small>Connected via '+x.auth_method+'</small></div>').join(''):'<p>No Instagram account connected yet.</p>';const sel=$('account');sel.innerHTML='<option value="">Select Instagram account</option>'+c.connections.map(x=>'<option value="'+x.instagram_user_id+'">'+x.instagram_user_id+'</option>').join('');const p=await request('/api/customer/posts');$('posts').innerHTML=p.posts.length?p.posts.map(x=>'<div class="item"><b>'+x.status+'</b> · '+new Date(x.scheduled_at).toLocaleString()+'<p>'+escapeHtml(x.caption)+'</p>'+(x.last_error?'<small>Error: '+escapeHtml(x.last_error)+'</small>':'')+(x.instagram_media_id?'<small> Published media ID: '+x.instagram_media_id+'</small>':'')+'</div>').join(''):'<p>No scheduled posts yet.</p>'}catch(e){msg.textContent=e.message;if(e.message.includes('Log in')||e.message.includes('Please log in'))msg.innerHTML=escapeHtml(e.message)+' · <a href="/account">Open account login</a>'}}
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('refresh').onclick=refresh;$('schedule').onsubmit=async e=>{e.preventDefault();try{const d=await request('/api/customer/posts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({instagram_user_id:$('account').value,image_url:$('image').value,caption:$('caption').value,scheduled_at:localIso($('when').value)})});msg.textContent='Post scheduled. Queue ID: '+d.post_id;$('caption').value='';await refresh()}catch(err){msg.textContent=err.message}};
+$('logout').onclick=async()=>{try{await request('/api/account/logout',{method:'POST'});location.href='/account'}catch(e){msg.textContent=e.message}};refresh();
+</script></body></html>""")
