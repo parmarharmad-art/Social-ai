@@ -380,7 +380,7 @@ async def instagram_callback(request: Request, code: str | None = None,
 
 @app.get("/auth/facebook/start")
 async def facebook_login_start(request: Request):
-    """Alternate official Instagram API with Facebook Login for Instagram professional accounts linked to a Page."""
+    """Connect a Facebook Page for native Page publishing."""
     if not FACEBOOK_APP_ID or not FACEBOOK_APP_SECRET:
         raise HTTPException(status_code=503, detail="Configure META_APP_ID and META_APP_SECRET for Facebook Login in Render.")
     redirect_uri = APP_BASE_URL + "/auth/facebook/callback"
