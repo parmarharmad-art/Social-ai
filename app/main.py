@@ -25,7 +25,9 @@ app = FastAPI(title="SocialPilot AI MVP", version="0.2.1")
 logger = logging.getLogger(__name__)
 
 INSTAGRAM_APP_ID = (os.getenv("INSTAGRAM_APP_ID") or os.getenv("META_APP_ID") or "1559704026184551").strip()
-INSTAGRAM_APP_SECRET = (os.getenv("INSTAGRAM_APP_SECRET") or os.getenv("META_APP_SECRET") or "").strip()
+INSTAGRAM_APP_SECRET = (os.getenv("INSTAGRAM_APP_SECRET") or "").strip()
+FACEBOOK_APP_ID = (os.getenv("META_APP_ID") or "").strip()
+FACEBOOK_APP_SECRET = (os.getenv("META_APP_SECRET") or "").strip()
 REDIRECT_URI = os.getenv(
     "INSTAGRAM_REDIRECT_URI",
     "https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback",
@@ -293,13 +295,13 @@ async def instagram_callback(request: Request, code: str | None = None,
 @app.get("/auth/facebook/start")
 async def facebook_login_start():
     """Alternate official Instagram API with Facebook Login for Instagram professional accounts linked to a Page."""
-    if not INSTAGRAM_APP_ID or not INSTAGRAM_APP_SECRET:
-        raise HTTPException(status_code=503, detail="Configure Meta App ID and App Secret in Render.")
+    if not FACEBOOK_APP_ID or not FACEBOOK_APP_SECRET:
+        raise HTTPException(status_code=503, detail="Configure META_APP_ID and META_APP_SECRET for Facebook Login in Render.")
     redirect_uri = APP_BASE_URL + "/auth/facebook/callback"
     state = secrets.token_urlsafe(32)
     oauth_states[state] = {"redirect_uri": redirect_uri, "auth_method": "facebook_login"}
     permissions = "pages_show_list,pages_read_engagement,instagram_basic,instagram_content_publish,instagram_manage_comments,instagram_manage_insights"
-    params = {"client_id": INSTAGRAM_APP_ID, "redirect_uri": redirect_uri, "response_type": "code",
+    params = {"client_id": FACEBOOK_APP_ID, "redirect_uri": redirect_uri, "response_type": "code",
               "scope": permissions, "state": state}
     return RedirectResponse(f"https://www.facebook.com/{META_GRAPH_API_VERSION}/dialog/oauth?" + urlencode(params), status_code=302)
 
@@ -319,7 +321,7 @@ async def facebook_login_callback(code: str | None = None, state: str | None = N
     base = f"https://graph.facebook.com/{META_GRAPH_API_VERSION}"
     async with httpx.AsyncClient(timeout=30) as client:
         token_response = await client.get(f"{base}/oauth/access_token", params={
-            "client_id": INSTAGRAM_APP_ID, "client_secret": INSTAGRAM_APP_SECRET,
+            "client_id": FACEBOOK_APP_ID, "client_secret": FACEBOOK_APP_SECRET,
             "redirect_uri": redirect_uri, "code": code})
         if token_response.status_code >= 400:
             logger.warning("Facebook OAuth code exchange failed with HTTP %s", token_response.status_code)
@@ -329,8 +331,8 @@ async def facebook_login_callback(code: str | None = None, state: str | None = N
         if not short_token:
             raise HTTPException(status_code=502, detail="Facebook did not return a user access token.")
         long_response = await client.get(f"{base}/oauth/access_token", params={
-            "grant_type": "fb_exchange_token", "client_id": INSTAGRAM_APP_ID,
-            "client_secret": INSTAGRAM_APP_SECRET, "fb_exchange_token": short_token})
+            "grant_type": "fb_exchange_token", "client_id": FACEBOOK_APP_ID,
+            "client_secret": FACEBOOK_APP_SECRET, "fb_exchange_token": short_token})
         if long_response.status_code >= 400:
             logger.warning("Facebook long-lived token exchange failed with HTTP %s", long_response.status_code)
             return JSONResponse(status_code=502, content={"connected": False, "auth_method": "facebook_login",
