@@ -128,13 +128,14 @@ async def publish_x_post(payload: XPostInput, request: Request):
     with db() as conn:
         with conn.cursor() as cur:
             ensure_tables(cur)
-            cur.execute("SELECT encrypted_access_token,encrypted_refresh_token,expires_at FROM social_connections WHERE workspace_id=%s AND platform='x' ORDER BY updated_at DESC LIMIT 1", (workspace_id,))
+            cur.execute("SELECT provider_user_id,encrypted_access_token,encrypted_refresh_token,expires_at FROM social_connections WHERE workspace_id=%s AND platform='x' ORDER BY updated_at DESC LIMIT 1", (workspace_id,))
             row = cur.fetchone()
     if not row:
         raise HTTPException(status_code=409, detail="Connect X first at /auth/x/start.")
-    access = Fernet(ENCRYPTION_KEY.encode("ascii")).decrypt(row[0].encode("ascii")).decode()
-    refresh = Fernet(ENCRYPTION_KEY.encode("ascii")).decrypt(row[1].encode("ascii")).decode() if row[1] else None
-    if row[2] and row[2].timestamp() <= time.time():
+    provider_user_id = row[0]
+    access = Fernet(ENCRYPTION_KEY.encode("ascii")).decrypt(row[1].encode("ascii")).decode()
+    refresh = Fernet(ENCRYPTION_KEY.encode("ascii")).decrypt(row[2].encode("ascii")).decode() if row[2] else None
+    if row[3] and row[3].timestamp() <= time.time():
         if not refresh:
             raise HTTPException(status_code=409, detail="X access token expired; reconnect X.")
         async with httpx.AsyncClient(timeout=25) as client:
@@ -147,7 +148,7 @@ async def publish_x_post(payload: XPostInput, request: Request):
         exp = int(td.get("expires_in") or 0)
         with db() as conn:
             with conn.cursor() as cur:
-                cur.execute("UPDATE social_connections SET encrypted_access_token=%s,encrypted_refresh_token=%s,expires_at=CASE WHEN %s>0 THEN NOW()+(%s*INTERVAL '1 second') ELSE NULL END,updated_at=NOW() WHERE workspace_id=%s AND platform='x'", (encrypt(access),encrypt(new_refresh),exp,exp,workspace_id))
+                cur.execute("UPDATE social_connections SET encrypted_access_token=%s,encrypted_refresh_token=%s,expires_at=CASE WHEN %s>0 THEN NOW()+(%s*INTERVAL '1 second') ELSE NULL END,updated_at=NOW() WHERE workspace_id=%s AND platform='x' AND provider_user_id=%s", (encrypt(access),encrypt(new_refresh),exp,exp,workspace_id,provider_user_id))
             conn.commit()
     async with httpx.AsyncClient(timeout=25) as client:
         resp = await client.post("https://api.x.com/2/tweets", json={"text":payload.text}, headers={"Authorization":"Bearer "+access,"Content-Type":"application/json"})
