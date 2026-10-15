@@ -54,3 +54,21 @@ def test_logout_clears_session_cookie():
     assert response.status_code == 200
     assert response.json()["ok"] is True
     assert "socialpilot_session" in response.headers.get("set-cookie", "")
+
+
+def test_instagram_oauth_requires_customer_login(monkeypatch):
+    import app.main as main
+    monkeypatch.setattr(main, "INSTAGRAM_APP_ID", "test-app-id")
+    monkeypatch.setattr(main, "REDIRECT_URI", "https://example.com/auth/instagram/callback")
+    response = client.get("/auth/instagram/start", follow_redirects=False)
+    assert response.status_code == 401
+    assert "Log in" in response.json()["detail"]
+
+
+def test_facebook_oauth_requires_customer_login(monkeypatch):
+    import app.main as main
+    monkeypatch.setattr(main, "FACEBOOK_APP_ID", "test-app-id")
+    monkeypatch.setattr(main, "FACEBOOK_APP_SECRET", "test-secret")
+    response = client.get("/auth/facebook/start", follow_redirects=False)
+    assert response.status_code == 401
+    assert "Log in" in response.json()["detail"]
