@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse
 router = APIRouter()
 
 PLATFORMS = [
-    {"id":"instagram","name":"Instagram","group":"Meta","status":"oauth_implemented","note":"Instagram Login code exists; Meta currently returns API access blocked for token exchange."},
+    {"id":"instagram","name":"Instagram","group":"Meta","status":"blocked","note":"Kept pending as requested: Meta is returning API access blocked; no Instagram connect action is offered."},
     {"id":"facebook","name":"Facebook Pages","group":"Meta","status":"oauth_implemented","note":"Facebook Login fallback exists; requires matching Meta credentials and a Page-linked professional Instagram account where applicable."},
     {"id":"linkedin","name":"LinkedIn Profiles","group":"Professional","status":"oauth_implemented","note":"OAuth and text-post publishing endpoints added. Requires LinkedIn app credentials, OpenID Connect and w_member_social approval."},
     {"id":"youtube","name":"YouTube","group":"Video","status":"planned","note":"Requires Google OAuth consent setup and YouTube Data API configuration."},
@@ -24,7 +24,7 @@ async def platform_catalog():
             {**p, "connect_url": (
                 "/auth/instagram/start" if p["id"] == "instagram" else
                 "/auth/facebook/start" if p["id"] == "facebook" else
-                "/auth/linkedin/start" if p["id"] == "linkedin" else None
+                "/auth/linkedin/start" if p["id"] == "linkedin" and p["id"] != "instagram" else None
             )} for p in PLATFORMS
         ],
         "notice": "A listed OAuth flow is not proof of successful connection or publishing. Provider approval and live tests are required."
@@ -35,10 +35,10 @@ async def platforms_page():
     cards = []
     for p in PLATFORMS:
         ready = p["status"] == "oauth_implemented"
-        label = "OAuth flow in code — test required" if ready else "Integration planned"
+        label = "OAuth flow in code — test required" if ready else ("Blocked / pending" if p["id"] == "instagram" else "Integration planned")
         action = (
-            f'<a class="btn" href="{"/auth/instagram/start" if p["id"]=="instagram" else "/auth/facebook/start"}">Try connect</a>'
-            if ready else '<span class="btn disabled">Coming soon</span>'
+            f'<a class="btn" href="{"/auth/linkedin/start" if p["id"]=="linkedin" else "/auth/facebook/start"}">Try connect</a>'
+            if ready and p["id"] != "instagram" else ('<span class="btn disabled">Pending by request</span>' if p["id"] == "instagram" else '<span class="btn disabled">Coming soon</span>')
         )
         cards.append(
             f'<article><div class="top"><span class="group">{p["group"]}</span><span class="status {"code" if ready else "planned"}">{label}</span></div>'
