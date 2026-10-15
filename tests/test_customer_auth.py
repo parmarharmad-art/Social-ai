@@ -111,3 +111,9 @@ def test_customer_cancel_post_requires_login():
 def test_customer_image_generation_requires_login():
     response = client.post("/api/customer/media/generate", json={"topic": "Instagram lead generation"})
     assert response.status_code == 401
+
+
+def test_session_secret_accepts_render_generated_secret(monkeypatch):
+    monkeypatch.delenv("CUSTOMER_SESSION_SECRET", raising=False)
+    monkeypatch.setenv("SESSION_SECRET", "render-generated-secret-that-is-long-enough-123456")
+    assert auth._session_secret() == b"render-generated-secret-that-is-long-enough-123456"
