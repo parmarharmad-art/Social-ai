@@ -1072,4 +1072,8 @@ app.include_router(dashboard_router)
 from app.sales_pages import router as sales_pages_router
 app.include_router(sales_pages_router)
 
+# Razorpay monthly subscription billing.
+from app.billing import router as billing_router
+app.include_router(billing_router)
+
 
