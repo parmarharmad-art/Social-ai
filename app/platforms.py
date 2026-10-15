@@ -9,7 +9,7 @@ PLATFORMS = [
     {"id":"instagram","name":"Instagram","group":"Meta","status":"blocked","note":"Kept pending as requested: Meta is returning API access blocked; no Instagram connect action is offered."},
     {"id":"facebook","name":"Facebook Pages","group":"Meta","status":"oauth_implemented","note":"Facebook Login fallback exists; requires matching Meta credentials and a Page-linked professional Instagram account where applicable."},
     {"id":"linkedin","name":"LinkedIn Profiles","group":"Professional","status":"oauth_implemented","note":"OAuth and text-post publishing endpoints added. Requires LinkedIn app credentials, OpenID Connect and w_member_social approval."},
-    {"id":"youtube","name":"YouTube","group":"Video","status":"planned","note":"Requires Google OAuth consent setup and YouTube Data API configuration."},
+    {"id":"youtube","name":"YouTube","group":"Video","status":"oauth_implemented","note":"Google OAuth and channel verification code added. Requires Google OAuth credentials, YouTube Data API v3 and consent-screen approval; video upload is not yet implemented."},
     {"id":"tiktok","name":"TikTok","group":"Video","status":"planned","note":"Requires TikTok developer app approval and Content Posting API access."},
     {"id":"pinterest","name":"Pinterest","group":"Discovery","status":"planned","note":"Requires Pinterest app credentials and approved API scopes."},
     {"id":"x","name":"X","group":"Conversation","status":"planned","note":"Requires X developer access and API credentials; access and pricing depend on X plan."},
@@ -24,7 +24,7 @@ async def platform_catalog():
             {**p, "connect_url": (
                 None if p["id"] == "instagram" else
                 "/auth/facebook/start" if p["id"] == "facebook" else
-                "/auth/linkedin/start" if p["id"] == "linkedin" else None
+                "/auth/linkedin/start" if p["id"] == "linkedin" else\n                "/auth/youtube/start" if p["id"] == "youtube" else None
             )} for p in PLATFORMS
         ],
         "notice": "A listed OAuth flow is not proof of successful connection or publishing. Provider approval and live tests are required."
@@ -37,7 +37,7 @@ async def platforms_page():
         ready = p["status"] == "oauth_implemented"
         label = "OAuth flow in code — test required" if ready else ("Blocked / pending" if p["id"] == "instagram" else "Integration planned")
         action = (
-            f'<a class="btn" href="{"/auth/linkedin/start" if p["id"]=="linkedin" else "/auth/facebook/start"}">Try connect</a>'
+            f'<a class="btn" href="{"/auth/linkedin/start" if p["id"]=="linkedin" else "/auth/youtube/start" if p["id"]=="youtube" else "/auth/facebook/start"}">Try connect</a>'
             if ready and p["id"] != "instagram" else ('<span class="btn disabled">Pending by request</span>' if p["id"] == "instagram" else '<span class="btn disabled">Coming soon</span>')
         )
         cards.append(
@@ -59,5 +59,5 @@ h2{font-size:20px;margin:18px 0 8px}p{color:#bac5dd;line-height:1.5;font-size:14
 nav{display:flex;gap:16px;margin-top:22px;flex-wrap:wrap}nav a{color:#8be9ff}
 </style><main><div class="eyebrow">SocialPilot AI · Connect channels</div><h1>All your social platforms.<br>One workspace.</h1><p class="sub">Plan content for multiple channels from one place. Connections are being added provider by provider. We show the current integration state honestly—no fake connected badges.</p>
 <div class="grid">""" + "".join(cards) + """</div>
-<div class="notice"><strong>Important:</strong> “OAuth flow in code” does not mean the provider has approved the app or that publishing works. Meta currently blocks the Instagram token exchange. LinkedIn OAuth and text-post publishing code is available but needs LinkedIn developer credentials and app approval. YouTube, TikTok, Pinterest and X still need separate integrations and end-to-end tests.</div>
+<div class="notice"><strong>Important:</strong> “OAuth flow in code” does not mean the provider has approved the app or that publishing works. Meta currently blocks the Instagram token exchange. LinkedIn OAuth/text-post and YouTube OAuth/channel verification code are available but need provider credentials and approval. YouTube video upload, TikTok, Pinterest and X publishing are not yet implemented.</div>
 <nav><a href="/dashboard">Dashboard</a><a href="/workspace">Workspace</a><a href="/account">Account / Login</a><a href="/setup">Setup checklist</a></nav></main></html>""")
