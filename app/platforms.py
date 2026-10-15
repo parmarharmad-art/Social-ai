@@ -75,6 +75,13 @@ async def social_connections(request: Request):
         database_url = "postgresql://" + database_url[len("postgres://"):]
     with psycopg.connect(database_url, connect_timeout=10) as conn:
         with conn.cursor() as cur:
+            cur.execute("""CREATE TABLE IF NOT EXISTS social_connections (
+                id BIGSERIAL PRIMARY KEY, workspace_id UUID NOT NULL, platform TEXT NOT NULL,
+                provider_user_id TEXT NOT NULL, display_name TEXT,
+                encrypted_access_token TEXT NOT NULL, encrypted_refresh_token TEXT,
+                expires_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                UNIQUE(workspace_id,platform,provider_user_id))""")
             cur.execute("""SELECT c.platform,c.provider_user_id,c.display_name,c.updated_at
                 FROM social_connections c
                 JOIN customer_workspaces w ON w.id=c.workspace_id
