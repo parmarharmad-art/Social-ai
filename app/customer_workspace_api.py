@@ -77,6 +77,19 @@ async def customer_connections(request: Request):
     with _db() as conn:
         with conn.cursor() as cur:
             cur.execute("""
+                CREATE TABLE IF NOT EXISTS instagram_connections (
+                    instagram_user_id TEXT PRIMARY KEY,
+                    encrypted_access_token TEXT NOT NULL,
+                    token_expires_in BIGINT,
+                    auth_method TEXT NOT NULL DEFAULT 'instagram_login',
+                    workspace_id UUID,
+                    connected_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            """)
+            cur.execute("ALTER TABLE instagram_connections ADD COLUMN IF NOT EXISTS workspace_id UUID")
+            cur.execute("ALTER TABLE instagram_connections ADD COLUMN IF NOT EXISTS auth_method TEXT NOT NULL DEFAULT 'instagram_login'")
+            cur.execute("""
                 SELECT instagram_user_id, auth_method, connected_at, updated_at
                 FROM instagram_connections
                 WHERE workspace_id=%s
