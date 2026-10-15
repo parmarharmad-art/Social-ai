@@ -22,6 +22,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, Resp
 load_dotenv()
 
 app = FastAPI(title="SocialPilot AI MVP", version="0.2.1")
+
+from app.customer_auth import router as customer_auth_router
+app.include_router(customer_auth_router)
 logger = logging.getLogger(__name__)
 
 INSTAGRAM_APP_ID = (os.getenv("INSTAGRAM_APP_ID") or "").strip()
