@@ -92,3 +92,9 @@ def test_customer_workspace_console_routes():
     assert page.status_code == 200
     assert "Connect Instagram" in page.text
     assert "/api/customer/posts" in page.text
+
+
+def test_workspace_page_redirects_when_not_logged_in():
+    response = client.get("/workspace", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"] == "/account"
