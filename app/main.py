@@ -144,6 +144,10 @@ def save_encrypted_token(user_id: str, access_token: str, expires_in: int | None
             """)
             cur.execute("ALTER TABLE instagram_connections ADD COLUMN IF NOT EXISTS auth_method TEXT NOT NULL DEFAULT 'instagram_login'")
             cur.execute("ALTER TABLE instagram_connections ADD COLUMN IF NOT EXISTS workspace_id UUID")
+            cur.execute("SELECT workspace_id FROM instagram_connections WHERE instagram_user_id=%s", (user_id,))
+            existing_owner = cur.fetchone()
+            if workspace_id and existing_owner and existing_owner[0] and str(existing_owner[0]) != str(workspace_id):
+                raise ValueError("This Instagram account is already linked to another customer workspace.")
             cur.execute("""
                 INSERT INTO instagram_connections
                     (instagram_user_id, encrypted_access_token, token_expires_in, auth_method, workspace_id)
