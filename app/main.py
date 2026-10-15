@@ -96,7 +96,7 @@ async def dashboard():
     <title>SocialPilot AI</title><style>body{font:16px system-ui;max-width:760px;margin:40px auto;padding:0 18px;color:#18212f}
     .card{border:1px solid #d9e0e8;border-radius:16px;padding:22px}a{display:inline-block;background:#1769e0;color:white;padding:12px 16px;border-radius:9px;text-decoration:none}</style></head>
     <body><div class="card"><h1>SocialPilot AI</h1><p>Instagram Creator account connection.</p>
-    <p><a href="/setup">Setup checklist</a> <a href="/auth/instagram/start">Instagram Login</a> <a href="/auth/facebook/start">Facebook Login</a> <a href="/studio">Open Post & Video Studio</a> <a href="/planner">Content Planner</a></p>
+    <p><a href="/dashboard">Open SocialPilot Dashboard</a> <a href="/studio">Post & Video Studio</a> <a href="/planner">Content Planner</a> <a href="/setup">Setup checklist</a></p><p>Connect Instagram only after the correct app credentials and Meta permissions are configured.</p>
     <p>Encrypted token storage requires DATABASE_URL and TOKEN_ENCRYPTION_KEY configuration.</p></div></body></html>
     """
 
@@ -109,7 +109,9 @@ async def setup_page():
         ("Persistent database", bool(DATABASE_URL), "Required to save the Instagram connection, post queue and generated images. Create/attach PostgreSQL in Render and set DATABASE_URL."),
         ("Token encryption key", bool(TOKEN_ENCRYPTION_KEY), "Required to store the Instagram token safely. Generate a Fernet key once and save it as TOKEN_ENCRYPTION_KEY. Do not rotate it after connecting without a migration."),
         ("Automation API key", bool(AUTOMATION_API_KEY), "Required by planner APIs and MCP tools. Set a long random secret as AUTOMATION_API_KEY."),
-        ("Meta app secret", bool(INSTAGRAM_APP_SECRET), "Required for Instagram OAuth. Set META_APP_ID and META_APP_SECRET from your Meta developer app."),
+        ("Instagram Login App ID", bool(INSTAGRAM_APP_ID), "Required for Instagram Login. Set INSTAGRAM_APP_ID from the exact Instagram API with Instagram Login app."),
+        ("Instagram Login App Secret", bool(INSTAGRAM_APP_SECRET), "Required for Instagram Login. Set INSTAGRAM_APP_SECRET from that same Instagram Login app; do not substitute the Facebook app secret."),
+        ("Facebook Login credentials", bool(FACEBOOK_APP_ID and FACEBOOK_APP_SECRET), "Optional alternate route. META_APP_ID and META_APP_SECRET must come from the Facebook Login app.")
         ("MCP access token", bool(os.getenv("MCP_ACCESS_TOKEN", "").strip() or AUTOMATION_API_KEY), "Required to protect remote MCP access. Set MCP_ACCESS_TOKEN (or use AUTOMATION_API_KEY as the fallback)."),
         ("Webhook verify token", bool(META_WEBHOOK_VERIFY_TOKEN), "Required only for comment webhooks. Set the same private value in Render and Meta."),
     ]
@@ -128,7 +130,7 @@ async def setup_page():
     <h2>Finish setup in this order</h2><ol>
     <li>In Render, open the <strong>socialpilot-ai-mvp</strong> service → Environment. Add the missing variables listed above, then save and redeploy.</li>
     <li>Attach a persistent PostgreSQL database and set DATABASE_URL. Generate a Fernet key for TOKEN_ENCRYPTION_KEY and keep it safe.</li>
-    <li>For Instagram Login, configure redirect URL <code>https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback</code>. For the alternate Facebook Login flow, enable Facebook Login and add <code>https://socialpilot-ai-mvp.onrender.com/auth/facebook/callback</code> under Valid OAuth Redirect URIs. Request the Page and Instagram permissions used by that flow.</li>
+    <li>For Instagram Login, set INSTAGRAM_APP_ID and INSTAGRAM_APP_SECRET from the same Instagram Login app and configure redirect URL <code>https://socialpilot-ai-mvp.onrender.com/auth/instagram/callback</code>. For the alternate Facebook Login flow, set META_APP_ID and META_APP_SECRET from the Facebook Login app, enable Facebook Login, and add <code>https://socialpilot-ai-mvp.onrender.com/auth/facebook/callback</code> under Valid OAuth Redirect URIs. Request the Page and Instagram permissions used by that flow.</li>
     <li>Open Connect Instagram below and approve the requested access. After callback, confirm token_saved is true.</li>
     <li>Test a draft and image in Planner/Studio first. Schedule one test post before enabling daily automation.</li>
     <li>Keep automatic replies and automatic daily content disabled until a controlled test succeeds. Comment webhooks require Meta webhook setup and the relevant permissions.</li>
