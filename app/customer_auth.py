@@ -37,9 +37,9 @@ def _db():
 
 
 def _session_secret() -> bytes:
-    secret = os.getenv("CUSTOMER_SESSION_SECRET", "").strip()
+    secret = (os.getenv("CUSTOMER_SESSION_SECRET") or os.getenv("SESSION_SECRET") or "").strip()
     if len(secret) < 32:
-        raise HTTPException(status_code=503, detail="Customer login is not configured securely. Set CUSTOMER_SESSION_SECRET to a random secret of at least 32 characters.")
+        raise HTTPException(status_code=503, detail="Customer login is not configured securely. Set CUSTOMER_SESSION_SECRET or SESSION_SECRET to a random secret of at least 32 characters.")
     return secret.encode("utf-8")
 
 
