@@ -391,7 +391,7 @@ async def facebook_login_start(request: Request):
     except Exception:
         logger.exception("Could not persist Facebook OAuth state")
         raise HTTPException(status_code=503, detail="Persistent database is required for secure Facebook login. Check DATABASE_URL.")
-    permissions = "pages_show_list,pages_read_engagement,instagram_basic,instagram_content_publish,instagram_manage_comments,instagram_manage_insights"
+    permissions = "pages_show_list,pages_read_engagement,pages_manage_posts"
     params = {"client_id": FACEBOOK_APP_ID, "redirect_uri": redirect_uri, "response_type": "code",
               "scope": permissions, "state": state}
     return RedirectResponse(f"https://www.facebook.com/{META_GRAPH_API_VERSION}/dialog/oauth?" + urlencode(params), status_code=302)
@@ -444,23 +444,71 @@ async def facebook_login_callback(code: str | None = None, state: str | None = N
                 "error": "Could not list Facebook Pages. Check Page-list and engagement permissions.",
                 "meta_http_status": pages_response.status_code})
         pages = pages_response.json().get("data", [])
-        linked_page = next((p for p in pages if p.get("instagram_business_account", {}).get("id") and p.get("access_token")), None)
+        linked_page = next((p for p in pages if p.get("id") and p.get("access_token")), None)
         if not linked_page:
-            return JSONResponse(status_code=400, content={"connected": False, "auth_method": "facebook_login",
-                "error": "No accessible Facebook Page linked to an Instagram professional account was found. Check Page access and linkage."})
-        instagram_user_id = str(linked_page["instagram_business_account"]["id"])
+            return JSONResponse(status_code=400, content={"connected": False, "platform": "facebook",
+                "error": "No Facebook Pages are available to this account. Grant Page access and pages_show_list permission."})
+        page_id = str(linked_page["id"])
+        page_name = str(linked_page.get("name") or "Facebook Page")
         page_token = linked_page["access_token"]
         expires_in = user_data.get("expires_in")
     try:
-        save_encrypted_token(instagram_user_id, page_token, expires_in, "facebook_login", state_data.get("workspace_id"))
+        encrypted_page_token = token_cipher().encrypt(page_token.encode("utf-8")).decode("ascii")
+        with database_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""CREATE TABLE IF NOT EXISTS social_connections (
+                    id BIGSERIAL PRIMARY KEY, workspace_id UUID NOT NULL, platform TEXT NOT NULL,
+                    provider_user_id TEXT NOT NULL, display_name TEXT,
+                    encrypted_access_token TEXT NOT NULL, encrypted_refresh_token TEXT,
+                    expires_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    UNIQUE(workspace_id, platform, provider_user_id))""")
+                cur.execute("""INSERT INTO social_connections(workspace_id,platform,provider_user_id,display_name,encrypted_access_token,expires_at)
+                    VALUES (%s,'facebook',%s,%s,%s,CASE WHEN %s>0 THEN NOW()+(%s*INTERVAL '1 second') ELSE NULL END)
+                    ON CONFLICT(workspace_id,platform,provider_user_id) DO UPDATE SET display_name=EXCLUDED.display_name,
+                    encrypted_access_token=EXCLUDED.encrypted_access_token,expires_at=EXCLUDED.expires_at,updated_at=NOW()""",
+                    (state_data.get("workspace_id"),page_id,page_name,encrypted_page_token,int(expires_in or 0),int(expires_in or 0)))
+            conn.commit()
     except Exception:
         logger.exception("Secure Facebook Login token storage failed; token value was not logged.")
         return JSONResponse(status_code=503, content={"connected": False, "auth_method": "facebook_login",
             "error": "Facebook login succeeded, but secure token storage failed. Check database and encryption configuration."})
-    return {"connected": True, "token_saved": True, "auth_method": "facebook_login",
-            "instagram_user_id": instagram_user_id, "facebook_page_name": linked_page.get("name"),
-            "message": "Facebook Login connected. Test publishing before enabling automation.", "expires_in": expires_in}
+    return {"connected": True, "token_saved": True, "platform": "facebook", "page_id": page_id, "page_name": page_name,
+            "message": "Facebook Page connected. Test a Page post before enabling automation.", "expires_in": expires_in}
 
+
+@app.post("/api/facebook/pages/posts")
+async def publish_facebook_page_post(request: Request, payload: dict):
+    """Publish a text/link post to the authenticated workspace's connected Facebook Page."""
+    workspace_id = customer_workspace_id(request)
+    message = " ".join(str(payload.get("message") or "").split()).strip()
+    link = str(payload.get("link") or "").strip()
+    if not message:
+        raise HTTPException(status_code=422, detail="message is required.")
+    if len(message) > 5000:
+        raise HTTPException(status_code=422, detail="message must be 5000 characters or fewer.")
+    if link and not link.startswith("https://"):
+        raise HTTPException(status_code=422, detail="link must be a public HTTPS URL.")
+    with database_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT provider_user_id,encrypted_access_token,expires_at FROM social_connections WHERE workspace_id=%s AND platform='facebook' ORDER BY updated_at DESC LIMIT 1", (workspace_id,))
+            row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=409, detail="Connect a Facebook Page first at /auth/facebook/start.")
+    if row[2] and row[2].timestamp() <= datetime.now(timezone.utc).timestamp():
+        raise HTTPException(status_code=409, detail="Facebook Page token may be expired. Reconnect the Page.")
+    page_id = str(row[0])
+    page_token = token_cipher().decrypt(row[1].encode("ascii")).decode("utf-8")
+    data = {"message": message, "access_token": page_token}
+    if link:
+        data["link"] = link
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.post(f"https://graph.facebook.com/{META_GRAPH_API_VERSION}/{page_id}/feed", data=data)
+    if response.is_error:
+        logger.warning("Facebook Page post failed with HTTP %s", response.status_code)
+        raise HTTPException(status_code=502, detail={"message":"Facebook rejected the Page post. Check pages_manage_posts permission, Page access, app review and API limits.","provider_status":response.status_code})
+    result = response.json()
+    return {"published": True, "platform": "facebook", "page_id": page_id, "post_id": result.get("id"), "message": message}
 
 # Scheduled publishing MVP. Requires a persistent PostgreSQL database and a public HTTPS image URL.
 def require_automation_key(provided: str | None):
