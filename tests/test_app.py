@@ -266,3 +266,20 @@ def test_terms_page_does_not_claim_checkout_exists():
     response = client.get("/terms")
     assert response.status_code == 200
     assert "No self-serve paid subscription or checkout is currently offered" in response.text
+
+
+def test_instagram_callback_rejects_missing_state_without_database_access():
+    response = client.get("/auth/instagram/callback", params={"code": "test-code"})
+    assert response.status_code == 400
+    assert "OAuth state" in response.json()["detail"]
+
+
+def test_instagram_oauth_start_requires_persistent_database(monkeypatch):
+    import app.main as main
+
+    monkeypatch.setattr(main, "INSTAGRAM_APP_ID", "test-instagram-app")
+    monkeypatch.setattr(main, "REDIRECT_URI", "https://example.com/callback")
+    monkeypatch.setattr(main, "DATABASE_URL", "")
+    response = client.get("/auth/instagram/start")
+    assert response.status_code == 503
+    assert "Persistent database" in response.json()["detail"]
