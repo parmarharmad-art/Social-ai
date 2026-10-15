@@ -129,13 +129,14 @@ async def publish_tiktok_video(payload: TikTokVideoInput, request: Request):
     with db() as conn:
         with conn.cursor() as cur:
             ensure_tables(cur)
-            cur.execute("SELECT encrypted_access_token,encrypted_refresh_token,expires_at FROM social_connections WHERE workspace_id=%s AND platform='tiktok' ORDER BY updated_at DESC LIMIT 1", (workspace_id,))
+            cur.execute("SELECT provider_user_id,encrypted_access_token,encrypted_refresh_token,expires_at FROM social_connections WHERE workspace_id=%s AND platform='tiktok' ORDER BY updated_at DESC LIMIT 1", (workspace_id,))
             row = cur.fetchone()
     if not row:
         raise HTTPException(status_code=409, detail="Connect TikTok first at /auth/tiktok/start.")
-    access = Fernet(ENCRYPTION_KEY.encode("ascii")).decrypt(row[0].encode("ascii")).decode()
-    refresh = Fernet(ENCRYPTION_KEY.encode("ascii")).decrypt(row[1].encode("ascii")).decode() if row[1] else None
-    if row[2] and row[2].timestamp() <= time.time():
+    provider_user_id = row[0]
+    access = Fernet(ENCRYPTION_KEY.encode("ascii")).decrypt(row[1].encode("ascii")).decode()
+    refresh = Fernet(ENCRYPTION_KEY.encode("ascii")).decrypt(row[2].encode("ascii")).decode() if row[2] else None
+    if row[3] and row[3].timestamp() <= time.time():
         if not refresh:
             raise HTTPException(status_code=409, detail="TikTok token expired; reconnect TikTok.")
         async with httpx.AsyncClient(timeout=25) as client:
@@ -148,7 +149,7 @@ async def publish_tiktok_video(payload: TikTokVideoInput, request: Request):
         exp = int(td.get("expires_in") or 0)
         with db() as conn:
             with conn.cursor() as cur:
-                cur.execute("UPDATE social_connections SET encrypted_access_token=%s,encrypted_refresh_token=%s,expires_at=CASE WHEN %s>0 THEN NOW()+(%s*INTERVAL '1 second') ELSE NULL END,updated_at=NOW() WHERE workspace_id=%s AND platform='tiktok'", (encrypt(access),encrypt(new_refresh),exp,exp,workspace_id))
+                cur.execute("UPDATE social_connections SET encrypted_access_token=%s,encrypted_refresh_token=%s,expires_at=CASE WHEN %s>0 THEN NOW()+(%s*INTERVAL '1 second') ELSE NULL END,updated_at=NOW() WHERE workspace_id=%s AND platform='tiktok' AND provider_user_id=%s", (encrypt(access),encrypt(new_refresh),exp,exp,workspace_id,provider_user_id))
             conn.commit()
     body = {"post_info":{"title":payload.title,"privacy_level":payload.privacy_level,"disable_comment":payload.disable_comment,"disable_duet":payload.disable_duet,"disable_stitch":payload.disable_stitch},"source_info":{"source":"PULL_FROM_URL","video_url":str(payload.video_url)}}
     async with httpx.AsyncClient(timeout=35) as client:
