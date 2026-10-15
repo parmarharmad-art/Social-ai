@@ -139,3 +139,8 @@ Pinterest OAuth and image-pin publishing routes are implemented at `/auth/pinter
 ## TikTok publishing
 
 TikTok OAuth and URL-based video publishing routes are implemented at `/auth/tiktok/start`, `/auth/tiktok/callback`, and `POST /api/tiktok/videos`. The input requires a public HTTPS video URL, caption/title, and privacy level. Configure `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET`, and matching `TIKTOK_REDIRECT_URI`; TikTok requires Content Posting API approval, scope approval and URL-domain verification. The publish-init response is an accepted job, not proof the video is already public; check TikTok publish status before claiming success. Real-account OAuth and publishing have not been verified.
+
+
+## YouTube video upload
+
+`POST /api/youtube/videos` accepts multipart fields `video` (video file, max 256 MB), `title`, optional `description`, and `privacy_status` (`private` by default, or `unlisted` / `public`). It uses YouTube resumable upload and refreshes expired access tokens when a refresh token is stored. Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `YOUTUBE_REDIRECT_URI`, and enable YouTube Data API v3 with upload scope. Public publishing should only be enabled after account and processing tests. This endpoint is implemented in code but not yet tested with a real channel.
