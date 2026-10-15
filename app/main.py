@@ -207,7 +207,7 @@ async def setup_page():
     </main></body></html>"""
 
 
-@app.get("/health")
+@app.get("/workspace", include_in_schema=False)\nasync def workspace_home():\n    return RedirectResponse(url="/api/customer/workspace", status_code=307)\n\n\n@app.get("/health")
 async def health():
     return {"status": "ok", "service": "socialpilot-ai-mvp"}
 
