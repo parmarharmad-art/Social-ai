@@ -274,12 +274,12 @@ def test_instagram_callback_rejects_missing_state_without_database_access():
     assert "OAuth state" in response.json()["detail"]
 
 
-def test_instagram_oauth_start_requires_persistent_database(monkeypatch):
+def test_instagram_oauth_start_requires_customer_login(monkeypatch):
     import app.main as main
 
     monkeypatch.setattr(main, "INSTAGRAM_APP_ID", "test-instagram-app")
     monkeypatch.setattr(main, "REDIRECT_URI", "https://example.com/callback")
     monkeypatch.setattr(main, "DATABASE_URL", "")
     response = client.get("/auth/instagram/start")
-    assert response.status_code == 503
-    assert "Persistent database" in response.json()["detail"]
+    assert response.status_code == 401
+    assert "Log in" in response.json()["detail"]
