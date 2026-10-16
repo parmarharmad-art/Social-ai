@@ -1,6 +1,6 @@
 # NumeroMaster AI
 
-Mobile-first numerology reflection studio by **Kiran Kumar**.
+Mobile-first numerology reflection studio operated under the business name **Kiran Software Solutions** (product creator: Kiran Kumar).
 
 ## Included
 - Pythagorean and Chaldean name-number calculations and alternate spelling comparison.
@@ -16,13 +16,13 @@ Mobile-first numerology reflection studio by **Kiran Kumar**.
 - Node.js 20+
 - Build command: `npm test`
 - Start command: `npm start`
-- Set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in the Render service environment to enable checkout.
+- Set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in the Render service environment to enable checkout. UPI is intended to be available through Razorpay Checkout when enabled for the merchant account; test with Razorpay test credentials before any live launch.
 - Set `OPENAI_API_KEY` only if optional AI reflection is desired. Never commit secrets.
 - Checkout is intentionally unavailable when Razorpay credentials are absent.
 
 ## Commercial launch checklist
 - Verify Razorpay account, test-mode payment flow, live-mode flow, settlement and refund/cancellation process.
-- Complete privacy notice, terms, owner contact details and refund/cancellation terms before accepting live payments.
+- Publish the no-refund/no-cancellation policy in Terms, with a clear statement that mandatory consumer rights and payment-provider/statutory requirements still apply. Add verified support contact, applicable business address/jurisdiction and refund-failure support process before accepting live payments.
 - Test report generation and PDF output on Android and desktop.
 - This version has no customer accounts, report history, or durable user dashboard. A paid report is generated for the current purchase and unlocked in the current browser session.
 - Render Free may spin down after inactivity.
