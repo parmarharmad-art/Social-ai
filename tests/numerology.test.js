@@ -1,0 +1,10 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const {buildReport,validDate,reduce,nameNumber,dateNumbers,mobileNumber}=require('../numerology');
+test('date validation rejects impossible calendar dates',()=>{assert.equal(validDate('2000-02-29'),true);assert.equal(validDate('1900-02-29'),false);assert.equal(validDate('2024-13-01'),false)});
+test('number reduction sums digits to one digit',()=>{assert.equal(reduce(29),2);assert.equal(reduce(0),0)});
+test('name systems return deterministic totals and traces',()=>{const p=nameNumber('Kiran Kumar','Pythagorean'),c=nameNumber('Kiran Kumar','Chaldean');assert.equal(p.system,'Pythagorean');assert.ok(p.total>0);assert.ok(c.total>0);assert.equal(p.trace.length,10)});
+test('date report calculates Moolank, Bhagyank and 9-cell Lo Shu grid',()=>{const d=dateNumbers('1996-04-17');assert.equal(d.moolank,8);assert.equal(d.grid.length,9);assert.equal(d.grid.find(x=>x.number===4).count,1)});
+test('mobile number calculation only uses digits',()=>{assert.equal(mobileNumber('+91 98765-43210').digitCount,12);assert.equal(mobileNumber('abc'),null)});
+test('report rejects empty inputs and invalid dates',()=>{assert.throws(()=>buildReport({}),/Enter at least/);assert.throws(()=>buildReport({dob:'2024-02-30'}),/valid date/);assert.ok(buildReport({name:'Kiran'}).names)});
+test('alternate spelling is included only when provided',()=>{assert.equal(buildReport({name:'Kiran'}).names.alternate,null);assert.equal(buildReport({name:'Kiran',alternateName:'Kiraan'}).names.alternate.name,'Kiraan')});
