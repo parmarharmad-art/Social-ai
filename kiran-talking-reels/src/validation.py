@@ -10,7 +10,7 @@ def validate_image(path):
 def ffprobe_info(path):
  probe=shutil.which("ffprobe")
  if not probe: return {"note":"ffprobe unavailable; only file existence was checked"}
- p=subprocess.run([probe,"-v","error","-show_entries","format=duration,format_name","-show_entries","stream=codec_name,width,height","-of","json",str(path)],capture_output=True,text=True,timeout=30)
+ p=subprocess.run([probe,"-v","error","-show_entries","format=duration,format_name","-show_entries","stream=codec_name,codec_type,width,height","-of","json",str(path)],capture_output=True,text=True,timeout=30)
  if p.returncode: raise RuntimeError("ffprobe validation failed: "+p.stderr[-400:])
  data=json.loads(p.stdout)
  videos=[s for s in data.get("streams",[]) if "width" in s]
