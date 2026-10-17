@@ -8,7 +8,7 @@ def _run(cmd):
 
 
 def render(img, audio, output, duration_seconds, subtitle_path=None, music_path=None):
-    """Render a vertical 1080x1920 Reel with a safe fallback if subtitle burn-in fails."""
+    """Render a vertical 720x1280 Reel with a safe fallback if subtitle burn-in fails."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         raise RuntimeError("FFmpeg not found. Install FFmpeg on the hosting service.")
@@ -19,19 +19,19 @@ def render(img, audio, output, duration_seconds, subtitle_path=None, music_path=
         base += ["-stream_loop", "-1", "-i", str(music_path)]
 
     video_filters = [
-        "scale=1080:1920:force_original_aspect_ratio=increase",
-        "crop=1080:1920",
-        "zoompan=z='min(zoom+0.0005,1.08)':d=1:s=1080x1920:fps=30",
-        "drawtext=text='Kiran Kumar | AI Automation':fontcolor=white:fontsize=34:"
-        "box=1:boxcolor=0x101828AA:boxborderw=14:x=(w-text_w)/2:y=h-180",
+        "scale=720:1280:force_original_aspect_ratio=increase",
+        "crop=720:1280",
+        "zoompan=z='min(zoom+0.0005,1.08)':d=1:s=720x1280:fps=30",
+        "drawtext=text='Kiran Kumar | AI Automation':fontcolor=white:fontsize=26:"
+        "box=1:boxcolor=0x101828AA:boxborderw=14:x=(w-text_w)/2:y=h-120",
     ]
 
     if subtitle_path:
         safe_path = str(subtitle_path).replace("\\", "/").replace(":", "\\:")
         video_filters.append(
-            "subtitles='" + safe_path + "':force_style='FontName=DejaVu Sans,FontSize=18,"
+            "subtitles='" + safe_path + "':force_style='FontName=DejaVu Sans,FontSize=14,"
             "PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=3,"
-            "Outline=1,Shadow=0,Alignment=2,MarginV=250'"
+            "Outline=1,Shadow=0,Alignment=2,MarginV=165'"
         )
 
     def build(filters, with_subtitles):
@@ -47,7 +47,7 @@ def render(img, audio, output, duration_seconds, subtitle_path=None, music_path=
             cmd += ["-vf", vf, "-af", "apad"]
         cmd += [
             "-t", str(duration), "-r", "30", "-c:v", "libx264", "-preset", "ultrafast",
-            "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
+            "-pix_fmt", "yuv420p", "-threads", "1", "-c:a", "aac", "-b:a", "192k",
             "-movflags", "+faststart", str(output),
         ]
         return cmd
