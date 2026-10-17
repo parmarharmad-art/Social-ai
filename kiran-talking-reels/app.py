@@ -10,73 +10,12 @@ from src.hindi_tts import make_audio
 from src.script_generator import make_caption, make_script
 from src.subtitles import make_srt
 from src.validation import ffprobe_info, validate_image
+from src.video_renderer import render
 
 load_dotenv()
 ROOT = Path(__file__).parent
 OUT = ROOT / "outputs"
 OUT.mkdir(exist_ok=True)
-
-
-def render(img, audio, output, duration_seconds, subtitle_path=None, music_path=None):
-    """Render a vertical H.264 Reel. Subtitles are burned in when FFmpeg supports libass."""
-    ffmpeg = shutil.which("ffmpeg")
-    if not ffmpeg:
-        raise RuntimeError("FFmpeg not found. Install FFmpeg on the hosting service.")
-
-    cmd = [ffmpeg, "-y", "-loop", "1", "-i", str(img), "-i", str(audio)]
-    if music_path:
-        cmd += ["-stream_loop", "-1", "-i", str(music_path)]
-
-    filters = [
-        "scale=1080:1920:force_original_aspect_ratio=increase",
-        "crop=1080:1920",
-        "zoompan=z='min(zoom+0.0005,1.08)':d=1:s=1080x1920:fps=30",
-    ]
-    # The watermark intentionally uses a simple ASCII separator to avoid FFmpeg
-    # builds that cannot render the bullet glyph. The app branding remains clear.
-    filters.append(
-        "drawtext=text='Kiran Kumar | AI Automation':fontcolor=white:fontsize=34:"
-        "box=1:boxcolor=0x101828AA:boxborderw=14:x=(w-text_w)/2:y=h-180"
-    )
-    if subtitle_path:
-        subtitle_filter = (
-            "subtitles='" + str(subtitle_path).replace("\\", "/").replace(":", "\\:")
-            + "':force_style='FontName=DejaVu Sans,FontSize=18,PrimaryColour=&H00FFFFFF,"
-            "OutlineColour=&H00000000,BorderStyle=3,Outline=1,Shadow=0,Alignment=2,MarginV=250'"
-        )
-        filters.append(subtitle_filter)
-
-    cmd += ["-vf", ",".join(filters), "-t", str(int(duration_seconds)), "-r", "30",
-            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k"]
-    if music_path:
-        cmd += [
-            "-filter_complex",
-            "[1:a]volume=1[voice];[2:a]volume=0.08[bg];[voice][bg]amix=inputs=2:duration=first:dropout_transition=2[a]",
-            "-map", "0:v", "-map", "[a]",
-        ]
-    cmd += ["-shortest", "-movflags", "+faststart", str(output)]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
-    if proc.returncode and subtitle_path:
-        # Some minimal FFmpeg packages omit libass. Keep video rendering usable;
-        # the downloadable SRT remains available as a sidecar.
-        cmd = [x for x in cmd if not (x == "-vf" or x.startswith("scale=1080:1920"))]
-        # Rebuild the command cleanly without the subtitles filter.
-        cmd = [ffmpeg, "-y", "-loop", "1", "-i", str(img), "-i", str(audio)]
-        if music_path:
-            cmd += ["-stream_loop", "-1", "-i", str(music_path)]
-        plain_vf = ",".join(filters[:-1])
-        cmd += ["-vf", plain_vf, "-t", str(int(duration_seconds)), "-r", "30",
-                "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k"]
-        if music_path:
-            cmd += [
-                "-filter_complex",
-                "[1:a]volume=1[voice];[2:a]volume=0.08[bg];[voice][bg]amix=inputs=2:duration=first:dropout_transition=2[a]",
-                "-map", "0:v", "-map", "[a]",
-            ]
-        cmd += ["-shortest", "-movflags", "+faststart", str(output)]
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
-    if proc.returncode:
-        raise RuntimeError("FFmpeg render failed: " + proc.stderr[-1800:])
 
 
 st.set_page_config(page_title="Kiran Kumar • AI Talking Reels", page_icon="🎬")
