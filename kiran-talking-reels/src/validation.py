@@ -14,5 +14,5 @@ def ffprobe_info(path):
  if p.returncode: raise RuntimeError("ffprobe validation failed: "+p.stderr[-400:])
  data=json.loads(p.stdout)
  videos=[s for s in data.get("streams",[]) if "width" in s]
- if not videos or videos[0].get("width")!=1080 or videos[0].get("height")!=1920: raise ValueError("Expected 1080x1920 video.")
+ if not videos or videos[0].get("width")!=720 or videos[0].get("height")!=1280: raise ValueError("Expected 720x1280 video.")
  return data
