@@ -1,8 +1,11 @@
+import html
+import os
 import shutil
 import tempfile
+import uuid
 from pathlib import Path
 
-import streamlit as st
+from flask import Flask, request, send_from_directory
 from dotenv import load_dotenv
 
 from src.hindi_tts import make_audio
@@ -12,105 +15,149 @@ from src.validation import ffprobe_info, validate_image
 from src.video_renderer import render
 
 load_dotenv()
+app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 55 * 1024 * 1024
+OUTPUT_DIR = Path("outputs")
+OUTPUT_DIR.mkdir(exist_ok=True)
 
-MAX_PHOTO_BYTES = 10 * 1024 * 1024
-MAX_AUDIO_BYTES = 30 * 1024 * 1024
-MAX_MUSIC_BYTES = 15 * 1024 * 1024
+PAGE = """<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kiran Kumar AI Reels Studio</title><style>
+*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#f4f7ff;font:16px system-ui,sans-serif}
+main{max-width:720px;margin:auto;padding:22px 15px 50px}.panel{background:#141d33;border:1px solid #2a3857;border-radius:18px;padding:20px;margin:16px 0}
+h1{font-size:27px;margin:8px 0}p{color:#c5d0e8}.brand{color:#68d9ff;font-weight:700}
+label{display:block;margin:16px 0 7px;font-weight:650}input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #52617e;background:#0b1326;color:white;font:inherit}
+textarea{min-height:120px}button,.download{display:block;width:100%;padding:15px;border:0;border-radius:12px;background:#1688ff;color:white;font-size:17px;font-weight:750;text-align:center;text-decoration:none;margin-top:20px}
+small{color:#aebbd4}.error{background:#4b1c2a;padding:14px;border-radius:10px;color:#ffdbe2}.success{background:#123a32;padding:14px;border-radius:10px;color:#d5fff2}
+video{width:100%;border-radius:12px;background:#000} .choice{display:flex;gap:8px;align-items:center}.choice input{width:auto}
+</style></head><body><main><div class="brand">KIRAN KUMAR • AI AUTOMATION</div><h1>🎬 AI Reels Studio</h1><p>Create a vertical Hindi/Hinglish photo Reel with voiceover, zoom, subtitles and watermark.</p>{content}</main></body></html>"""
 
-st.set_page_config(page_title="Kiran Kumar • AI Reels Studio", page_icon="🎬", layout="centered")
-st.title("🎬 Kiran Kumar • AI Reels Studio")
-st.caption("Create a vertical Hindi/Hinglish narrated photo Reel")
-st.markdown("**By Kiran Kumar • AI Automation**")
-with st.expander("Before you start — important limitations"):
-    st.write(
-        "This version creates a photo-led narrated Reel with a slow zoom, branding, and approximate "
-        "sentence-level subtitles. It does not animate lips, blink, move the head, generate B-roll, "
-        "or publish directly to Instagram. Check the result before posting."
-    )
-    st.write("Uploaded photos and audio are processed in a temporary job folder and are not intentionally saved as shared output files.")
-photo = st.file_uploader("1. Upload a photo (JPG, PNG or WEBP; up to 10 MB)", type=["jpg", "jpeg", "png", "webp"])
-topic = st.text_input("2. Reel topic", placeholder="WhatsApp lead follow-up automation")
-duration = st.select_slider("3. Target duration", options=[15, 30, 45, 60], value=30)
-language = st.selectbox("4. Script language", ["Hindi", "Hinglish"])
-script = st.text_area("5. Script (optional — generated from topic if blank)", height=160,
-                      placeholder="Enter or edit the words you want spoken.")
-voice = st.radio("6. Voiceover", ["Generate Hindi voice (internet required)", "Upload recorded voiceover"])
-audio_upload = st.file_uploader("Upload voiceover (up to 30 MB)", type=["mp3", "wav", "m4a"]) if voice.startswith("Upload") else None
-music = st.file_uploader("7. Optional background music (up to 15 MB)", type=["mp3", "wav", "m4a"])
+def page(content):
+    return PAGE.replace("{content}", content)
 
-if st.button("Generate Reel", type="primary", use_container_width=True):
-    if photo is None:
-        st.error("Please upload a photo first.")
-        st.stop()
-    if len(photo.getvalue()) > MAX_PHOTO_BYTES:
-        st.error("Photo is too large. Please use a file under 10 MB.")
-        st.stop()
-    if not topic.strip() and not script.strip():
-        st.error("Enter a topic or a script.")
-        st.stop()
-    if voice.startswith("Upload") and audio_upload is None:
-        st.error("Please upload a recorded voiceover.")
-        st.stop()
-    if audio_upload is not None and len(audio_upload.getvalue()) > MAX_AUDIO_BYTES:
-        st.error("Voiceover is too large. Please use a file under 30 MB.")
-        st.stop()
-    if music is not None and len(music.getvalue()) > MAX_MUSIC_BYTES:
-        st.error("Background music is too large. Please use a file under 15 MB.")
-        st.stop()
+@app.get("/")
+def home():
+    content = """
+    <form class="panel" method="post" action="/generate" enctype="multipart/form-data">
+      <label>1. Upload your photo (JPG, PNG or WEBP, max 10 MB)</label><input required type="file" name="photo" accept=".jpg,.jpeg,.png,.webp">
+      <label>2. Reel topic</label><input name="topic" placeholder="WhatsApp lead follow-up automation">
+      <label>3. Duration</label><select name="duration"><option>15</option><option selected>30</option><option>45</option><option>60</option></select>
+      <label>4. Script language</label><select name="language"><option>Hindi</option><option>Hinglish</option></select>
+      <label>5. Script (optional)</label><textarea name="script" placeholder="Leave blank to create a short script from the topic."></textarea>
+      <label>6. Voiceover</label><select name="voice" id="voice" onchange="document.getElementById('audioRow').style.display=this.value==='upload'?'block':'none'"><option value="tts">Generate Hindi voice (internet required)</option><option value="upload">Upload recorded voiceover</option></select>
+      <div id="audioRow" style="display:none"><label>Voiceover file (MP3, WAV, M4A; max 30 MB)</label><input type="file" name="audio" accept=".mp3,.wav,.m4a"></div>
+      <label>7. Optional background music (MP3, WAV, M4A; max 15 MB)</label><input type="file" name="music" accept=".mp3,.wav,.m4a">
+      <button type="submit">Generate My Reel</button><p><small>Keep this page open while the video renders. This creates a narrated-photo effect, not realistic lip-sync.</small></p>
+    </form>"""
+    return page(content)
 
+@app.post("/generate")
+def generate():
     work = Path(tempfile.mkdtemp(prefix="kiran_reel_"))
     try:
-        with st.spinner("Creating your Reel. Keep this page open until it finishes…"):
-            img = work / "photo.png"
-            img.write_bytes(photo.getvalue())
-            validate_image(img)
+        photo = request.files.get("photo")
+        topic = request.form.get("topic", "").strip()
+        script = request.form.get("script", "").strip()
+        try:
+            duration = int(request.form.get("duration", "30"))
+        except ValueError:
+            duration = 30
+        if duration not in (15, 30, 45, 60):
+            duration = 30
+        language = request.form.get("language", "Hindi")
+        voice = request.form.get("voice", "tts")
+        audio_upload = request.files.get("audio")
+        music = request.files.get("music")
+        if not photo or not photo.filename:
+            return page('<div class="panel error">Please upload a photo, then try again.</div><a class="download" href="/">Go back</a>'), 400
+        if len(photo.read()) > 10 * 1024 * 1024:
+            return page('<div class="panel error">Photo exceeds 10 MB. Choose a smaller image.</div><a class="download" href="/">Go back</a>'), 400
+        photo.stream.seek(0)
+        if not topic and not script:
+            return page('<div class="panel error">Enter a topic or a script.</div><a class="download" href="/">Go back</a>'), 400
+        if voice == "upload" and (not audio_upload or not audio_upload.filename):
+            return page('<div class="panel error">Choose your voiceover file.</div><a class="download" href="/">Go back</a>'), 400
+        if audio_upload and audio_upload.filename and len(audio_upload.read()) > 30 * 1024 * 1024:
+            return page('<div class="panel error">Voiceover exceeds 30 MB.</div><a class="download" href="/">Go back</a>'), 400
+        if audio_upload and audio_upload.filename:
+            audio_upload.stream.seek(0)
+        if music and music.filename and len(music.read()) > 15 * 1024 * 1024:
+            return page('<div class="panel error">Music exceeds 15 MB.</div><a class="download" href="/">Go back</a>'), 400
+        if music and music.filename:
+            music.stream.seek(0)
 
-            final_script = script.strip() or make_script(topic, duration, language)
-            if not final_script.strip():
-                raise ValueError("Could not create a script. Please enter one manually.")
-            subtitle_file = work / "captions.srt"
-            srt_content = make_srt(final_script, duration)
-            subtitle_file.write_text(srt_content, encoding="utf-8")
-
-            audio = work / "voice.mp3"
-            if voice.startswith("Upload"):
-                audio.write_bytes(audio_upload.getvalue())
-            else:
-                make_audio(final_script, audio)
-            if not audio.exists() or audio.stat().st_size == 0:
-                raise ValueError("Voiceover generation returned an empty audio file.")
-
-            music_path = None
-            if music is not None:
-                suffix = Path(music.name).suffix.lower()
-                if suffix not in {".mp3", ".wav", ".m4a"}:
-                    raise ValueError("Unsupported music format.")
-                music_path = work / ("music" + suffix)
-                music_path.write_bytes(music.getvalue())
-
-            output = work / "kiran_talking_reel.mp4"
-            render(img, audio, output, duration, subtitle_file, music_path)
-            if not output.exists() or output.stat().st_size == 0:
-                raise ValueError("Video rendering finished without a usable MP4.")
-            video_bytes = output.read_bytes()
-            info = ffprobe_info(output)
-
-        st.success("Reel created. Preview it and review the audio before publishing.")
-        st.video(video_bytes)
-        st.download_button("Download MP4", video_bytes, "kiran_talking_reel.mp4", "video/mp4", use_container_width=True)
+        img = work / "photo"
+        img.write_bytes(photo.read())
+        validate_image(img)
+        final_script = script or make_script(topic, duration, language)
+        if not final_script.strip():
+            raise ValueError("Script is empty. Enter your own script and retry.")
+        srt_content = make_srt(final_script, duration)
+        subtitle_file = work / "captions.srt"
+        subtitle_file.write_text(srt_content, encoding="utf-8")
+        audio = work / "voice.mp3"
+        if voice == "upload":
+            ext = Path(audio_upload.filename).suffix.lower()
+            if ext not in (".mp3", ".wav", ".m4a"):
+                raise ValueError("Voiceover must be MP3, WAV, or M4A.")
+            audio = work / ("voice" + ext)
+            audio.write_bytes(audio_upload.read())
+        else:
+            make_audio(final_script, audio)
+        if not audio.exists() or audio.stat().st_size < 1000:
+            raise ValueError("No usable voiceover was created.")
+        music_path = None
+        if music and music.filename:
+            ext = Path(music.filename).suffix.lower()
+            if ext not in (".mp3", ".wav", ".m4a"):
+                raise ValueError("Music must be MP3, WAV, or M4A.")
+            music_path = work / ("music" + ext)
+            music_path.write_bytes(music.read())
+        job_id = uuid.uuid4().hex
+        output = OUTPUT_DIR / (job_id + ".mp4")
+        render(img, audio, output, duration, subtitle_file, music_path)
+        info = ffprobe_info(output)
         caption = make_caption(topic or "AI workflow", final_script)
-        st.subheader("Your script")
-        st.text_area("Review script", final_script, height=160)
-        st.download_button("Download script", final_script, "hindi_script.txt", "text/plain")
-        st.subheader("Instagram caption")
-        st.text_area("Review caption", caption, height=140)
-        st.download_button("Download caption", caption, "caption.txt", "text/plain")
-        st.download_button("Download subtitles (SRT)", srt_content, "captions.srt", "application/x-subrip")
-        with st.expander("Technical video details"):
-            st.json(info)
-        st.warning("Before posting, check pronunciation, subtitle timing, face framing, music rights, and video quality. This is a narrated-photo effect, not realistic lip-sync.")
+        safe_script = html.escape(final_script)
+        safe_caption = html.escape(caption)
+        safe_info = html.escape(str(info))
+        content = f"""
+        <div class="panel success">Reel generated successfully. Preview it, then download the MP4.</div>
+        <div class="panel"><video controls playsinline src="/output/{job_id}"></video><a class="download" href="/output/{job_id}?download=1">⬇ Download MP4 Reel</a></div>
+        <div class="panel"><h2>Your script</h2><p>{safe_script}</p><a class="download" href="/text/{job_id}/script">Download script</a></div>
+        <div class="panel"><h2>Instagram caption</h2><p>{safe_caption}</p><a class="download" href="/text/{job_id}/caption">Download caption</a></div>
+        <div class="panel"><h2>Video details</h2><small>{safe_info}</small></div>
+        <a class="download" href="/">Create another Reel</a>"""
+        (OUTPUT_DIR / (job_id + ".txt")).write_text(final_script, encoding="utf-8")
+        (OUTPUT_DIR / (job_id + "_caption.txt")).write_text(caption, encoding="utf-8")
+        return page(content)
     except Exception as exc:
-        st.error(f"Reel creation failed: {exc}")
-        st.info("Try a smaller photo/audio file, upload your own voiceover, or retry once. If it keeps failing, share the full error message.")
+        message = html.escape(str(exc))
+        return page(f'<div class="panel error"><b>Reel generation failed</b><p>{message}</p></div><a class="download" href="/">Try again</a>'), 500
     finally:
         shutil.rmtree(work, ignore_errors=True)
+
+@app.get("/output/<job_id>")
+def output_file(job_id):
+    if not job_id.isalnum():
+        return "Invalid file ID", 400
+    path = OUTPUT_DIR / (job_id + ".mp4")
+    if not path.exists():
+        return "This Reel file is no longer available. Generate it again.", 404
+    return send_from_directory(OUTPUT_DIR, path.name, as_attachment=request.args.get("download") == "1", mimetype="video/mp4", download_name="kiran_talking_reel.mp4")
+
+@app.get("/text/<job_id>/<kind>")
+def text_file(job_id, kind):
+    if not job_id.isalnum() or kind not in ("script", "caption"):
+        return "Invalid file", 400
+    suffix = ".txt" if kind == "script" else "_caption.txt"
+    path = OUTPUT_DIR / (job_id + suffix)
+    if not path.exists():
+        return "File no longer available", 404
+    return send_from_directory(OUTPUT_DIR, path.name, as_attachment=True, download_name=kind + ".txt")
+
+@app.errorhandler(413)
+def too_large(_error):
+    return page('<div class="panel error">Upload too large. Check the file-size limits and retry.</div><a class="download" href="/">Go back</a>'), 413
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8501")))
