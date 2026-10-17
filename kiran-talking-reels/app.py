@@ -46,8 +46,8 @@ def home():
       <label>6. Voiceover</label><select name="voice" id="voice" onchange="document.getElementById('audioRow').style.display=this.value==='upload'?'block':'none'"><option value="tts">Generate Hindi voice (internet required)</option><option value="upload">Upload recorded voiceover</option></select>
       <div id="audioRow" style="display:none"><label>Voiceover file (MP3, WAV, M4A; max 30 MB)</label><input type="file" name="audio" accept=".mp3,.wav,.m4a"></div>
       <label>7. Optional background music (MP3, WAV, M4A; max 15 MB)</label><input type="file" name="music" accept=".mp3,.wav,.m4a">
-      <button type="submit">Generate My Reel</button><p><small>Keep this page open while the video renders. This creates a narrated-photo effect, not realistic lip-sync.</small></p>
-    </form>"""
+      <button id="generateBtn" type="submit">Generate My Reel</button><div id="busy" class="panel success" style="display:none"><b>Reel generation started…</b><p>Photo check → Hindi voiceover → video rendering → MP4 validation. Keep this page open; 30–60 second reels can take a few minutes.</p></div><p><small>Keep this page open while the video renders. This creates a narrated-photo effect, not realistic lip-sync.</small></p>
+    </form><script>document.querySelector("form").addEventListener("submit",function(){document.getElementById("busy").style.display="block";const b=document.getElementById("generateBtn");b.disabled=true;b.textContent="Generating… keep page open";});</script>"""
     return page(content)
 
 @app.post("/generate")
@@ -85,6 +85,7 @@ def generate():
         if music and music.filename:
             music.stream.seek(0)
 
+        app.logger.info("REEL_JOB started duration=%s voice=%s", duration, voice)
         img = work / "photo"
         img.write_bytes(photo.read())
         validate_image(img)
@@ -95,6 +96,7 @@ def generate():
         subtitle_file = work / "captions.srt"
         subtitle_file.write_text(srt_content, encoding="utf-8")
         audio = work / "voice.mp3"
+        app.logger.info("REEL_JOB script_ready chars=%s", len(final_script))
         if voice == "upload":
             ext = Path(audio_upload.filename).suffix.lower()
             if ext not in (".mp3", ".wav", ".m4a"):
@@ -112,10 +114,13 @@ def generate():
                 raise ValueError("Music must be MP3, WAV, or M4A.")
             music_path = work / ("music" + ext)
             music_path.write_bytes(music.read())
+        app.logger.info("REEL_JOB audio_ready bytes=%s", audio.stat().st_size)
         job_id = uuid.uuid4().hex
         output = OUTPUT_DIR / (job_id + ".mp4")
         render(img, audio, output, duration, subtitle_file, music_path)
+        app.logger.info("REEL_JOB render_done bytes=%s", output.stat().st_size if output.exists() else 0)
         info = ffprobe_info(output)
+        app.logger.info("REEL_JOB validated job_id=%s", job_id)
         caption = make_caption(topic or "AI workflow", final_script)
         safe_script = html.escape(final_script)
         safe_caption = html.escape(caption)
@@ -131,6 +136,7 @@ def generate():
         (OUTPUT_DIR / (job_id + "_caption.txt")).write_text(caption, encoding="utf-8")
         return page(content)
     except Exception as exc:
+        app.logger.exception("REEL_JOB failed")
         message = html.escape(str(exc))
         return page(f'<div class="panel error"><b>Reel generation failed</b><p>{message}</p></div><a class="download" href="/">Try again</a>'), 500
     finally:
