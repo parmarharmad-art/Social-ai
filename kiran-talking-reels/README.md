@@ -1,42 +1,49 @@
-# Kiran Kumar • AI Talking Reels MVP
+# Kiran Kumar • AI Talking Reels
 
-A mobile-friendly Streamlit app that converts a photo plus Hindi narration into a vertical MP4, with a brand watermark and caption export.
+A mobile-friendly Streamlit app for producing vertical photo-led Hindi/Hinglish narration Reels. Upload a photo, draft or edit a script, create narration or upload your own audio, add optional background music, and export MP4, caption, script, and SRT subtitle files.
 
-## Important limitation
-This MVP creates a photo-led narrated Reel with subtle zoom. It does NOT animate lips or provide verified talking-photo output. Lip-sync requires a separately selected hosted API or GPU engine. Check current commercial licensing, pricing, consent rules, and hardware before selecting one. Instagram publishing is not implemented.
+## Included
+- JPG/PNG/WEBP upload and image validation.
+- Hindi/Hinglish template script and Instagram caption.
+- gTTS narration (internet required) or uploaded recorded narration.
+- 1080×1920 H.264/AAC video render using FFmpeg.
+- Slow photo zoom, “Kiran Kumar | AI Automation” watermark.
+- Approximate sentence-level SRT captions, with burn-in when FFmpeg has libass support.
+- Downloadable MP4, script, caption, and SRT sidecar.
+- Automated unit tests and GitHub Actions CI.
 
-## Features
-- Upload JPG/PNG/WEBP photo and enter topic or script.
-- Basic Hindi/Hinglish script draft.
-- Hindi TTS through gTTS (internet required), or upload recorded narration.
-- 1080x1920 H.264/AAC MP4 render through FFmpeg.
-- Watermark, caption and script download.
-- Basic file/stream validation and pytest checks.
+## Important limitations
+This is **not yet a realistic talking-head generator**. It does not animate the mouth, blink, move the head, or generate real B-roll. Subtitles are sentence/phrase-timed estimates spread over the selected duration, not speech-recognition word-level timings. No Instagram auto-publishing or analytics are implemented. Those features require additional provider integrations, permissions, and credentials. Do not treat a video as ready to publish without reviewing it.
 
-## Local setup
-Python 3.11 recommended. FFmpeg must be available as the command ffmpeg.
-1. Create environment: python -m venv .venv
-2. Activate it.
-3. Install: pip install -r requirements.txt
-4. Run: streamlit run app.py
-5. Open the displayed app URL, upload a photo, enter topic, review script, generate.
+## Run locally
+1. Install Python 3.11+ and FFmpeg.
+2. From this folder, run:
+   ```bash
+   python -m venv .venv
+   # Activate the virtual environment, then:
+   pip install -r requirements.txt
+   streamlit run app.py
+   ```
+3. Open the local URL, upload a photo, add a topic/script, select narration, and press **Generate Reel**.
 
-gTTS requires internet access. Review its terms before commercial or sensitive use.
+gTTS requires internet access. For sensitive or commercial voice work, review its terms and consider using a properly licensed voice provider.
 
-## Android-friendly deployment
-Use GitHub to store code and a cloud host that supports Streamlit, FFmpeg, and sufficient runtime. Phone-only use can operate the hosted UI, but rendering happens on the host. GPU lip-sync usually needs a separate GPU worker or paid provider; free CPU hosting can sleep, time out, or lack FFmpeg. Never commit API keys.
+## Cloud deployment from an Android phone
+A Docker-capable host is recommended because the app needs FFmpeg and Hindi-capable fonts.
+
+1. In your host's dashboard, create a new **Docker web service** from `parmarharmad-art/Social-ai`.
+2. Set **Root Directory** to `kiran-talking-reels`.
+3. Set Dockerfile path to `Dockerfile` (or leave the default for the root directory).
+4. Deploy. The container reads the host's `PORT` variable and runs Streamlit.
+5. Upload a test image and render a short 15-second Reel to verify CPU, memory, fonts, and FFmpeg support before using longer durations.
+
+Free web services may sleep, have short request timeouts, or lack sufficient memory for video rendering. Generated files are stored in the service filesystem and may disappear on redeploy/restart unless persistent storage is configured. Do not commit API keys or private photos.
 
 ## Tests
-Run pytest -q. Included tests cover image validation and basic script/caption helpers. They do not verify external TTS, actual video render, lip-sync, subtitles, or Instagram publishing.
+Run `pytest -q` from this folder. Tests cover image validation, script/caption helpers, and SRT generation. They do not prove that cloud video rendering, TTS, or external services work in every host environment.
 
-## Example
-Topic: WhatsApp lead follow-up automation
-Hook idea: “क्या आप leads को follow-up करना भूल जाते हैं?”
-Review the generated caption, spelling, face framing, audio and duration before posting.
-
-## Known limitations and next steps
-- No word-timed subtitles, lip-sync, blinking, head motion, or B-roll.
-- Background music mix is basic and needs manual review.
-- Script generation is template-based, not live researched.
-- Instagram publishing and analytics are not implemented.
-- Test an actual render on the chosen host before calling it production-ready.
+## Next integration work
+- Licensed photo-to-talking-head/lip-sync provider or GPU inference worker.
+- Accurate subtitles from speech recognition and audio timing.
+- Real B-roll generation and transition templates.
+- Instagram Graph API publishing and insights, after Meta app review, permissions, and account configuration.
