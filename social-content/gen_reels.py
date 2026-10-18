@@ -263,6 +263,7 @@ def plan_audio(item, tmp):
 
 
 def render(item):
+    layout = (item["n"] - 1) % 6
     bg, head, bullets, cta = build(item)
     tmp = tempfile.mkdtemp()
     plan = plan_audio(item, tmp)
