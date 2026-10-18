@@ -20,10 +20,10 @@ MAX_PHOTO_BYTES = 10 * 1024 * 1024
 # Short, ready-to-speak Hindi scripts. The script is selected automatically;
 # no voice recording or audio upload is required from the user.
 SCRIPTS = [
-    "Kya aap roz ke digital kaam manually karte hain? AI automation se content banana, ideas dhoondhna aur repetitive tasks ko automate karna aasan ho sakta hai. Aise practical AI tips ke liye follow karein.",
-    "AI sirf ek chatbot nahi hai. Sahi workflow ke saath aap content planning, research aur daily repetitive tasks ka samay bacha sakte hain. Aaj se ek chhota task automate karke dekhiye. Aur tips ke liye follow karein.",
-    "Creators aur business owners, ek simple tip: har kaam baar baar manually mat kijiye. AI se ideas, captions aur content drafts taiyar kar sakte hain, phir final check khud karein. Aise useful AI workflows ke liye follow karein.",
-    "Aapko AI expert banne ke liye coding expert hona zaroori nahi. Ek simple workflow se shuru karein, use test karein, aur phir dheere dheere automate karein. Practical AI aur automation tips ke liye follow karein.",
+    "AI se apna content smart banaiye. Aise tips ke liye follow karein.",
+    "Repetitive kaam automate karein, samay bachayein. AI tips ke liye follow karein.",
+    "AI tools se daily workflow aasan banayein. Aur tips ke liye follow karein.",
+    "Coding ke bina bhi AI automation shuru karein. Follow for practical tips.",
 ]
 
 
