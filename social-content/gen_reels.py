@@ -40,8 +40,8 @@ LAYOUTS = ["stack", "side", "topphoto", "badge", "single"]
 
 
 def find_font(names):
-    for d in (os.path.join(assets, "fonts"), "/usr/share/fonts/truetype/google-fonts",
-              "/usr/share/fonts/truetype/dejavu"):
+    for d in (os.path.join(assets, "fonts"), "/usr/share/fonts/truetype/noto",
+              "/usr/share/fonts/truetype/google-fonts", "/usr/share/fonts/truetype/dejavu"):
         for n in names:
             p = os.path.join(d, n)
             if os.path.exists(p):
@@ -49,8 +49,13 @@ def find_font(names):
     raise SystemExit("font not found: %s" % names)
 
 
-BOLD = find_font(["Poppins-Bold.ttf", "DejaVuSans-Bold.ttf"])
-SEMI = find_font(["Poppins-SemiBold.ttf", "Poppins-Bold.ttf", "DejaVuSans-Bold.ttf"])
+if os.environ.get("REEL_TTS_LANGUAGE", "hi").lower().startswith("hi"):
+    # Poppins lacks Devanagari glyphs; use Noto Sans Devanagari for Hindi text.
+    BOLD = find_font(["NotoSansDevanagari-Bold.ttf", "DejaVuSans-Bold.ttf", "Poppins-Bold.ttf"])
+    SEMI = find_font(["NotoSansDevanagari-Bold.ttf", "DejaVuSans-Bold.ttf", "Poppins-Bold.ttf"])
+else:
+    BOLD = find_font(["Poppins-Bold.ttf", "DejaVuSans-Bold.ttf"])
+    SEMI = find_font(["Poppins-SemiBold.ttf", "Poppins-Bold.ttf", "DejaVuSans-Bold.ttf"])
 
 
 def load_poses():
