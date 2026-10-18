@@ -26,7 +26,7 @@ jobs:
           import json, shutil, subprocess
           from pathlib import Path
           from gtts import gTTS
-          from gradio_client import Client
+          from gradio_client import Client, handle_file
 
           photo = Path("social-content/assets/person_b.png")
           audio = Path("/tmp/musetalk-smoke.mp3")
@@ -36,7 +36,7 @@ jobs:
           gTTS("नमस्ते दोस्तों, मैं किरण कुमार। AI automation की आसान tips के लिए follow करें।", lang="hi").save(str(audio))
           print("Connecting to public MuseTalk ZeroGPU Space...")
           client = Client("henrybit/musetalk-1-5", verbose=False)
-          result = client.predict(str(audio), str(photo), 0, 10, "jaw", 90, 90, api_name="/generate")
+          result = client.predict(handle_file(str(audio)), handle_file(str(photo)), 0, 10, "jaw", 90, 90, api_name="/generate")
           candidate = result[0] if isinstance(result, (tuple, list)) else result
           if isinstance(candidate, dict):
               candidate = candidate.get("path") or candidate.get("url") or candidate.get("video")
