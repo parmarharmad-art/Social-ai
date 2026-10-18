@@ -4,3 +4,4 @@ Pillow==11.0.0
 python-dotenv==1.0.1
 gTTS==2.5.4
 pytest==8.3.4
+gradio_client>=1.7,<2
