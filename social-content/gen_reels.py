@@ -225,7 +225,7 @@ def render(item):
     out = os.path.join(out_dir, "%02d.mp4" % item["n"])
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
            "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"] + audio_in + [
-           "-t", "%.2f" % dur, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium",
+           "-t", "%.2f" % dur, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "ultrafast",
            "-crf", "22", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", out]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     hy = 120
