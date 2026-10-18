@@ -27,6 +27,8 @@ jobs:
           python-version: "3.11"
       - name: Validate social automation skills and inputs
         run: python .github/scripts/validate_social_skills.py
+      - name: Audit content against seven-skill standards
+        run: python social-content/audit_content_quality.py
       - name: Install
         run: |
           sudo apt-get update -y && sudo apt-get install -y ffmpeg espeak-ng
