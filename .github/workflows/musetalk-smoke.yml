@@ -15,51 +15,39 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install free test dependencies
+      - name: Install Reel Studio and FFmpeg
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-          pip install "gradio_client>=1.7,<2" gTTS
-      - name: Run one real talking-photo inference through public free MuseTalk Space
+          pip install -r kiran-talking-reels/requirements.txt
+      - name: Run two-chunk real lip-sync and validate final vertical MP4
         run: |
           python - <<'PY'
-          import json, shutil, subprocess
+          import json, subprocess, sys
           from pathlib import Path
           from gtts import gTTS
-          from gradio_client import Client, handle_file
+
+          sys.path.insert(0, "kiran-talking-reels")
+          from app import run_free_musetalk
+          from src.video_renderer import render
 
           photo = Path("social-content/assets/person_b.png")
-          audio = Path("/tmp/musetalk-smoke.mp3")
+          raw_audio = Path("/tmp/musetalk-full.mp3")
+          audio = Path("/tmp/musetalk-smoke.wav")
+          work = Path("/tmp/musetalk-work")
+          work.mkdir(parents=True, exist_ok=True)
           output = Path("talking-smoke.mp4")
           if not photo.exists():
-              raise SystemExit("Smoke-test portrait not found in repository.")
-          raw_audio = Path("/tmp/musetalk-full.mp3")
-          gTTS("नमस्ते, मैं किरण कुमार हूँ।", lang="hi").save(str(raw_audio))
-          subprocess.run(["ffmpeg", "-y", "-i", str(raw_audio), "-t", "2.8", "-ac", "1", "-ar", "16000", str(audio)], check=True, capture_output=True, text=True)
+              raise SystemExit("Smoke-test portrait not found.")
+          gTTS("नमस्ते, मैं किरण कुमार हूँ। AI automation से काम आसान होता है। ऐसी tips के लिए follow करें।", lang="hi").save(str(raw_audio))
+          subprocess.run(["ffmpeg", "-y", "-i", str(raw_audio), "-t", "5.6", "-ac", "1", "-ar", "16000", str(audio)], check=True, capture_output=True, text=True)
           duration_probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(audio)], check=True, capture_output=True, text=True)
-          if float(duration_probe.stdout.strip()) > 3.1:
-              raise SystemExit("Smoke audio must stay below 3.1 seconds for the free ZeroGPU cap.")
-          print("Connecting to public MuseTalk ZeroGPU Space...")
-          client = Client("henrybit/musetalk-1-5", verbose=False)
-          result = client.predict(handle_file(str(audio)), handle_file(str(photo)), 0, 10, "jaw", 90, 90, api_name="/generate")
-          candidate = result[0] if isinstance(result, (tuple, list)) else result
-          if isinstance(candidate, dict):
-              candidate = candidate.get("path") or candidate.get("url") or candidate.get("video")
-          if isinstance(candidate, dict):
-              candidate = candidate.get("path") or candidate.get("url")
-          if not candidate:
-              raise SystemExit("MuseTalk returned no video: " + repr(result))
-          candidate = str(candidate)
-          if candidate.startswith(("https://", "http://")):
-              import urllib.request
-              urllib.request.urlretrieve(candidate, output)
-          else:
-              src = Path(candidate)
-              if not src.exists():
-                  raise SystemExit("MuseTalk output path does not exist: " + candidate)
-              shutil.copy2(src, output)
-          if output.stat().st_size < 100_000:
-              raise SystemExit("MuseTalk output is unexpectedly small.")
+          duration = float(duration_probe.stdout.strip())
+          if duration < 4.0 or duration > 6.0:
+              raise SystemExit(f"Smoke audio duration outside expected 4–6 seconds: {duration}")
+          print(f"Running the real app pipeline on a {duration:.2f}s voiceover; expected two MuseTalk chunks.")
+          talking_video = run_free_musetalk(audio, photo, work)
+          render(photo, audio, output, round(duration), talking_video_path=talking_video)
           probe = subprocess.run(
               ["ffprobe", "-v", "error", "-show_entries", "format=duration",
                "-show_entries", "stream=codec_type,width,height", "-of", "json", str(output)],
@@ -67,14 +55,17 @@ jobs:
           )
           info = json.loads(probe.stdout)
           streams = info.get("streams", [])
-          if not any(s.get("codec_type") == "video" for s in streams):
-              raise SystemExit("Smoke output has no video stream.")
-          if not any(s.get("codec_type") == "audio" for s in streams):
-              raise SystemExit("Smoke output has no audio stream.")
-          print("MUSEtalk_SMOKE_SUCCESS", json.dumps({
+          video = next((s for s in streams if s.get("codec_type") == "video"), None)
+          audio_stream = next((s for s in streams if s.get("codec_type") == "audio"), None)
+          if not video or video.get("width") != 720 or video.get("height") != 1280:
+              raise SystemExit("Final MP4 is not 720x1280 vertical video.")
+          if not audio_stream:
+              raise SystemExit("Final MP4 has no audio track.")
+          if output.stat().st_size < 100_000:
+              raise SystemExit("Final MP4 is unexpectedly small.")
+          print("MUSEtalk_PIPELINE_SUCCESS", json.dumps({
               "file": str(output), "bytes": output.stat().st_size,
-              "duration": info.get("format", {}).get("duration"),
-              "streams": streams
+              "duration": info.get("format", {}).get("duration"), "video": video, "audio": audio_stream
           }))
           PY
       - uses: actions/upload-artifact@v4
