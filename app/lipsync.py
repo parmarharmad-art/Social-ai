@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 SPACE = "https://henrybit-musetalk-1-5.hf.space"
 MAX_PHOTO_BYTES = 10 * 1024 * 1024
 
-SADTALKER_SPACE = "https://kklabs-sadtalker.hf.space"
+SADTALKER_SPACE = "https://henrybit-sadtalker-demo.hf.space"
 
 async def _upload_to_space_at(client: httpx.AsyncClient, space: str, name: str, payload: bytes, mime: str) -> str:
     response = await client.post(f"{space}/gradio_api/upload", files=[("files", (name, payload, mime))])
@@ -31,20 +31,20 @@ async def _upload_to_space_at(client: httpx.AsyncClient, space: str, name: str, 
     return data[0]
 
 async def _run_sadtalker(client: httpx.AsyncClient, audio_path: str, photo_path: str) -> dict:
-    # SadTalker uses a different audio-driven portrait animation model as fallback.
+    # Active public ZeroGPU SadTalker demo: image, audio, preprocess, still, pose, expression.
     payload = {"data": [
         {"path": photo_path, "meta": {"_type": "gradio.FileData"}},
         {"path": audio_path, "meta": {"_type": "gradio.FileData"}},
-        "crop", True, False, 1, 256, 0, "facevid2vid", 1.0,
-        False, None, "pose", False, 5, True
+        "crop", False, 0, 1.0
     ]}
-    response = await client.post(f"{SADTALKER_SPACE}/gradio_api/call/test", json=payload, timeout=45)
+    response = await client.post(f"{SADTALKER_SPACE}/gradio_api/call/generate", json=payload, timeout=60)
     if response.status_code >= 400:
-        raise HTTPException(status_code=502, detail="Alternate SadTalker server could not start the job.")
+        log.error("SadTalker start failed: HTTP %s %s", response.status_code, response.text[:800])
+        raise HTTPException(status_code=502, detail="Free SadTalker model could not start the job.")
     event_id = response.json().get("event_id")
     if not event_id:
-        raise HTTPException(status_code=502, detail="Alternate SadTalker server returned no job ID.")
-    async with client.stream("GET", f"{SADTALKER_SPACE}/gradio_api/call/test/{event_id}", timeout=360) as stream:
+        raise HTTPException(status_code=502, detail="SadTalker returned no job ID.")
+    async with client.stream("GET", f"{SADTALKER_SPACE}/gradio_api/call/generate/{event_id}", timeout=660) as stream:
         event = ""
         async for line in stream.aiter_lines():
             if line.startswith("event:"):
@@ -52,22 +52,24 @@ async def _run_sadtalker(client: httpx.AsyncClient, audio_path: str, photo_path:
             elif line.startswith("data:") and event in ("complete", "error"):
                 data = line.partition(":")[2].strip()
                 if event == "error":
-                    log.error("SadTalker fallback error: %s", data[:1000])
-                    raise HTTPException(status_code=502, detail="Both free lip-sync models failed; SadTalker fallback returned an error.")
+                    log.error("SadTalker generation error: %s", data[:1000])
+                    raise HTTPException(status_code=502, detail="Free SadTalker GPU returned a generation error.")
                 result = json.loads(data)
                 if not isinstance(result, list) or not result:
                     raise HTTPException(status_code=502, detail="SadTalker returned no video result.")
                 item = result[0]
                 video_url = item.get("url") if isinstance(item, dict) else None
-                if not video_url and isinstance(item, dict) and item.get("path"):
-                    video_url = f"{SADTALKER_SPACE}/gradio_api/file={quote(item['path'], safe='/')}"
+                video_path = item.get("path") if isinstance(item, dict) else (item if isinstance(item, str) else None)
+                if not video_url and video_path:
+                    video_url = video_path if str(video_path).startswith(("http://", "https://")) else f"{SADTALKER_SPACE}/gradio_api/file={quote(str(video_path), safe='/')}"
                 if not video_url:
                     raise HTTPException(status_code=502, detail="SadTalker finished without an MP4 link.")
-                video_response = await client.get(video_url, timeout=120)
+                video_response = await client.get(video_url, timeout=180)
                 if video_response.status_code >= 400 or len(video_response.content) < 1000 or video_response.content[4:8] != b"ftyp":
+                    log.error("SadTalker output invalid: status=%s bytes=%s", video_response.status_code, len(video_response.content))
                     raise HTTPException(status_code=502, detail="SadTalker result was not a valid MP4.")
-                return {"bytes": video_response.content, "note": "SadTalker fallback"}
-    raise HTTPException(status_code=504, detail="SadTalker fallback timed out before returning a video.")
+                return {"bytes": video_response.content, "note": "Free SadTalker ZeroGPU fallback"}
+    raise HTTPException(status_code=504, detail="SadTalker GPU timed out before returning a video.")
 
 
 # Short, ready-to-speak Hindi scripts. The script is selected automatically;
