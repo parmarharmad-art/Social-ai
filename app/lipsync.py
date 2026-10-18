@@ -19,6 +19,56 @@ log = logging.getLogger(__name__)
 SPACE = "https://henrybit-musetalk-1-5.hf.space"
 MAX_PHOTO_BYTES = 10 * 1024 * 1024
 
+SADTALKER_SPACE = "https://john6666-sadtalker.hf.space"
+
+async def _upload_to_space_at(client: httpx.AsyncClient, space: str, name: str, payload: bytes, mime: str) -> str:
+    response = await client.post(f"{space}/gradio_api/upload", files=[("files", (name, payload, mime))])
+    if response.status_code >= 400:
+        raise HTTPException(status_code=502, detail="Alternate free lip-sync server rejected an input file.")
+    data = response.json()
+    if not isinstance(data, list) or not data:
+        raise HTTPException(status_code=502, detail="Alternate lip-sync server returned an invalid upload response.")
+    return data[0]
+
+async def _run_sadtalker(client: httpx.AsyncClient, audio_path: str, photo_path: str) -> dict:
+    # SadTalker uses a different audio-driven portrait animation model as fallback.
+    payload = {"data": [
+        {"path": photo_path, "meta": {"_type": "gradio.FileData"}},
+        {"path": audio_path, "meta": {"_type": "gradio.FileData"}},
+        True, False, "./results"
+    ]}
+    response = await client.post(f"{SADTALKER_SPACE}/gradio_api/call/test", json=payload, timeout=45)
+    if response.status_code >= 400:
+        raise HTTPException(status_code=502, detail="Alternate SadTalker server could not start the job.")
+    event_id = response.json().get("event_id")
+    if not event_id:
+        raise HTTPException(status_code=502, detail="Alternate SadTalker server returned no job ID.")
+    async with client.stream("GET", f"{SADTALKER_SPACE}/gradio_api/call/test/{event_id}", timeout=360) as stream:
+        event = ""
+        async for line in stream.aiter_lines():
+            if line.startswith("event:"):
+                event = line.partition(":")[2].strip()
+            elif line.startswith("data:") and event in ("complete", "error"):
+                data = line.partition(":")[2].strip()
+                if event == "error":
+                    log.error("SadTalker fallback error: %s", data[:1000])
+                    raise HTTPException(status_code=502, detail="Both free lip-sync models failed; SadTalker fallback returned an error.")
+                result = json.loads(data)
+                if not isinstance(result, list) or not result:
+                    raise HTTPException(status_code=502, detail="SadTalker returned no video result.")
+                item = result[0]
+                video_url = item.get("url") if isinstance(item, dict) else None
+                if not video_url and isinstance(item, dict) and item.get("path"):
+                    video_url = f"{SADTALKER_SPACE}/gradio_api/file={quote(item['path'], safe='/')}"
+                if not video_url:
+                    raise HTTPException(status_code=502, detail="SadTalker finished without an MP4 link.")
+                video_response = await client.get(video_url, timeout=120)
+                if video_response.status_code >= 400 or len(video_response.content) < 1000 or video_response.content[4:8] != b"ftyp":
+                    raise HTTPException(status_code=502, detail="SadTalker result was not a valid MP4.")
+                return {"bytes": video_response.content, "note": "SadTalker fallback"}
+    raise HTTPException(status_code=504, detail="SadTalker fallback timed out before returning a video.")
+
+
 # Short, ready-to-speak Hindi scripts. The script is selected automatically;
 # no voice recording or audio upload is required from the user.
 SCRIPTS = [
@@ -190,7 +240,13 @@ async def generate_photo_only_reel(photo: UploadFile = File(...)):
             async with httpx.AsyncClient(timeout=httpx.Timeout(360, connect=25)) as client:
                 audio_path = await _upload_to_space(client, "hindi_voice.wav", audio_bytes, "audio/wav")
                 photo_path = await _upload_to_space(client, photo.filename or "photo.jpg", photo_bytes, photo.content_type)
-                output = await _run_musetalk(client, audio_path, photo_path)
+                try:
+                    output = await _run_musetalk(client, audio_path, photo_path)
+                except Exception as muse_error:
+                    log.warning("MuseTalk failed; trying free SadTalker fallback: %s", str(muse_error)[:500])
+                    sad_audio_path = await _upload_to_space_at(client, SADTALKER_SPACE, "hindi_voice.wav", audio_bytes, "audio/wav")
+                    sad_photo_path = await _upload_to_space_at(client, SADTALKER_SPACE, photo.filename or "photo.jpg", photo_bytes, photo.content_type)
+                    output = await _run_sadtalker(client, sad_audio_path, sad_photo_path)
         except HTTPException:
             raise
         except httpx.TimeoutException:
