@@ -34,7 +34,7 @@ concurrency:
 jobs:
   create-content:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -61,12 +61,48 @@ jobs:
             --count "$COUNT" \
             --language "$LANGUAGE" \
             --out social-content/generated
-      - name: Upload reviewed draft pack
+      - name: Install free Reel rendering dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg espeak-ng
+          python -m pip install --upgrade pip
+          pip install pillow numpy edge-tts gTTS
+      - name: Convert generated drafts into Reel-renderer input
+        run: |
+          python social-content/pack_to_reels.py \
+            --input social-content/generated/content-pack.json \
+            --output social-content/generated/reels.json
+      - name: Render vertical Reel previews with voiceover
+        env:
+          REQUIRE_VOICE: "1"
+          REEL_VOICE: ${{ inputs.language == 'Hindi' && 'hi-IN-SwaraNeural' || 'en-IN-NeerjaNeural' }}
+          REEL_TTS_LANGUAGE: ${{ inputs.language == 'Hindi' && 'hi' || 'en' }}
+          SKIP_EXISTING: "0"
+        run: |
+          python social-content/gen_reels.py \
+            social-content/generated/reels.json \
+            social-content/assets \
+            social-content/generated/reels
+      - name: Validate generated video previews
+        run: |
+          set -euo pipefail
+          count="$(find social-content/generated/reels -maxdepth 1 -type f -name '*.mp4' | wc -l)"
+          test "$count" -eq "${{ inputs.count }}"
+          for f in social-content/generated/reels/*.mp4; do
+            test -s "$f"
+            dim="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$f" | head -1)"
+            audio="$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_type -of csv=p=0 "$f" | head -1)"
+            test "$dim" = "1080x1920"
+            test "$audio" = "audio"
+          done
+          echo "Validated $count vertical MP4 previews with audio."
+      - name: Upload content pack and Reel previews
         uses: actions/upload-artifact@v4
         with:
-          name: ai-social-content-draft
+          name: ai-social-content-output
           path: |
             social-content/generated/content-pack.md
             social-content/generated/content-pack.json
+            social-content/generated/reels/*.mp4
           if-no-files-found: error
           retention-days: 7
