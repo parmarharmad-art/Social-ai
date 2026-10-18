@@ -1,7 +1,7 @@
 # Kiran Kumar AI Reels Studio — Commercial Readiness
 
 ## Product status
-The current application is a **narrated-photo Reel maker**, not a realistic talking-head generator. It renders a vertical MP4 from a still photo and voiceover, adds a slow zoom and brand watermark, and offers script/caption/SRT downloads. It does not currently provide lip-sync, blinking/head motion, generated B-roll, account login, subscription billing, Instagram auto-publishing, analytics, or a customer admin panel.
+The current application renders a vertical MP4 from a still photo and voiceover, adds a brand watermark and subtitles, and now offers an optional real mouth lip-sync path through the public free MuseTalk ZeroGPU Space. This is not a guaranteed always-on service: public queue/quota availability can vary, and each generation must be tested. It does not provide blinking/head motion beyond what the model produces, generated B-roll, account login, subscription billing, Instagram auto-publishing, analytics, or a customer admin panel.
 
 ## Safe initial offer
 Until the missing integrations are built and tested, sell only as a **limited early-access / assisted service**, not as a finished self-service SaaS:
