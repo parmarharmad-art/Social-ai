@@ -58,13 +58,27 @@ def wrap(draw, text, font, max_w):
     return lines
 
 
-def background():
-    top = np.array([8, 24, 58], np.float32)
-    bot = np.array([16, 48, 104], np.float32)
+PALETTES = [
+    ((8, 24, 58), (16, 48, 104), (255, 196, 0), (60, 120, 230)),
+    ((30, 10, 48), (92, 25, 85), (255, 112, 166), (225, 60, 180)),
+    ((5, 45, 42), (12, 104, 91), (112, 255, 205), (30, 210, 170)),
+    ((44, 18, 8), (130, 48, 18), (255, 180, 70), (255, 105, 40)),
+    ((12, 20, 28), (45, 60, 76), (120, 220, 255), (40, 150, 220)),
+    ((38, 12, 12), (115, 24, 35), (255, 220, 120), (235, 70, 85)),
+    ((24, 28, 8), (78, 92, 20), (220, 255, 100), (150, 210, 40)),
+    ((20, 14, 58), (60, 40, 130), (190, 160, 255), (120, 90, 255)),
+]
+
+def background(n):
+    global yellow
+    top_rgb, bot_rgb, accent_rgb, glow_rgb = PALETTES[(n - 1) % len(PALETTES)]
+    yellow = accent_rgb
+    top = np.array(top_rgb, np.float32)
+    bot = np.array(bot_rgb, np.float32)
     ys = np.linspace(0, 1, H, dtype=np.float32)[:, None, None]
     img = Image.fromarray(np.repeat(top * (1 - ys) + bot * ys, W, axis=1).astype(np.uint8), "RGB").convert("RGBA")
     glow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    ImageDraw.Draw(glow).ellipse((140, 1000, 1000, 1800), fill=(60, 120, 230, 120))
+    ImageDraw.Draw(glow).ellipse((140, 1000, 1000, 1800), fill=glow_rgb + (120,))
     img = Image.alpha_composite(img, glow.filter(ImageFilter.GaussianBlur(120)))
     dots = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     dd = ImageDraw.Draw(dots)
@@ -101,14 +115,25 @@ def paste_fade(canvas, layer, x, y, alpha, dy=0):
 
 def build(item):
     n = item["n"]
-    bg = background()
+    global yellow
+    layout = (n - 1) % 6
+    yellow = PALETTES[(n - 1) % len(PALETTES)][2]
+    bg = background(n)
     d = ImageDraw.Draw(bg)
 
-    # person (static), bottom
-    src, pw = (pose_a, 900 if len(item["pts"]) <= 4 else 760) if n % 2 == 1 else (pose_b, 660)
+    # Alternate the two available portrait photographs and vary scale/crop/placement.
+    src = pose_a if n % 2 == 1 else pose_b
+    base_pw = (900 if len(item["pts"]) <= 4 else 760) if n % 2 == 1 else 660
+    pw = int(base_pw * [1.0, 0.78, 0.84, 0.68, 0.92, 0.74][layout])
     ph = int(src.height * pw / src.width)
     person = src.resize((pw, ph), Image.LANCZOS)
-    px, py = (W - pw) // 2, H - BAND - ph + 2
+    if layout in (1, 4):
+        px = W - pw + int(pw * 0.08)
+    elif layout in (2, 5):
+        px = -int(pw * 0.08)
+    else:
+        px = (W - pw) // 2
+    py = H - BAND - ph + 2
     shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     sh = Image.new("RGBA", person.size, (0, 0, 0, 0))
     sh.putalpha(person.getchannel("A").point(lambda v: int(v * 0.5)))
@@ -118,24 +143,49 @@ def build(item):
     layer.paste(person, (px, py), person)
     bg = Image.alpha_composite(bg, layer)
 
-    # bottom band
+    # Distinct decorative frame for each template family.
+    accents = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ad = ImageDraw.Draw(accents)
+    if layout == 1:
+        ad.rounded_rectangle((28, 70, W - 28, H - BAND - 30), radius=48, outline=yellow + (230,), width=5)
+        ad.rectangle((0, 0, 22, H - BAND), fill=yellow + (255,))
+    elif layout == 2:
+        ad.rounded_rectangle((35, 65, W - 35, H - BAND - 30), radius=20, fill=(0, 0, 0, 55), outline=yellow + (255,), width=4)
+        ad.rectangle((W - 24, 0, W, H - BAND), fill=yellow + (255,))
+    elif layout == 3:
+        ad.rounded_rectangle((35, 80, W - 35, H - BAND - 20), radius=65, outline=yellow + (220,), width=8)
+        ad.ellipse((W - 190, 55, W - 65, 180), fill=yellow + (210,))
+    elif layout == 4:
+        ad.polygon([(0, 0), (W, 0), (W, 90), (0, 250)], fill=yellow + (255,))
+        ad.rectangle((0, H - BAND - 12, W, H - BAND), fill=yellow + (255,))
+    elif layout == 5:
+        ad.rounded_rectangle((38, 75, W - 38, H - BAND - 25), radius=28, outline=yellow + (255,), width=6)
+        ad.line((55, 300, W - 55, 300), fill=yellow + (230,), width=5)
+    bg = Image.alpha_composite(bg, accents)
+    d = ImageDraw.Draw(bg)
+
+    # bottom brand band
     band = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     bd = ImageDraw.Draw(band)
     fade = np.zeros((50, W, 4), np.uint8)
     fade[..., 0:3] = (6, 18, 44)
     fade[..., 3] = np.linspace(0, 255, 50, dtype=np.uint8)[:, None]
     band.paste(Image.fromarray(fade, "RGBA"), (0, H - BAND - 50))
-    bd.rectangle((0, H - BAND, W, H), fill=(6, 18, 44, 255))
-    bd.rectangle((0, H - BAND, W, H - BAND + 6), fill=yellow + (255,))
+    bd.rectangle((0, H - BAND, W, H), fill=(6, 18, 44, 245))
+    if layout in (1, 3, 5):
+        bd.rounded_rectangle((24, H - BAND + 10, W - 24, H - 10), radius=28, fill=(6, 18, 44, 255), outline=yellow + (255,), width=4)
+    else:
+        bd.rectangle((0, H - BAND, W, H - BAND + 6), fill=yellow + (255,))
     bg = Image.alpha_composite(bg, band)
     d = ImageDraw.Draw(bg)
     d.text((60, H - BAND + 36), "KIRAN KUMAR", font=ImageFont.truetype(BOLD, 62), fill=white)
     d.text((60, H - BAND + 112), "AI AUTOMATION EXPERT", font=ImageFont.truetype(SEMI, 32), fill=yellow)
 
     # static text layers
-    f_h = ImageFont.truetype(BOLD, 104)
-    head_lines = wrap(d, item["h"], f_h, W - 120)
-    head = text_layer(head_lines, f_h, white, 122)
+    heading_sizes = [104, 88, 96, 82, 100, 90]
+    f_h = ImageFont.truetype(BOLD, heading_sizes[layout])
+    head_lines = wrap(d, item["h"], f_h, W - (150 if layout in (1, 4) else 120))
+    head = text_layer(head_lines, f_h, white, heading_sizes[layout] + 18)
     f_b = ImageFont.truetype(SEMI, 58)
     bullets = []
     for i, p in enumerate(item["pts"], 1):
@@ -143,7 +193,12 @@ def build(item):
         t = text_layer(lines, f_b, white, 70)
         row = Image.new("RGBA", (W - 120, t.height + 8), (0, 0, 0, 0))
         rd = ImageDraw.Draw(row)
-        rd.ellipse((0, 4, 68, 72), fill=yellow)
+        if (n - 1) % 6 in (1, 4):
+            rd.rounded_rectangle((0, 4, 68, 72), radius=16, fill=yellow)
+        elif (n - 1) % 6 in (2, 5):
+            rd.rectangle((5, 9, 63, 67), fill=yellow)
+        else:
+            rd.ellipse((0, 4, 68, 72), fill=yellow)
         nf = ImageFont.truetype(BOLD, 38)
         tw = rd.textlength(str(i), font=nf)
         rd.text((34 - tw / 2, 12), str(i), font=nf, fill=(8, 24, 58))
@@ -228,8 +283,8 @@ def render(item):
            "-t", "%.2f" % dur, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "ultrafast",
            "-crf", "22", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", out]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-    hy = 120
-    by0 = hy + head.height + 60
+    hy = [120, 165, 110, 205, 140, 170][layout]
+    by0 = hy + head.height + [60, 45, 55, 35, 45, 50][layout]
     for f in range(total):
         t = f / FPS
         frame = bg.copy()
