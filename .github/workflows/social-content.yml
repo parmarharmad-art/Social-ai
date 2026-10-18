@@ -5,8 +5,8 @@ on:
     paths:
       - ".github/workflows/sai.zip"
       - "social-content-working-package.zip"
-      - "social-content/**"
       - ".github/workflows/social-content.yml"
+      - ".github/scripts/**"
 permissions:
   contents: write
 jobs:
@@ -71,3 +71,16 @@ jobs:
           git commit -m "Generate Instagram cards and reels" || echo "nothing to commit"
           git pull --rebase
           git push
+      - name: Publish Reel to Instagram (optional; requires Meta credentials and a public video URL)
+        env:
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_REEL_VIDEO_URL: ${{ vars.INSTAGRAM_REEL_VIDEO_URL }}
+          INSTAGRAM_CAPTION: ${{ vars.INSTAGRAM_CAPTION }}
+          META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
+        run: |
+          if [ -z "$INSTAGRAM_USER_ID" ] || [ -z "$INSTAGRAM_ACCESS_TOKEN" ] || [ -z "$INSTAGRAM_REEL_VIDEO_URL" ]; then
+            echo "Instagram auto-publish skipped: configure INSTAGRAM_USER_ID, INSTAGRAM_ACCESS_TOKEN secrets and INSTAGRAM_REEL_VIDEO_URL variable."
+            exit 0
+          fi
+          python .github/scripts/instagram_publish.py
