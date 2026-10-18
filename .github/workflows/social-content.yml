@@ -79,8 +79,8 @@ jobs:
           INSTAGRAM_CAPTION: ${{ vars.INSTAGRAM_CAPTION }}
           META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
         run: |
-          if [ -z "$INSTAGRAM_USER_ID" ] || [ -z "$INSTAGRAM_ACCESS_TOKEN" ] || [ -z "$INSTAGRAM_REEL_VIDEO_URL" ]; then
-            echo "Instagram auto-publish skipped: configure INSTAGRAM_USER_ID, INSTAGRAM_ACCESS_TOKEN secrets and INSTAGRAM_REEL_VIDEO_URL variable."
+          if [ -z "$INSTAGRAM_USER_ID" ] || [ -z "$INSTAGRAM_ACCESS_TOKEN" ]; then
+            echo "Instagram auto-publish skipped: configure INSTAGRAM_USER_ID and INSTAGRAM_ACCESS_TOKEN GitHub Actions secrets. The workflow will auto-select the latest generated Reel URL."
             exit 0
           fi
           python .github/scripts/instagram_publish.py
