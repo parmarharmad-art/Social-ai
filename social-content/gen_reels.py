@@ -377,6 +377,8 @@ def render(item):
     bg, items, cta, layout, th, acc = build(item)
     tmp = tempfile.mkdtemp()
     plan = plan_audio(item, tmp)
+    if not plan and os.environ.get("REQUIRE_VOICE") == "1":
+        raise SystemExit("ERROR: voice generation failed for Reel %s; refusing to create a silent preview." % item["n"])
     npts = len(item["pts"])
     if plan:
         starts, dur, wav = plan
