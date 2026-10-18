@@ -1,0 +1,36 @@
+name: social-content
+on:
+  workflow_dispatch:
+  push:
+    paths: ["social-content/reels.json", "social-content/ig.json", "social-content/*.py"]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    defaults:
+      run:
+        working-directory: social-content
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y ffmpeg espeak-ng
+          pip install pillow numpy edge-tts gTTS
+      - name: Instagram cards
+        run: python render_ig.py ig.json assets/person_rgba.png ig_cards
+      - name: Reels with voiceover
+        env:
+          SKIP_EXISTING: "1"
+        run: python gen_reels.py reels.json assets reels
+      - name: Commit outputs
+        working-directory: .
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add social-content/ig_cards social-content/reels
+          git commit -m "Update generated cards and reels" || echo "nothing to commit"
+          git pull --rebase && git push
