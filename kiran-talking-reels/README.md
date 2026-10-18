@@ -1,19 +1,20 @@
 # Kiran Kumar • AI Talking Reels
 
-A mobile-friendly Streamlit app for producing vertical photo-led Hindi/Hinglish narration Reels. Upload a photo, draft or edit a script, create narration or upload your own audio, add optional background music, and export MP4, caption, script, and SRT subtitle files.
+A mobile-friendly Flask web app for producing vertical photo-led Hindi/Hinglish narration Reels. Upload a photo, draft or edit a script, create narration or upload your own audio, add optional background music, and export MP4, caption, script, and SRT subtitle files.
 
 ## Included
 - JPG/PNG/WEBP upload and image validation.
-- Hindi/Hinglish template script and Instagram caption.
+- Hindi/Hinglish topic-to-script generation and Instagram caption.
 - gTTS narration (internet required) or uploaded recorded narration.
-- 1080×1920 H.264/AAC video render using FFmpeg.
-- Slow photo zoom, “Kiran Kumar | AI Automation” watermark.
-- Approximate sentence-level SRT captions, with burn-in when FFmpeg has libass support.
+- Vertical 720×1280 H.264/AAC MP4 render using FFmpeg.
+- Optional genuine mouth lip-sync through the public free MuseTalk ZeroGPU Space; no HeyGen API key or paid lip-sync API is used.
+- Faster photo-zoom + narration fallback if you choose it.
+- “Kiran Kumar | AI Automation” watermark and approximate SRT captions.
 - Downloadable MP4, script, caption, and SRT sidecar.
 - Automated unit tests and GitHub Actions CI.
 
 ## Important limitations
-This is **not yet a realistic talking-head generator**. It does not animate the mouth, blink, move the head, or generate real B-roll. Subtitles are sentence/phrase-timed estimates spread over the selected duration, not speech-recognition word-level timings. No Instagram auto-publishing or analytics are implemented. Those features require additional provider integrations, permissions, and credentials. Do not treat a video as ready to publish without reviewing it.
+The free MuseTalk integration depends on a public third-party Space and its free GPU queue/quota. It can be busy, asleep, changed, or unavailable; it is not an unlimited or guaranteed always-on service. If it fails, the app should show an error rather than falsely label a still-photo video as lip-synced. Subtitles are approximate sentence/phrase timings, not word-level speech recognition. Instagram auto-publishing and analytics are not implemented in this Reel Studio. Review every output before publishing.
 
 ## Run locally
 1. Install Python 3.11+ and FFmpeg.
@@ -22,7 +23,7 @@ This is **not yet a realistic talking-head generator**. It does not animate the 
    python -m venv .venv
    # Activate the virtual environment, then:
    pip install -r requirements.txt
-   streamlit run app.py
+   python app.py
    ```
 3. Open the local URL, upload a photo, add a topic/script, select narration, and press **Generate Reel**.
 
