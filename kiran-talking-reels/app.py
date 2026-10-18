@@ -7,7 +7,9 @@ import urllib.request
 import uuid
 from pathlib import Path
 
-from flask import Flask, request, send_from_directory
+from concurrent.futures import ThreadPoolExecutor
+
+from flask import Flask, jsonify, request, send_from_directory
 from dotenv import load_dotenv
 
 from src.hindi_tts import make_audio
@@ -21,6 +23,8 @@ app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 55 * 1024 * 1024
 OUTPUT_DIR = Path("outputs")
 OUTPUT_DIR.mkdir(exist_ok=True)
+JOB_STATE = {}
+JOB_EXECUTOR = ThreadPoolExecutor(max_workers=1)
 
 PAGE = """<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kiran Kumar AI Reels Studio</title><style>
@@ -135,7 +139,7 @@ def run_free_musetalk(audio_path, image_path, work_dir):
 @app.get("/")
 def home():
     content = """
-    <form class="panel" method="post" action="/generate" enctype="multipart/form-data">
+    <form class="panel" method="post" action="/generate-async" enctype="multipart/form-data">
       <label>1. Upload your photo (JPG, PNG or WEBP, max 10 MB)</label><input required type="file" name="photo" accept=".jpg,.jpeg,.png,.webp">
       <label>2. Reel topic</label><input name="topic" placeholder="WhatsApp lead follow-up automation">
       <label>3. Duration</label><select name="duration"><option selected>15</option><option>30</option><option>45</option><option>60</option></select>
@@ -145,8 +149,185 @@ def home():
       <div id="audioRow" style="display:none"><label>Voiceover file (MP3, WAV, M4A; max 30 MB)</label><input type="file" name="audio" accept=".mp3,.wav,.m4a"></div>
       <label>7. Optional background music (MP3, WAV, M4A; max 15 MB)</label><input type="file" name="music" accept=".mp3,.wav,.m4a">
       <label>8. Talking-photo mode</label><select name="lip_sync"><option value="musetalk" selected>Real mouth lip-sync — free MuseTalk (may queue)</option><option value="photo">Photo zoom + narration (faster fallback)</option></select>
-      <button id="generateBtn" type="submit">Generate My Reel</button><div id="busy" class="panel success" style="display:none"><b>Reel generation started…</b><p>Photo check → Hindi voiceover → video rendering → MP4 validation. Keep this page open; 30–60 second reels can take a few minutes.</p></div><p><small>Free MuseTalk lip-sync is currently limited to 15-second Reels and runs in short audio chunks to fit the public ZeroGPU limit. Queue/quota availability can vary. For 30–60 seconds, choose photo zoom mode. Review your video before publishing.</small></p>
+      <button id="generateBtn" type="submit">Generate My Reel</button><div id="busy" class="panel success" style="display:none"><b>Reel generation started…</b><p>Photo check → Hindi voiceover → lip-sync/render → MP4 validation. This page updates automatically; free lip-sync may take a few minutes.</p></div><p><small>Free MuseTalk lip-sync is currently limited to 15-second Reels and runs in short audio chunks to fit the public ZeroGPU limit. Queue/quota availability can vary. For 30–60 seconds, choose photo zoom mode. Review your video before publishing.</small></p>
     </form><script>document.querySelector("form").addEventListener("submit",function(){document.getElementById("busy").style.display="block";const b=document.getElementById("generateBtn");b.disabled=true;b.textContent="Generating… keep page open";});</script>"""
+    return page(content)
+
+def _set_job(job_id, **values):
+    current = JOB_STATE.get(job_id, {})
+    current.update(values)
+    JOB_STATE[job_id] = current
+
+def _process_async_reel(job_id, work, img, topic, script, duration, language, voice,
+                        audio_upload_path, music_path, lip_sync):
+    try:
+        _set_job(job_id, status="running", phase="Creating script and voiceover")
+        final_script = script or make_script(topic, duration, language)
+        if not final_script.strip():
+            raise ValueError("Script is empty. Enter your own script and retry.")
+        if voice == "upload":
+            if not audio_upload_path:
+                raise ValueError("Choose a voiceover file.")
+            audio = Path(audio_upload_path)
+        else:
+            audio = work / "voice.mp3"
+            make_audio(final_script, audio)
+        if not audio.exists() or audio.stat().st_size < 1000:
+            raise ValueError("No usable voiceover was created.")
+
+        audio_duration = media_duration(audio)
+        render_duration = max(1, min(60, round(audio_duration or duration)))
+        subtitle_file = work / "captions.srt"
+        subtitle_file.write_text(make_srt(final_script, render_duration), encoding="utf-8")
+        talking_video = None
+        if lip_sync == "musetalk":
+            _set_job(job_id, phase="Free MuseTalk lip-sync (short chunks; this may take a few minutes)")
+            talking_video = run_free_musetalk(audio, img, work)
+            render_duration = max(1, min(60, round(media_duration(talking_video) or audio_duration or duration)))
+
+        _set_job(job_id, phase="Rendering and validating vertical MP4")
+        output = OUTPUT_DIR / (job_id + ".mp4")
+        render(img, audio, output, render_duration, subtitle_file, music_path,
+               talking_video_path=talking_video)
+        info = ffprobe_info(output)
+        caption = make_caption(topic or "AI workflow", final_script)
+        (OUTPUT_DIR / (job_id + ".txt")).write_text(final_script, encoding="utf-8")
+        (OUTPUT_DIR / (job_id + "_caption.txt")).write_text(caption, encoding="utf-8")
+        app.logger.info("REEL_JOB async_done job_id=%s bytes=%s lip_sync=%s",
+                        job_id, output.stat().st_size, lip_sync)
+        _set_job(job_id, status="done", phase="Reel ready", script=final_script,
+                 caption=caption, info=str(info), error=None)
+    except Exception as exc:
+        app.logger.exception("REEL_JOB async_failed job_id=%s", job_id)
+        _set_job(job_id, status="failed", phase="Generation failed", error=str(exc))
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+@app.post("/generate-async")
+def generate_async():
+    work = Path(tempfile.mkdtemp(prefix="kiran_reel_job_"))
+    try:
+        photo = request.files.get("photo")
+        topic = request.form.get("topic", "").strip()
+        script = request.form.get("script", "").strip()
+        try:
+            duration = int(request.form.get("duration", "15"))
+        except ValueError:
+            duration = 15
+        if duration not in (15, 30, 45, 60):
+            duration = 15
+        language = request.form.get("language", "Hindi")
+        voice = request.form.get("voice", "tts")
+        lip_sync = request.form.get("lip_sync", "musetalk")
+        if lip_sync not in ("musetalk", "photo"):
+            lip_sync = "musetalk"
+        if lip_sync == "musetalk" and duration != 15:
+            return page('<div class="panel error">Free real lip-sync currently supports 15-second Reels. Select 15 seconds, or choose photo-zoom mode for 30–60 seconds.</div><a class="download" href="/">Go back</a>'), 400
+        audio_upload = request.files.get("audio")
+        music = request.files.get("music")
+
+        if not photo or not photo.filename:
+            return page('<div class="panel error">Please upload a photo, then try again.</div><a class="download" href="/">Go back</a>'), 400
+        if len(photo.read()) > 10 * 1024 * 1024:
+            return page('<div class="panel error">Photo exceeds 10 MB. Choose a smaller image.</div><a class="download" href="/">Go back</a>'), 400
+        photo.stream.seek(0)
+        if not topic and not script:
+            return page('<div class="panel error">Enter a topic or a script.</div><a class="download" href="/">Go back</a>'), 400
+        if voice == "upload" and (not audio_upload or not audio_upload.filename):
+            return page('<div class="panel error">Choose your voiceover file.</div><a class="download" href="/">Go back</a>'), 400
+        if audio_upload and audio_upload.filename and len(audio_upload.read()) > 30 * 1024 * 1024:
+            return page('<div class="panel error">Voiceover exceeds 30 MB.</div><a class="download" href="/">Go back</a>'), 400
+        if audio_upload and audio_upload.filename:
+            audio_upload.stream.seek(0)
+        if music and music.filename and len(music.read()) > 15 * 1024 * 1024:
+            return page('<div class="panel error">Music exceeds 15 MB.</div><a class="download" href="/">Go back</a>'), 400
+        if music and music.filename:
+            music.stream.seek(0)
+
+        photo_ext = Path(photo.filename).suffix.lower()
+        if photo_ext not in (".jpg", ".jpeg", ".png", ".webp"):
+            return page('<div class="panel error">Use a JPG, PNG, or WEBP photo file.</div><a class="download" href="/">Go back</a>'), 400
+        img = work / ("photo" + photo_ext)
+        img.write_bytes(photo.read())
+        validate_image(img)
+
+        audio_upload_path = None
+        if voice == "upload":
+            ext = Path(audio_upload.filename).suffix.lower()
+            if ext not in (".mp3", ".wav", ".m4a"):
+                return page('<div class="panel error">Voiceover must be MP3, WAV, or M4A.</div><a class="download" href="/">Go back</a>'), 400
+            audio_upload_path = work / ("uploaded_voice" + ext)
+            audio_upload_path.write_bytes(audio_upload.read())
+
+        music_path = None
+        if music and music.filename:
+            ext = Path(music.filename).suffix.lower()
+            if ext not in (".mp3", ".wav", ".m4a"):
+                return page('<div class="panel error">Music must be MP3, WAV, or M4A.</div><a class="download" href="/">Go back</a>'), 400
+            music_path = work / ("music" + ext)
+            music_path.write_bytes(music.read())
+
+        job_id = uuid.uuid4().hex
+        JOB_STATE[job_id] = {"status": "queued", "phase": "Queued"}
+        app.logger.info("REEL_JOB async_started job_id=%s duration=%s lip_sync=%s", job_id, duration, lip_sync)
+        JOB_EXECUTOR.submit(_process_async_reel, job_id, work, img, topic, script, duration,
+                            language, voice, audio_upload_path, music_path, lip_sync)
+        content = f"""
+        <div class="panel success"><b id="job-title">Reel generation queued</b><p id="job-phase">Your job is running on the server. Keep this page open; you can wait while it processes.</p></div>
+        <div class="panel"><p>Free lip-sync can take a few minutes because the model runs in short chunks. The page will open your video automatically when it is ready.</p><a class="download" href="/">Back to Studio</a></div>
+        <script>
+        async function checkJob() {{
+          try {{
+            const response = await fetch("/job/{job_id}/status");
+            const data = await response.json();
+            document.getElementById("job-phase").textContent = data.phase || data.status || "Working…";
+            if (data.status === "done") {{ window.location.href = "/job/{job_id}"; return; }}
+            if (data.status === "failed") {{
+              document.getElementById("job-title").textContent = "Reel generation failed";
+              document.getElementById("job-phase").textContent = data.error || "The free lip-sync service failed. Retry or choose photo-zoom mode.";
+              return;
+            }}
+          }} catch (e) {{}}
+          window.setTimeout(checkJob, 3000);
+        }}
+        checkJob();
+        </script>"""
+        return page(content)
+    except Exception as exc:
+        app.logger.exception("REEL_JOB async_submit_failed")
+        shutil.rmtree(work, ignore_errors=True)
+        return page(f'<div class="panel error"><b>Could not start Reel generation</b><p>{html.escape(str(exc))}</p></div><a class="download" href="/">Try again</a>'), 500
+
+@app.get("/job/<job_id>/status")
+def job_status(job_id):
+    if not job_id.isalnum():
+        return jsonify({"status": "failed", "error": "Invalid job ID"}), 400
+    state = JOB_STATE.get(job_id)
+    if not state:
+        return jsonify({"status": "failed", "error": "This job is no longer available."}), 404
+    return jsonify({key: state.get(key) for key in ("status", "phase", "error")})
+
+@app.get("/job/<job_id>")
+def job_result(job_id):
+    if not job_id.isalnum():
+        return "Invalid job ID", 400
+    state = JOB_STATE.get(job_id)
+    if not state:
+        return page('<div class="panel error">This job is no longer available. Please create the Reel again.</div><a class="download" href="/">Back to Studio</a>'), 404
+    if state.get("status") == "failed":
+        return page(f'<div class="panel error"><b>Reel generation failed</b><p>{html.escape(state.get("error") or "Unknown error")}</p></div><a class="download" href="/">Try again</a>'), 500
+    if state.get("status") != "done":
+        return page(f'<div class="panel success"><b>Reel is processing</b><p>{html.escape(state.get("phase") or "Working…")}</p><a class="download" href="/">Back to Studio</a></div>'), 202
+    safe_script = html.escape(state.get("script", ""))
+    safe_caption = html.escape(state.get("caption", ""))
+    safe_info = html.escape(state.get("info", ""))
+    content = f"""
+    <div class="panel success">Reel generated successfully. Preview it, then download the MP4.</div>
+    <div class="panel"><video controls playsinline src="/output/{job_id}"></video><a class="download" href="/output/{job_id}?download=1">⬇ Download MP4 Reel</a></div>
+    <div class="panel"><h2>Your script</h2><p>{safe_script}</p><a class="download" href="/text/{job_id}/script">Download script</a></div>
+    <div class="panel"><h2>Instagram caption</h2><p>{safe_caption}</p><a class="download" href="/text/{job_id}/caption">Download caption</a></div>
+    <div class="panel"><h2>Video details</h2><small>{safe_info}</small></div>
+    <a class="download" href="/">Create another Reel</a>"""
     return page(content)
 
 @app.post("/generate")
