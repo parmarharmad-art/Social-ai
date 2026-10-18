@@ -1,0 +1,33 @@
+name: Lip-sync notebook regression checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "social-content/Free_Hindi_Photo_LipSync_Colab.ipynb"
+      - "social-content/tests/test_lipsync_notebook.py"
+      - ".github/workflows/lipsync-notebook-check.yml"
+  pull_request:
+    paths:
+      - "social-content/Free_Hindi_Photo_LipSync_Colab.ipynb"
+      - "social-content/tests/test_lipsync_notebook.py"
+      - ".github/workflows/lipsync-notebook-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notebook-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate notebook JSON
+        run: python -m json.tool social-content/Free_Hindi_Photo_LipSync_Colab.ipynb > /dev/null
+      - name: Run notebook contract tests
+        run: python -m unittest discover -s social-content/tests -p "test_lipsync_notebook.py" -v
