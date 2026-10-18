@@ -5,7 +5,6 @@ on:
     paths:
       - ".github/workflows/sai.zip"
       - "social-content-working-package.zip"
-      - ".github/workflows/social-content.yml"
       - ".github/scripts/**"
 concurrency:
   group: social-content-${{ github.ref }}
@@ -58,29 +57,29 @@ jobs:
       - name: Install
         run: |
           sudo apt-get update -y && sudo apt-get install -y ffmpeg espeak-ng
-          pip install pillow numpy edge-tts gTTS requests
+          pip install pillow numpy edge-tts gTTS
       - name: Instagram cards
         working-directory: social-content
         run: python render_ig.py ig.json assets/person_rgba.png ig_cards
       - name: Reels with voiceover (varied templates)
         working-directory: social-content
         run: python gen_reels.py reels.json assets reels
-      - name: Generate real talking-photo lip-sync Reels (HeyGen Avatar IV, optional)
-        env:
-          HEYGEN_API_KEY: ${{ secrets.HEYGEN_API_KEY }}
-          HEYGEN_VOICE_ID: ${{ vars.HEYGEN_VOICE_ID }}
-        working-directory: social-content
+      - name: Validate every generated output
+        shell: bash
         run: |
-          if [ -z "$HEYGEN_API_KEY" ]; then
-            echo "Lip-sync generation skipped: HEYGEN_API_KEY secret is not configured. Standard Reel rendering remains available."
-            exit 0
-          fi
-          python gen_lipsync.py reels.json assets reels_lipsync
-          test -n "$(find reels_lipsync -maxdepth 1 -type f -name '*.mp4' -print -quit)"
-      - name: Validate generated outputs
-        run: |
-          test -n "$(find social-content/ig_cards -maxdepth 1 -type f -name '*.jpg' -print -quit)"
-          test -n "$(find social-content/reels -maxdepth 1 -type f -name '*.mp4' -print -quit)"
+          set -euo pipefail
+          CARD_COUNT="$(find social-content/ig_cards -maxdepth 1 -type f -name '*.jpg' | wc -l)"
+          REEL_COUNT="$(find social-content/reels -maxdepth 1 -type f -name '*.mp4' | wc -l)"
+          test "$CARD_COUNT" -ge 30
+          test "$REEL_COUNT" -ge 60
+          for f in social-content/reels/*.mp4; do
+            test -s "$f"
+            DIM="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$f" | head -1)"
+            AUDIO="$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_type -of csv=p=0 "$f" | head -1)"
+            test "$DIM" = "1080x1920"
+            test "$AUDIO" = "audio"
+          done
+          echo "Validated $CARD_COUNT cards and $REEL_COUNT vertical MP4 Reels with audio."
       - name: Commit outputs
         run: |
           git config user.name "github-actions"
