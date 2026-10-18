@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 SPACE = "https://henrybit-musetalk-1-5.hf.space"
 MAX_PHOTO_BYTES = 10 * 1024 * 1024
 
-SADTALKER_SPACE = "https://john6666-sadtalker.hf.space"
+SADTALKER_SPACE = "https://kklabs-sadtalker.hf.space"
 
 async def _upload_to_space_at(client: httpx.AsyncClient, space: str, name: str, payload: bytes, mime: str) -> str:
     response = await client.post(f"{space}/gradio_api/upload", files=[("files", (name, payload, mime))])
