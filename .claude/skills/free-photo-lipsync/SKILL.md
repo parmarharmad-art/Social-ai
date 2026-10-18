@@ -90,3 +90,11 @@ Give a short status with four independent lines:
 - Output: MP4 link only if a real artifact was produced and verified
 
 Be direct, practical, and honest. The target is a working deliverable, not a reassuring status message.
+
+## Current notebook hardening notes (2026-10-19)
+
+- Use only the filename returned by the current `files.upload()` call; never scan all of `/content` for an image, because reruns may pick up stale uploads.
+- Normalize the selected image to `/content/portrait_for_lipsync.jpg` and ensure inference references that exact path.
+- Install/import Edge TTS before generating narration, and generate narration before cloning SadTalker or downloading large checkpoints so network/TTS failures fail fast.
+- Keep an eye out for stale variables after notebook edits (especially `images[0].name`); run static checks for the upload → TTS → inference → MP4 validation path after every change.
+- The notebook has passed static JSON/flow checks after these fixes, but has **not** been executed on a live Colab GPU. No actual MP4 or visual lip-sync quality has been verified yet.
