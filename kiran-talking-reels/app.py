@@ -53,34 +53,83 @@ def media_duration(path):
     return None
 
 def run_free_musetalk(audio_path, image_path, work_dir):
-    """Call a public, no-token MuseTalk ZeroGPU Space. No paid API is used."""
+    """Call the public free MuseTalk ZeroGPU Space in short chunks under its GPU time limit."""
     from gradio_client import Client, handle_file
 
-    app.logger.info("REEL_JOB lip_sync_submit space=henrybit/musetalk-1-5")
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise RuntimeError("FFmpeg is required for free lip-sync.")
+    duration = media_duration(audio_path)
+    if not duration:
+        raise RuntimeError("Could not determine voiceover duration for lip-sync.")
+    if duration > 15.5:
+        raise RuntimeError("Free MuseTalk mode is limited to 15 seconds. Use a shorter voiceover or photo-zoom mode.")
+
     client = Client("henrybit/musetalk-1-5", verbose=False)
-    result = client.predict(
-        handle_file(str(audio_path)), handle_file(str(image_path)),
-        0, 10, "jaw", 90, 90, api_name="/generate"
-    )
-    candidate = result[0] if isinstance(result, (tuple, list)) else result
-    if isinstance(candidate, dict):
-        candidate = candidate.get("path") or candidate.get("url") or candidate.get("video")
-    if isinstance(candidate, dict):
-        candidate = candidate.get("path") or candidate.get("url")
-    if not candidate:
-        raise RuntimeError("Free MuseTalk returned no video. Retry later or select photo-zoom mode.")
-    candidate = str(candidate)
+    segment_dir = Path(work_dir) / "musetalk_segments"
+    segment_dir.mkdir(parents=True, exist_ok=True)
+    segment_paths = []
+    chunk_seconds = 2.8
+    count = int((duration + chunk_seconds - 0.001) // chunk_seconds) + 1
+    for index in range(count):
+        start = index * chunk_seconds
+        if start >= duration:
+            break
+        length = min(chunk_seconds, duration - start)
+        chunk_audio = segment_dir / f"audio_{index:02d}.wav"
+        split = subprocess.run(
+            [ffmpeg, "-y", "-ss", str(start), "-i", str(audio_path), "-t", str(length),
+             "-vn", "-ac", "1", "-ar", "16000", str(chunk_audio)],
+            capture_output=True, text=True, timeout=60
+        )
+        if split.returncode or not chunk_audio.exists() or chunk_audio.stat().st_size < 1000:
+            raise RuntimeError("Could not split voiceover for free lip-sync: " + (split.stderr or "")[-500:])
+
+        app.logger.info("REEL_JOB lip_sync_chunk index=%s duration=%.2f", index + 1, length)
+        result = client.predict(
+            handle_file(str(chunk_audio)), handle_file(str(image_path)),
+            0, 10, "jaw", 90, 90, api_name="/generate"
+        )
+        candidate = result[0] if isinstance(result, (tuple, list)) else result
+        if isinstance(candidate, dict):
+            candidate = candidate.get("path") or candidate.get("url") or candidate.get("video")
+        if isinstance(candidate, dict):
+            candidate = candidate.get("path") or candidate.get("url")
+        if not candidate:
+            raise RuntimeError("Free MuseTalk returned no video for chunk " + str(index + 1))
+        candidate = str(candidate)
+        raw_video = segment_dir / f"raw_{index:02d}.mp4"
+        if candidate.startswith(("https://", "http://")):
+            urllib.request.urlretrieve(candidate, raw_video)
+        else:
+            source = Path(candidate)
+            if not source.exists() or source.stat().st_size < 1000:
+                raise RuntimeError("MuseTalk did not return a downloadable MP4 for chunk " + str(index + 1))
+            shutil.copy2(source, raw_video)
+        segment_video = segment_dir / f"video_{index:02d}.mp4"
+        trim = subprocess.run(
+            [ffmpeg, "-y", "-i", str(raw_video), "-t", str(length), "-an",
+             "-vf", "scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,fps=25",
+             "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p", str(segment_video)],
+            capture_output=True, text=True, timeout=180
+        )
+        if trim.returncode or not segment_video.exists() or segment_video.stat().st_size < 1000:
+            raise RuntimeError("Could not normalize MuseTalk video chunk: " + (trim.stderr or "")[-500:])
+        segment_paths.append(segment_video)
+
+    if not segment_paths:
+        raise RuntimeError("MuseTalk did not produce any video segments.")
+    concat_list = segment_dir / "concat.txt"
+    concat_list.write_text("".join("file '" + str(p).replace("'", "'\\''") + "'\n" for p in segment_paths), encoding="utf-8")
     target = Path(work_dir) / "musetalk_output.mp4"
-    if candidate.startswith("https://") or candidate.startswith("http://"):
-        urllib.request.urlretrieve(candidate, target)
-    else:
-        source = Path(candidate)
-        if not source.exists() or source.stat().st_size < 1000:
-            raise RuntimeError("Free MuseTalk did not return a downloadable MP4. Its public queue may be unavailable.")
-        shutil.copy2(source, target)
-    if not target.exists() or target.stat().st_size < 1000:
-        raise RuntimeError("Free MuseTalk output failed the MP4 file check.")
-    app.logger.info("REEL_JOB lip_sync_ready bytes=%s", target.stat().st_size)
+    merged = subprocess.run(
+        [ffmpeg, "-y", "-f", "concat", "-safe", "0", "-i", str(concat_list),
+         "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p", "-an", str(target)],
+        capture_output=True, text=True, timeout=240
+    )
+    if merged.returncode or not target.exists() or target.stat().st_size < 1000:
+        raise RuntimeError("Could not join free MuseTalk chunks: " + (merged.stderr or "")[-1000:])
+    app.logger.info("REEL_JOB lip_sync_ready chunks=%s bytes=%s", len(segment_paths), target.stat().st_size)
     return target
 
 @app.get("/")
@@ -89,14 +138,14 @@ def home():
     <form class="panel" method="post" action="/generate" enctype="multipart/form-data">
       <label>1. Upload your photo (JPG, PNG or WEBP, max 10 MB)</label><input required type="file" name="photo" accept=".jpg,.jpeg,.png,.webp">
       <label>2. Reel topic</label><input name="topic" placeholder="WhatsApp lead follow-up automation">
-      <label>3. Duration</label><select name="duration"><option>15</option><option selected>30</option><option>45</option><option>60</option></select>
+      <label>3. Duration</label><select name="duration"><option selected>15</option><option>30</option><option>45</option><option>60</option></select>
       <label>4. Script language</label><select name="language"><option>Hindi</option><option>Hinglish</option></select>
       <label>5. Script (optional)</label><textarea name="script" placeholder="Leave blank to create a short script from the topic."></textarea>
       <label>6. Voiceover</label><select name="voice" id="voice" onchange="document.getElementById('audioRow').style.display=this.value==='upload'?'block':'none'"><option value="tts">Generate Hindi voice (internet required)</option><option value="upload">Upload recorded voiceover</option></select>
       <div id="audioRow" style="display:none"><label>Voiceover file (MP3, WAV, M4A; max 30 MB)</label><input type="file" name="audio" accept=".mp3,.wav,.m4a"></div>
       <label>7. Optional background music (MP3, WAV, M4A; max 15 MB)</label><input type="file" name="music" accept=".mp3,.wav,.m4a">
       <label>8. Talking-photo mode</label><select name="lip_sync"><option value="musetalk" selected>Real mouth lip-sync — free MuseTalk (may queue)</option><option value="photo">Photo zoom + narration (faster fallback)</option></select>
-      <button id="generateBtn" type="submit">Generate My Reel</button><div id="busy" class="panel success" style="display:none"><b>Reel generation started…</b><p>Photo check → Hindi voiceover → video rendering → MP4 validation. Keep this page open; 30–60 second reels can take a few minutes.</p></div><p><small>Real lip-sync uses a public free MuseTalk ZeroGPU Space, so queue/quota availability can vary. Choose photo zoom mode if the free service is unavailable. Review your video before publishing.</small></p>
+      <button id="generateBtn" type="submit">Generate My Reel</button><div id="busy" class="panel success" style="display:none"><b>Reel generation started…</b><p>Photo check → Hindi voiceover → video rendering → MP4 validation. Keep this page open; 30–60 second reels can take a few minutes.</p></div><p><small>Free MuseTalk lip-sync is currently limited to 15-second Reels and runs in short audio chunks to fit the public ZeroGPU limit. Queue/quota availability can vary. For 30–60 seconds, choose photo zoom mode. Review your video before publishing.</small></p>
     </form><script>document.querySelector("form").addEventListener("submit",function(){document.getElementById("busy").style.display="block";const b=document.getElementById("generateBtn");b.disabled=true;b.textContent="Generating… keep page open";});</script>"""
     return page(content)
 
@@ -118,6 +167,8 @@ def generate():
         lip_sync = request.form.get("lip_sync", "musetalk")
         if lip_sync not in ("musetalk", "photo"):
             lip_sync = "musetalk"
+        if lip_sync == "musetalk" and duration != 15:
+            return page('<div class="panel error">Free real lip-sync currently supports 15-second Reels. Select 15 seconds, or choose photo-zoom mode for 30–60 seconds.</div><a class="download" href="/">Go back</a>'), 400
         audio_upload = request.files.get("audio")
         music = request.files.get("music")
         if not photo or not photo.filename:
