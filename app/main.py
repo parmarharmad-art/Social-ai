@@ -1254,3 +1254,8 @@ app.include_router(pinterest_router)
 
 from app.tiktok import router as tiktok_router
 app.include_router(tiktok_router)
+
+
+# Free MuseTalk 1.5 lip-sync workspace (external ZeroGPU inference).
+from app.lipsync import router as lipsync_router
+app.include_router(lipsync_router)
