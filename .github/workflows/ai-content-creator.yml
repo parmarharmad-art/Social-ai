@@ -66,7 +66,7 @@ jobs:
       - name: Install free Reel rendering dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y ffmpeg espeak-ng
+          sudo apt-get install -y ffmpeg espeak-ng fonts-noto-core
           python -m pip install --upgrade pip
           pip install pillow numpy edge-tts gTTS
       - name: Convert generated drafts into Reel-renderer input
