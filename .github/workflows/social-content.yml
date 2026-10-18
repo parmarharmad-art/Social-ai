@@ -42,9 +42,11 @@ jobs:
           SOURCE_DIR="$(dirname "$SOURCE")"
           # Preserve the maintained reel renderer in the repository; the package ZIP may contain an older copy.
           if [ -f social-content/gen_reels.py ]; then cp social-content/gen_reels.py /tmp/gen_reels_custom.py; fi
+          if [ -f social-content/gen_lipsync.py ]; then cp social-content/gen_lipsync.py /tmp/gen_lipsync_custom.py; fi
           mkdir -p social-content
           cp -a "$SOURCE_DIR/." social-content/
           if [ -f /tmp/gen_reels_custom.py ]; then cp /tmp/gen_reels_custom.py social-content/gen_reels.py; fi
+          if [ -f /tmp/gen_lipsync_custom.py ]; then cp /tmp/gen_lipsync_custom.py social-content/gen_lipsync.py; fi
           test -f social-content/gen_reels.py
           test -f social-content/ig.json
           test -f social-content/reels.json
