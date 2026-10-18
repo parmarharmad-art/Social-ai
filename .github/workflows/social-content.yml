@@ -55,6 +55,15 @@ jobs:
             test "$AUDIO" = "audio"
           done
           echo "Validated $CARD_COUNT cards and $REEL_COUNT vertical MP4 Reels with audio."
+      - name: Upload generated cards and Reels
+        uses: actions/upload-artifact@v4
+        with:
+          name: social-content-output
+          path: |
+            social-content/ig_cards/*.jpg
+            social-content/reels/*.mp4
+          if-no-files-found: error
+          retention-days: 7
       - name: Commit outputs
         run: |
           git config user.name "github-actions"
