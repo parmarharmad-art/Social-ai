@@ -3,6 +3,7 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - ".github/workflows/sai.zip"
       - "social-content-working-package.zip"
       - "social-content/**"
       - ".github/workflows/social-content.yml"
@@ -15,12 +16,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Restore social-content folder from uploaded ZIP
+        shell: bash
         run: |
-          if [ -f social-content-working-package.zip ]; then
-            unzip -o social-content-working-package.zip -d .
+          set -euo pipefail
+          ZIP=""
+          if [ -f ".github/workflows/sai.zip" ]; then ZIP=".github/workflows/sai.zip"; fi
+          if [ -f "social-content-working-package.zip" ]; then ZIP="social-content-working-package.zip"; fi
+          if [ -z "$ZIP" ]; then
+            echo "::error::No uploaded ZIP found. Expected .github/workflows/sai.zip or social-content-working-package.zip"
+            find . -maxdepth 3 -type f | head -100
+            exit 1
           fi
-          test -f social-content/render_ig.py
+          echo "Using uploaded package: $ZIP"
+          mkdir -p /tmp/social-package
+          unzip -o "$ZIP" -d /tmp/social-package
+          SOURCE="$(find /tmp/social-package -type f -name render_ig.py -print -quit)"
+          if [ -z "$SOURCE" ]; then
+            echo "::error::ZIP does not contain render_ig.py"
+            find /tmp/social-package -maxdepth 4 -type f | head -100
+            exit 1
+          fi
+          SOURCE_DIR="$(dirname "$SOURCE")"
+          mkdir -p social-content
+          cp -a "$SOURCE_DIR/." social-content/
           test -f social-content/gen_reels.py
+          test -f social-content/ig.json
+          test -f social-content/reels.json
+          test -f social-content/assets/person_rgba.png
+          echo "Source package restored."
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -38,15 +61,13 @@ jobs:
         run: python gen_reels.py reels.json assets reels
       - name: Validate generated outputs
         run: |
-          test -d social-content/ig_cards
           test -n "$(find social-content/ig_cards -maxdepth 1 -type f -name '*.jpg' -print -quit)"
-          test -d social-content/reels
           test -n "$(find social-content/reels -maxdepth 1 -type f -name '*.mp4' -print -quit)"
       - name: Commit outputs
         run: |
           git config user.name "github-actions"
           git config user.email "actions@users.noreply.github.com"
-          git add social-content/ig_cards social-content/reels
-          git commit -m "Update generated cards and reels" || echo "nothing to commit"
+          git add social-content
+          git commit -m "Generate Instagram cards and reels" || echo "nothing to commit"
           git pull --rebase
           git push
