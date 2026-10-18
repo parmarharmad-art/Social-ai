@@ -46,7 +46,7 @@ def main():
         full_caption = "\n\n".join(x for x in (caption, cta, tags) if x)
         if not hook or not full_caption:
             raise SystemExit(f"ERROR: item {n} is missing hook or caption")
-        converted.append({"n": n, "h": hook[:100], "pts": short_points(item), "cap": full_caption})
+        converted.append({"n": n, "h": hook[:100], "pts": short_points(item), "cap": full_caption, "cta": cta[:42] or "Save this post", "voice_cta": cta or "Follow Kiran Kumar for practical AI automation tips."})
     out = Path(a.output)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(converted, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
