@@ -35,7 +35,8 @@ async def _run_sadtalker(client: httpx.AsyncClient, audio_path: str, photo_path:
     payload = {"data": [
         {"path": photo_path, "meta": {"_type": "gradio.FileData"}},
         {"path": audio_path, "meta": {"_type": "gradio.FileData"}},
-        True, False, "./results"
+        "crop", True, False, 1, 256, 0, "facevid2vid", 1.0,
+        False, None, "pose", False, 5, True
     ]}
     response = await client.post(f"{SADTALKER_SPACE}/gradio_api/call/test", json=payload, timeout=45)
     if response.status_code >= 400:
