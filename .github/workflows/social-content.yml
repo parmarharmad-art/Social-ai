@@ -36,6 +36,8 @@ jobs:
         run: python render_ig.py ig.json assets/person_rgba.png ig_cards
       - name: Reels with voiceover (varied templates)
         working-directory: social-content
+        env:
+          REQUIRE_VOICE: "1"
         run: python gen_reels.py reels.json assets reels
       - name: Validate every generated output
         shell: bash
