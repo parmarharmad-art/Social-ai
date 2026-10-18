@@ -1,0 +1,36 @@
+name: Validate generated Instagram assets
+on:
+  push:
+    paths:
+      - ".github/workflows/validate-generated-assets.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install FFprobe
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+      - name: Validate all cards and Reels
+        shell: bash
+        run: |
+          set -euo pipefail
+          CARD_COUNT="$(find social-content/ig_cards -maxdepth 1 -type f -name '*.jpg' | wc -l)"
+          REEL_COUNT="$(find social-content/reels -maxdepth 1 -type f -name '*.mp4' | wc -l)"
+          test "$CARD_COUNT" -ge 30
+          test "$REEL_COUNT" -ge 60
+          for f in social-content/reels/*.mp4; do
+            test -s "$f"
+            DIM="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$f" | head -1)"
+            AUDIO="$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_type -of csv=p=0 "$f" | head -1)"
+            DURATION="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$f")"
+            test "$DIM" = "1080x1920"
+            test "$AUDIO" = "audio"
+            awk -v d="$DURATION" 'BEGIN { exit !(d > 1) }'
+          done
+          echo "PASS: $CARD_COUNT JPG cards and $REEL_COUNT 1080x1920 MP4 Reels with audio."
