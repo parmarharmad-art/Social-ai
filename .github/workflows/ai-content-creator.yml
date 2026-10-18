@@ -1,0 +1,72 @@
+name: AI Social Content Creator
+on:
+  workflow_dispatch:
+    inputs:
+      brief:
+        description: "Niche, topic, audience, offer, and goal"
+        required: true
+        type: string
+      platform:
+        description: "Target platform"
+        required: true
+        type: choice
+        options:
+          - Instagram
+          - LinkedIn
+          - Facebook
+          - YouTube Shorts
+          - TikTok
+      count:
+        description: "Number of draft items (1-15)"
+        required: true
+        default: "5"
+        type: string
+      language:
+        description: "Content language, e.g. Hindi or English"
+        required: true
+        default: "English"
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: ai-content-creator
+  cancel-in-progress: false
+jobs:
+  create-content:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Check required API secret
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "::error::OPENAI_API_KEY is missing. Add it under Repository Settings > Secrets and variables > Actions. API usage may incur charges."
+            exit 1
+          fi
+      - name: Generate content using the seven skill standards
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          BRIEF: ${{ inputs.brief }}
+          PLATFORM: ${{ inputs.platform }}
+          COUNT: ${{ inputs.count }}
+          LANGUAGE: ${{ inputs.language }}
+        run: |
+          python social-content/create_content_pack.py \
+            --brief "$BRIEF" \
+            --platform "$PLATFORM" \
+            --count "$COUNT" \
+            --language "$LANGUAGE" \
+            --out social-content/generated
+      - name: Upload reviewed draft pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-social-content-draft
+          path: |
+            social-content/generated/content-pack.md
+            social-content/generated/content-pack.json
+          if-no-files-found: error
+          retention-days: 7
