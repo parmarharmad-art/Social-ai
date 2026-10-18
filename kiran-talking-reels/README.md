@@ -14,7 +14,7 @@ A mobile-friendly Flask web app for producing vertical photo-led Hindi/Hinglish 
 - Automated unit tests and GitHub Actions CI.
 
 ## Important limitations
-The free MuseTalk integration depends on a public third-party Space and its free GPU queue/quota. It can be busy, asleep, changed, or unavailable; it is not an unlimited or guaranteed always-on service. If it fails, the app should show an error rather than falsely label a still-photo video as lip-synced. Subtitles are approximate sentence/phrase timings, not word-level speech recognition. Instagram auto-publishing and analytics are not implemented in this Reel Studio. Review every output before publishing.
+The free MuseTalk integration currently supports 15-second Reels only and splits voice audio into short chunks to fit the public Space's GPU-duration cap. It depends on a third-party free GPU queue/quota and can be busy, asleep, changed, or unavailable; it is not an unlimited or guaranteed always-on service. If it fails, the app should show an error rather than falsely label a still-photo video as lip-synced. Subtitles are approximate sentence/phrase timings, not word-level speech recognition. Instagram auto-publishing and analytics are not implemented in this Reel Studio. Review every output before publishing.
 
 ## Run locally
 1. Install Python 3.11+ and FFmpeg.
