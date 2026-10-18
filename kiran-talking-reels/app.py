@@ -31,7 +31,7 @@ label{display:block;margin:16px 0 7px;font-weight:650}input,select,textarea{widt
 textarea{min-height:120px}button,.download{display:block;width:100%;padding:15px;border:0;border-radius:12px;background:#1688ff;color:white;font-size:17px;font-weight:750;text-align:center;text-decoration:none;margin-top:20px}
 small{color:#aebbd4}.error{background:#4b1c2a;padding:14px;border-radius:10px;color:#ffdbe2}.success{background:#123a32;padding:14px;border-radius:10px;color:#d5fff2}
 video{width:100%;border-radius:12px;background:#000} .choice{display:flex;gap:8px;align-items:center}.choice input{width:auto}
-</style></head><body><main><div class="brand">KIRAN KUMAR • AI AUTOMATION</div><h1>🎬 AI Reels Studio</h1><p>Create a vertical Hindi/Hinglish photo Reel with voiceover, zoom, subtitles and watermark.</p>{content}</main></body></html>"""
+</style></head><body><main><div class="brand">KIRAN KUMAR • AI AUTOMATION</div><h1>🎬 AI Reels Studio</h1><p>Create a vertical Hindi/Hinglish Reel with voiceover, subtitles and your brand watermark, with an optional free real lip-sync mode.</p>{content}</main></body></html>"""
 
 def page(content):
     return PAGE.replace("{content}", content)
