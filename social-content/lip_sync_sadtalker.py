@@ -8,6 +8,7 @@ or silent "lip-sync" video.
 """
 import argparse
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -67,7 +68,23 @@ def main():
         shutil.copy2(generated, output)
     if not output.is_file() or output.stat().st_size <= 1000:
         raise RuntimeError("Output MP4 validation failed: %s" % output)
-    print("SUCCESS: %s (%d bytes)" % (output, output.stat().st_size))
+
+    # A non-empty file alone is not enough: verify that ffprobe can read both
+    # video and audio streams before reporting success.
+    ffprobe = shutil.which("ffprobe")
+    if not ffprobe:
+        raise RuntimeError("ffprobe not found. Install ffmpeg, then rerun to validate the MP4 streams.")
+    probe = subprocess.run(
+        [ffprobe, "-v", "error", "-show_entries", "stream=codec_type,width,height",
+         "-of", "csv=p=0", str(output)],
+        check=True, capture_output=True, text=True,
+    )
+    stream_lines = [line.strip() for line in probe.stdout.splitlines() if line.strip()]
+    has_video = any(line.startswith("video,") or line == "video" for line in stream_lines)
+    has_audio = any(line.startswith("audio,") or line == "audio" for line in stream_lines)
+    if not has_video or not has_audio:
+        raise RuntimeError("Output failed stream validation. ffprobe streams: %r" % stream_lines)
+    print("SUCCESS: validated video+audio MP4: %s (%d bytes)" % (output, output.stat().st_size))
 
 
 if __name__ == "__main__":
