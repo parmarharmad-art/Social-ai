@@ -39,7 +39,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Test AI pack to Reel conversion
-        run: python -m unittest social-content/test_pack_to_reels.py -v
+        run: python social-content/test_pack_to_reels.py
       - name: Check required API secret
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
