@@ -52,3 +52,21 @@ def test_long_caption_wraps_at_word_boundaries():
     lines = split_caption_lines("This is a long sentence with enough words to wrap into more than one subtitle line.")
     assert len(lines) > 1
     assert all(len(line) <= 46 for line in lines)
+
+
+def test_home_form_uses_async_generation():
+    from app import app as flask_app
+    response = flask_app.test_client().get("/")
+    assert response.status_code == 200
+    assert b'action="/generate-async"' in response.data
+
+
+def test_async_generation_requires_photo():
+    from app import app as flask_app
+    response = flask_app.test_client().post(
+        "/generate-async",
+        data={"topic": "AI automation", "duration": "15", "lip_sync": "photo"},
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 400
+    assert b"Please upload a photo" in response.data
