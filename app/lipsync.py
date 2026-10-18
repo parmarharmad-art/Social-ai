@@ -3,11 +3,13 @@ import asyncio
 import json
 import logging
 import os
+import subprocess
 import tempfile
 from pathlib import Path
 from urllib.parse import quote
 
 import edge_tts
+import imageio_ffmpeg
 import httpx
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse, Response
@@ -167,17 +169,26 @@ async def generate_photo_only_reel(photo: UploadFile = File(...)):
     script = SCRIPTS[datetime.date.today().toordinal() % len(SCRIPTS)]
     with tempfile.TemporaryDirectory(prefix="socialpilot_lipsync_") as tmp:
         audio_file = str(Path(tmp) / "hindi_voice.mp3")
+        wav_file = str(Path(tmp) / "hindi_voice.wav")
         try:
             await edge_tts.Communicate(script, voice="hi-IN-SwaraNeural", rate="-5%").save(audio_file)
+            ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+            conversion = subprocess.run(
+                [ffmpeg, "-y", "-i", audio_file, "-vn", "-ac", "1", "-ar", "16000", wav_file],
+                capture_output=True, text=True, timeout=30,
+            )
+            if conversion.returncode != 0 or not Path(wav_file).exists():
+                log.error("Hindi audio WAV conversion failed: %s", conversion.stderr[-1000:])
+                raise RuntimeError("Could not convert generated Hindi voice to WAV.")
         except Exception:
-            log.exception("Hindi TTS generation failed")
-            raise HTTPException(status_code=502, detail="Hindi voice generation failed. Check network and retry.")
-        audio_bytes = Path(audio_file).read_bytes()
-        if len(audio_bytes) < 1000:
-            raise HTTPException(status_code=502, detail="Hindi voice generator returned empty audio.")
+            log.exception("Hindi TTS generation or WAV conversion failed")
+            raise HTTPException(status_code=502, detail="Hindi voice generation failed. Please retry.")
+        audio_bytes = Path(wav_file).read_bytes()
+        if len(audio_bytes) < 1000 or audio_bytes[:4] != b"RIFF":
+            raise HTTPException(status_code=502, detail="Hindi voice generator returned invalid audio.")
         try:
             async with httpx.AsyncClient(timeout=httpx.Timeout(360, connect=25)) as client:
-                audio_path = await _upload_to_space(client, "hindi_voice.mp3", audio_bytes, "audio/mpeg")
+                audio_path = await _upload_to_space(client, "hindi_voice.wav", audio_bytes, "audio/wav")
                 photo_path = await _upload_to_space(client, photo.filename or "photo.jpg", photo_bytes, photo.content_type)
                 output = await _run_musetalk(client, audio_path, photo_path)
         except HTTPException:
