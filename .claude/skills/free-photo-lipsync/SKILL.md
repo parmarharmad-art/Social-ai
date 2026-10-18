@@ -20,7 +20,7 @@ Treat the task as incomplete until all applicable checks pass:
 
 - Project: `parmarharmad-art/Social-ai`.
 - Existing notebook: `social-content/Free_Hindi_Photo_LipSync_Colab.ipynb`.
-- Current notebook uses upstream SadTalker and currently asks for a photo **and an audio file**. That does not meet the photo-only input requirement; update it to accept photo + Hindi script, generate audio itself, then run inference.
+- Notebook has been updated to accept one portrait photo, ask for Hindi script (with an editable default), generate speech with no-key Edge TTS, normalize audio, and run upstream SadTalker. This change is committed but the notebook has not yet been executed in Colab; verify it end-to-end before claiming success.
 - Upstream model: https://github.com/OpenTalker/SadTalker (open-source Apache-2.0 per its README). SadTalker is an audio-driven single-image talking-head animation model.
 - Wav2Lip upstream: https://github.com/Rudrabha/Wav2Lip. Its classic open-source model is for syncing an existing video to audio; do not present it as a direct single-photo animation solution. Check its current license/usage terms before any deployment.
 - Existing Colab notebook URL: https://colab.research.google.com/github/parmarharmad-art/Social-ai/blob/main/social-content/Free_Hindi_Photo_LipSync_Colab.ipynb.
