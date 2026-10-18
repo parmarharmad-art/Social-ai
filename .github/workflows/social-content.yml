@@ -6,8 +6,12 @@ on:
       - ".github/workflows/sai.zip"
       - "social-content-working-package.zip"
       - ".github/scripts/**"
+      - ".github/workflows/social-content.yml"
       - ".github/skills/**"
       - "social-content/**"
+    paths-ignore:
+      - "social-content/ig_cards/**"
+      - "social-content/reels/**"
 concurrency:
   group: social-content-${{ github.ref }}
   cancel-in-progress: true
@@ -19,11 +23,11 @@ jobs:
     timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
-      - name: Validate social automation skills and inputs
-        run: python .github/scripts/validate_social_skills.py
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Validate social automation skills and inputs
+        run: python .github/scripts/validate_social_skills.py
       - name: Install
         run: |
           sudo apt-get update -y && sudo apt-get install -y ffmpeg espeak-ng
