@@ -33,7 +33,12 @@ jobs:
           output = Path("talking-smoke.mp4")
           if not photo.exists():
               raise SystemExit("Smoke-test portrait not found in repository.")
-          gTTS("नमस्ते दोस्तों, मैं किरण कुमार। AI automation की आसान tips के लिए follow करें।", lang="hi").save(str(audio))
+          raw_audio = Path("/tmp/musetalk-full.mp3")
+          gTTS("नमस्ते, मैं किरण कुमार हूँ।", lang="hi").save(str(raw_audio))
+          subprocess.run(["ffmpeg", "-y", "-i", str(raw_audio), "-t", "2.8", "-ac", "1", "-ar", "16000", str(audio)], check=True, capture_output=True, text=True)
+          duration_probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(audio)], check=True, capture_output=True, text=True)
+          if float(duration_probe.stdout.strip()) > 3.1:
+              raise SystemExit("Smoke audio must stay below 3.1 seconds for the free ZeroGPU cap.")
           print("Connecting to public MuseTalk ZeroGPU Space...")
           client = Client("henrybit/musetalk-1-5", verbose=False)
           result = client.predict(handle_file(str(audio)), handle_file(str(photo)), 0, 10, "jaw", 90, 90, api_name="/generate")
