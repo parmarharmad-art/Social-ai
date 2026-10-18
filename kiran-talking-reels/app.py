@@ -256,6 +256,7 @@ def generate_async():
         if voice == "upload":
             ext = Path(audio_upload.filename).suffix.lower()
             if ext not in (".mp3", ".wav", ".m4a"):
+                shutil.rmtree(work, ignore_errors=True)
                 return page('<div class="panel error">Voiceover must be MP3, WAV, or M4A.</div><a class="download" href="/">Go back</a>'), 400
             audio_upload_path = work / ("uploaded_voice" + ext)
             audio_upload_path.write_bytes(audio_upload.read())
@@ -264,6 +265,7 @@ def generate_async():
         if music and music.filename:
             ext = Path(music.filename).suffix.lower()
             if ext not in (".mp3", ".wav", ".m4a"):
+                shutil.rmtree(work, ignore_errors=True)
                 return page('<div class="panel error">Music must be MP3, WAV, or M4A.</div><a class="download" href="/">Go back</a>'), 400
             music_path = work / ("music" + ext)
             music_path.write_bytes(music.read())
