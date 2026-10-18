@@ -1,0 +1,49 @@
+{
+  "audit_type": "deterministic_content_quality_gate",
+  "note": "This checks the existing content library; it does not prove that skills were invoked by an AI model or that posts performed well.",
+  "skills_present": {
+    "social-media-strategy": true,
+    "social-content-production": true,
+    "social-publishing-automation": true,
+    "social-analytics-optimization": true,
+    "community-management": true,
+    "short-form-video": true,
+    "social-automation-engineering": true
+  },
+  "all_seven_skills_present": true,
+  "datasets": [
+    {
+      "dataset": "instagram_posts",
+      "count": 30,
+      "passed": true,
+      "unique_hooks": 30,
+      "errors": [],
+      "warnings": [
+        "No recognizable CTA language at entries: 3, 7, 8, 11, 12, 13, 15, 20, 23, 24, 27, 28, 29"
+      ],
+      "checks": {
+        "required_fields": true,
+        "unique_hooks": true,
+        "captions_reviewed": 30,
+        "cta_coverage": 0.567
+      }
+    },
+    {
+      "dataset": "reels",
+      "count": 60,
+      "passed": true,
+      "unique_hooks": 60,
+      "errors": [],
+      "warnings": [
+        "No recognizable CTA language at entries: 1, 2, 4, 6, 9, 11, 12, 13, 15, 16, 18, 19, 20, 21, 23, 24, 25, 26, 28, 33"
+      ],
+      "checks": {
+        "required_fields": true,
+        "unique_hooks": true,
+        "captions_reviewed": 60,
+        "cta_coverage": 0.367
+      }
+    }
+  ],
+  "passed": true
+}
