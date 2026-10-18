@@ -44,7 +44,7 @@ def main():
         cta = clean(item.get("cta"))
         tags = " ".join(clean(t).replace(" ", "") for t in item.get("hashtags", []) if clean(t))
         full_caption = "\n\n".join(x for x in (caption, cta, tags) if x)
-        if not hook or not full_caption:
+        if not hook or not caption:
             raise SystemExit(f"ERROR: item {n} is missing hook or caption")
         converted.append({"n": n, "h": hook[:100], "pts": short_points(item), "cap": full_caption, "cta": cta[:42] or "Save this post", "voice_cta": cta or "Follow Kiran Kumar for practical AI automation tips."})
     out = Path(a.output)
