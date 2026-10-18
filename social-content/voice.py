@@ -5,6 +5,9 @@ import os
 import subprocess
 
 VOICE = os.environ.get("REEL_VOICE", "en-IN-PrabhatNeural")
+# A slightly brighter, quicker delivery to avoid an overly deep/slow narrator.
+VOICE_RATE = os.environ.get("REEL_VOICE_RATE", "+8%")
+VOICE_PITCH = os.environ.get("REEL_VOICE_PITCH", "+6Hz")
 
 
 def duration(path):
@@ -22,7 +25,7 @@ def synth(text, path):
         return True
     try:
         import edge_tts
-        asyncio.run(edge_tts.Communicate(text, VOICE, rate="+4%").save(path))
+        asyncio.run(edge_tts.Communicate(text, VOICE, rate=VOICE_RATE, pitch=VOICE_PITCH).save(path))
         if os.path.getsize(path) > 1000:
             return True
     except Exception as e:  # noqa: BLE001
