@@ -1,7 +1,9 @@
 import html
 import os
 import shutil
+import subprocess
 import tempfile
+import urllib.request
 import uuid
 from pathlib import Path
 
@@ -34,6 +36,53 @@ video{width:100%;border-radius:12px;background:#000} .choice{display:flex;gap:8p
 def page(content):
     return PAGE.replace("{content}", content)
 
+def media_duration(path):
+    probe = shutil.which("ffprobe")
+    if not probe:
+        return None
+    try:
+        result = subprocess.run(
+            [probe, "-v", "error", "-show_entries", "format=duration",
+             "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
+            capture_output=True, text=True, timeout=30
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            return max(1.0, float(result.stdout.strip()))
+    except Exception:
+        app.logger.exception("Could not determine media duration")
+    return None
+
+def run_free_musetalk(audio_path, image_path, work_dir):
+    """Call a public, no-token MuseTalk ZeroGPU Space. No paid API is used."""
+    from gradio_client import Client
+
+    app.logger.info("REEL_JOB lip_sync_submit space=henrybit/musetalk-1-5")
+    client = Client("henrybit/musetalk-1-5", verbose=False)
+    result = client.predict(
+        str(audio_path), str(image_path), 0, 10, "jaw", 90, 90,
+        api_name="/generate"
+    )
+    candidate = result[0] if isinstance(result, (tuple, list)) else result
+    if isinstance(candidate, dict):
+        candidate = candidate.get("path") or candidate.get("url") or candidate.get("video")
+    if isinstance(candidate, dict):
+        candidate = candidate.get("path") or candidate.get("url")
+    if not candidate:
+        raise RuntimeError("Free MuseTalk returned no video. Retry later or select photo-zoom mode.")
+    candidate = str(candidate)
+    target = Path(work_dir) / "musetalk_output.mp4"
+    if candidate.startswith("https://") or candidate.startswith("http://"):
+        urllib.request.urlretrieve(candidate, target)
+    else:
+        source = Path(candidate)
+        if not source.exists() or source.stat().st_size < 1000:
+            raise RuntimeError("Free MuseTalk did not return a downloadable MP4. Its public queue may be unavailable.")
+        shutil.copy2(source, target)
+    if not target.exists() or target.stat().st_size < 1000:
+        raise RuntimeError("Free MuseTalk output failed the MP4 file check.")
+    app.logger.info("REEL_JOB lip_sync_ready bytes=%s", target.stat().st_size)
+    return target
+
 @app.get("/")
 def home():
     content = """
@@ -46,7 +95,8 @@ def home():
       <label>6. Voiceover</label><select name="voice" id="voice" onchange="document.getElementById('audioRow').style.display=this.value==='upload'?'block':'none'"><option value="tts">Generate Hindi voice (internet required)</option><option value="upload">Upload recorded voiceover</option></select>
       <div id="audioRow" style="display:none"><label>Voiceover file (MP3, WAV, M4A; max 30 MB)</label><input type="file" name="audio" accept=".mp3,.wav,.m4a"></div>
       <label>7. Optional background music (MP3, WAV, M4A; max 15 MB)</label><input type="file" name="music" accept=".mp3,.wav,.m4a">
-      <button id="generateBtn" type="submit">Generate My Reel</button><div id="busy" class="panel success" style="display:none"><b>Reel generation started…</b><p>Photo check → Hindi voiceover → video rendering → MP4 validation. Keep this page open; 30–60 second reels can take a few minutes.</p></div><p><small>Keep this page open while the video renders. This creates a narrated-photo effect, not realistic lip-sync.</small></p>
+      <label>8. Talking-photo mode</label><select name="lip_sync"><option value="musetalk" selected>Real mouth lip-sync — free MuseTalk (may queue)</option><option value="photo">Photo zoom + narration (faster fallback)</option></select>
+      <button id="generateBtn" type="submit">Generate My Reel</button><div id="busy" class="panel success" style="display:none"><b>Reel generation started…</b><p>Photo check → Hindi voiceover → video rendering → MP4 validation. Keep this page open; 30–60 second reels can take a few minutes.</p></div><p><small>Real lip-sync uses a public free MuseTalk ZeroGPU Space, so queue/quota availability can vary. Choose photo zoom mode if the free service is unavailable. Review your video before publishing.</small></p>
     </form><script>document.querySelector("form").addEventListener("submit",function(){document.getElementById("busy").style.display="block";const b=document.getElementById("generateBtn");b.disabled=true;b.textContent="Generating… keep page open";});</script>"""
     return page(content)
 
@@ -65,6 +115,9 @@ def generate():
             duration = 30
         language = request.form.get("language", "Hindi")
         voice = request.form.get("voice", "tts")
+        lip_sync = request.form.get("lip_sync", "musetalk")
+        if lip_sync not in ("musetalk", "photo"):
+            lip_sync = "musetalk"
         audio_upload = request.files.get("audio")
         music = request.files.get("music")
         if not photo or not photo.filename:
@@ -86,15 +139,15 @@ def generate():
             music.stream.seek(0)
 
         app.logger.info("REEL_JOB started duration=%s voice=%s", duration, voice)
-        img = work / "photo"
+        photo_ext = Path(photo.filename).suffix.lower()
+        if photo_ext not in (".jpg", ".jpeg", ".png", ".webp"):
+            return page('<div class="panel error">Use a JPG, PNG, or WEBP photo file.</div><a class="download" href="/">Go back</a>'), 400
+        img = work / ("photo" + photo_ext)
         img.write_bytes(photo.read())
         validate_image(img)
         final_script = script or make_script(topic, duration, language)
         if not final_script.strip():
             raise ValueError("Script is empty. Enter your own script and retry.")
-        srt_content = make_srt(final_script, duration)
-        subtitle_file = work / "captions.srt"
-        subtitle_file.write_text(srt_content, encoding="utf-8")
         audio = work / "voice.mp3"
         app.logger.info("REEL_JOB script_ready chars=%s", len(final_script))
         if voice == "upload":
@@ -115,10 +168,19 @@ def generate():
             music_path = work / ("music" + ext)
             music_path.write_bytes(music.read())
         app.logger.info("REEL_JOB audio_ready bytes=%s", audio.stat().st_size)
+        audio_duration = media_duration(audio)
+        render_duration = max(1, min(60, round(audio_duration or duration)))
+        subtitle_file = work / "captions.srt"
+        subtitle_file.write_text(make_srt(final_script, render_duration), encoding="utf-8")
+        talking_video = None
+        if lip_sync == "musetalk":
+            talking_video = run_free_musetalk(audio, img, work)
+            render_duration = max(1, min(60, round(media_duration(talking_video) or audio_duration or duration)))
         job_id = uuid.uuid4().hex
         output = OUTPUT_DIR / (job_id + ".mp4")
-        render(img, audio, output, duration, subtitle_file, music_path)
-        app.logger.info("REEL_JOB render_done bytes=%s", output.stat().st_size if output.exists() else 0)
+        render(img, audio, output, render_duration, subtitle_file, music_path,
+               talking_video_path=talking_video)
+        app.logger.info("REEL_JOB render_done bytes=%s lip_sync=%s", output.stat().st_size if output.exists() else 0, lip_sync)
         info = ffprobe_info(output)
         app.logger.info("REEL_JOB validated job_id=%s", job_id)
         caption = make_caption(topic or "AI workflow", final_script)
