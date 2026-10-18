@@ -31,7 +31,7 @@ jobs:
           from app import run_free_musetalk
           from src.video_renderer import render
 
-          photo = Path("social-content/assets/person_b.png")
+          photo = Path("social-content/assets/person_rgba.png")
           raw_audio = Path("/tmp/musetalk-full.mp3")
           audio = Path("/tmp/musetalk-smoke.wav")
           work = Path("/tmp/musetalk-work")
