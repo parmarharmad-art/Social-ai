@@ -54,13 +54,13 @@ def media_duration(path):
 
 def run_free_musetalk(audio_path, image_path, work_dir):
     """Call a public, no-token MuseTalk ZeroGPU Space. No paid API is used."""
-    from gradio_client import Client
+    from gradio_client import Client, handle_file
 
     app.logger.info("REEL_JOB lip_sync_submit space=henrybit/musetalk-1-5")
     client = Client("henrybit/musetalk-1-5", verbose=False)
     result = client.predict(
-        str(audio_path), str(image_path), 0, 10, "jaw", 90, 90,
-        api_name="/generate"
+        handle_file(str(audio_path)), handle_file(str(image_path)),
+        0, 10, "jaw", 90, 90, api_name="/generate"
     )
     candidate = result[0] if isinstance(result, (tuple, list)) else result
     if isinstance(candidate, dict):
