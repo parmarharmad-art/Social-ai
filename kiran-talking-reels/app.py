@@ -205,7 +205,7 @@ def _process_async_reel(job_id, work, img, topic, script, duration, language, vo
 
 @app.post("/generate-async")
 def generate_async():
-    work = Path(tempfile.mkdtemp(prefix="kiran_reel_job_"))
+    work = None
     try:
         photo = request.files.get("photo")
         topic = request.form.get("topic", "").strip()
@@ -247,6 +247,7 @@ def generate_async():
         photo_ext = Path(photo.filename).suffix.lower()
         if photo_ext not in (".jpg", ".jpeg", ".png", ".webp"):
             return page('<div class="panel error">Use a JPG, PNG, or WEBP photo file.</div><a class="download" href="/">Go back</a>'), 400
+        work = Path(tempfile.mkdtemp(prefix="kiran_reel_job_"))
         img = work / ("photo" + photo_ext)
         img.write_bytes(photo.read())
         validate_image(img)
@@ -295,7 +296,8 @@ def generate_async():
         return page(content)
     except Exception as exc:
         app.logger.exception("REEL_JOB async_submit_failed")
-        shutil.rmtree(work, ignore_errors=True)
+        if work is not None:
+            shutil.rmtree(work, ignore_errors=True)
         return page(f'<div class="panel error"><b>Could not start Reel generation</b><p>{html.escape(str(exc))}</p></div><a class="download" href="/">Try again</a>'), 500
 
 @app.get("/job/<job_id>/status")
