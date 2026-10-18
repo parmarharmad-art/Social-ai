@@ -6,6 +6,8 @@ on:
       - ".github/workflows/sai.zip"
       - "social-content-working-package.zip"
       - ".github/scripts/**"
+      - ".github/skills/**"
+      - "social-content/**"
 concurrency:
   group: social-content-${{ github.ref }}
   cancel-in-progress: true
@@ -17,40 +19,8 @@ jobs:
     timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
-      - name: Restore social-content folder from uploaded ZIP
-        shell: bash
-        run: |
-          set -euo pipefail
-          ZIP=""
-          if [ -f ".github/workflows/sai.zip" ]; then ZIP=".github/workflows/sai.zip"; fi
-          if [ -f "social-content-working-package.zip" ]; then ZIP="social-content-working-package.zip"; fi
-          if [ -z "$ZIP" ]; then
-            echo "::error::No uploaded ZIP found. Expected .github/workflows/sai.zip or social-content-working-package.zip"
-            find . -maxdepth 3 -type f | head -100
-            exit 1
-          fi
-          echo "Using uploaded package: $ZIP"
-          mkdir -p /tmp/social-package
-          unzip -o "$ZIP" -d /tmp/social-package
-          SOURCE="$(find /tmp/social-package -type f -name render_ig.py -print -quit)"
-          if [ -z "$SOURCE" ]; then
-            echo "::error::ZIP does not contain render_ig.py"
-            find /tmp/social-package -maxdepth 4 -type f | head -100
-            exit 1
-          fi
-          SOURCE_DIR="$(dirname "$SOURCE")"
-          # Preserve the maintained reel renderer in the repository; the package ZIP may contain an older copy.
-          if [ -f social-content/gen_reels.py ]; then cp social-content/gen_reels.py /tmp/gen_reels_custom.py; fi
-          if [ -f social-content/gen_lipsync.py ]; then cp social-content/gen_lipsync.py /tmp/gen_lipsync_custom.py; fi
-          mkdir -p social-content
-          cp -a "$SOURCE_DIR/." social-content/
-          if [ -f /tmp/gen_reels_custom.py ]; then cp /tmp/gen_reels_custom.py social-content/gen_reels.py; fi
-          if [ -f /tmp/gen_lipsync_custom.py ]; then cp /tmp/gen_lipsync_custom.py social-content/gen_lipsync.py; fi
-          test -f social-content/gen_reels.py
-          test -f social-content/ig.json
-          test -f social-content/reels.json
-          test -f social-content/assets/person_rgba.png
-          echo "Source package restored."
+      - name: Validate social automation skills and inputs
+        run: python .github/scripts/validate_social_skills.py
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
