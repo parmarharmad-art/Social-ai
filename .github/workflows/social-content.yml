@@ -7,6 +7,9 @@ on:
       - "social-content-working-package.zip"
       - ".github/workflows/social-content.yml"
       - ".github/scripts/**"
+concurrency:
+  group: social-content-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:
