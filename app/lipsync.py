@@ -119,7 +119,13 @@ async def _run_musetalk(client: httpx.AsyncClient, audio_path: str, photo_path: 
                 elif line.startswith("data:") and event in ("complete", "error"):
                     data = line.partition(":")[2].strip()
                     if event == "error":
-                        raise HTTPException(status_code=502, detail="Free lip-sync model failed. Its shared GPU may be busy; retry later.")
+                        log.error("MuseTalk Space generation error: %s", data[:1200])
+                        try:
+                            error_info = json.loads(data)
+                            error_text = str(error_info.get("error") or error_info.get("message") or data)
+                        except Exception:
+                            error_text = data
+                        raise HTTPException(status_code=502, detail="MuseTalk model error: " + error_text[:500])
                     result = json.loads(data)
                     if not isinstance(result, list) or not result or not isinstance(result[0], dict):
                         raise HTTPException(status_code=502, detail="Lip-sync model returned no video.")
