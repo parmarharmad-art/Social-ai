@@ -9,9 +9,8 @@ on:
       - ".github/workflows/social-content.yml"
       - ".github/skills/**"
       - "social-content/**"
-    paths-ignore:
-      - "social-content/ig_cards/**"
-      - "social-content/reels/**"
+      - "!social-content/ig_cards/**"
+      - "!social-content/reels/**"
 concurrency:
   group: social-content-${{ github.ref }}
   cancel-in-progress: true
