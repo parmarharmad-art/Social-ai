@@ -267,6 +267,8 @@ def render(item):
     bg, head, bullets, cta = build(item)
     tmp = tempfile.mkdtemp()
     plan = plan_audio(item, tmp)
+    if not plan and os.environ.get("REQUIRE_VOICE") == "1":
+        raise RuntimeError("Voice generation failed for Reel %s; refusing to create a silent video." % item["n"])
     if plan:
         starts, dur, wav = plan
         bullet_t = [s - 0.1 for s in starts[1:1 + len(bullets)]]
