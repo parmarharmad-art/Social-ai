@@ -157,7 +157,7 @@ def generate():
         topic = request.form.get("topic", "").strip()
         script = request.form.get("script", "").strip()
         try:
-            duration = int(request.form.get("duration", "30"))
+            duration = int(request.form.get("duration", "15"))
         except ValueError:
             duration = 30
         if duration not in (15, 30, 45, 60):
