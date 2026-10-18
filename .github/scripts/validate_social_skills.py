@@ -33,7 +33,7 @@ def main():
             errors.append("Missing or incomplete skill: " + str(path.relative_to(ROOT)))
             continue
         body = path.read_text(encoding="utf-8")
-        if not body.startswith("---\\n") or "\\nname:" not in body:
+        if not body.startswith("---\n") or "\nname:" not in body:
             errors.append("Skill frontmatter missing: " + str(path.relative_to(ROOT)))
     for item in FILES:
         path = ROOT / item
