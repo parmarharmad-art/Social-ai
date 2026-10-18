@@ -122,7 +122,7 @@ def main():
     p.add_argument("--count",type=int,default=5)
     p.add_argument("--language",default="English")
     p.add_argument("--brand",default="Kiran Kumar • AI Automation")
-    p.add_argument("--model",default=os.environ.get("OPENAI_MODEL","gpt-4.1-mini"))
+    p.add_argument("--model",default=(os.environ.get("OPENAI_MODEL") or "gpt-4.1-mini"))
     p.add_argument("--out",default=str(ROOT/"generated"))
     a=p.parse_args()
     if not 1 <= a.count <= 15: p.error("--count must be between 1 and 15")
