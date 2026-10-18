@@ -5,6 +5,8 @@ Mobile-first multi-platform social media management SaaS for **Kiran Kumar • A
 - Repository: https://github.com/parmarharmad-art/Social-ai
 - Render service: https://socialpilot-ai-mvp.onrender.com
 - Dashboard (Metricool-style): https://socialpilot-ai-mvp.onrender.com/dashboard
+- **Free AI Lip-Sync Studio:** https://socialpilot-ai-mvp.onrender.com/lipsync
+- External open-source MuseTalk 1.5 ZeroGPU demo: https://huggingface.co/spaces/henrybit/musetalk-1-5
 - Multi-platform connections: https://socialpilot-ai-mvp.onrender.com/platforms
 - Platform catalog API: https://socialpilot-ai-mvp.onrender.com/api/platforms
 - Planner: https://socialpilot-ai-mvp.onrender.com/planner
@@ -149,3 +151,8 @@ TikTok OAuth and URL-based video publishing routes are implemented at `/auth/tik
 ## Facebook Page publishing
 
 Facebook Page OAuth uses `/auth/facebook/start` and `/auth/facebook/callback`. The callback saves the selected available Page token encrypted in the workspace `social_connections` table. `POST /api/facebook/pages/posts` accepts `{ "message": "...", "link": "https://..." }` with an authenticated customer session and publishes a text/link post to the connected Page. It requires `pages_show_list`, `pages_read_engagement`, and `pages_manage_posts` access, plus any Meta app review required for the app. No live Page connection/post has been verified yet.
+
+
+## Free AI Lip-Sync Studio
+
+Open `/lipsync` on the deployed service to access a mobile-friendly workspace for the public MuseTalk 1.5 ZeroGPU demo. Upload a front-facing photo and Hindi voiceover, generate the talking video in the external demo, then pass the resulting MP4 to your Make.com publishing scenario. Inference is not executed on the Render CPU instance. The public free GPU demo may queue, be rate-limited, or be temporarily unavailable; verify the returned video before publishing. Uploaded media is processed by the external Hugging Face Space, so only upload media you have permission to use.
