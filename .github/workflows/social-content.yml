@@ -38,6 +38,7 @@ jobs:
         working-directory: social-content
         env:
           REQUIRE_VOICE: "1"
+          SKIP_EXISTING: "0"
         run: python gen_reels.py reels.json assets reels
       - name: Validate every generated output
         shell: bash
