@@ -26,7 +26,10 @@ class LipSyncNotebookContractTests(unittest.TestCase):
     def test_tts_is_installed_and_generated_before_model_download(self):
         setup = self.cells[3]
         self.assertIn("'edge-tts'", setup)
-        self.assertLess(setup.index("Generating Hindi narration"), setup.index("scripts/download_models.sh"))
+        self.assertLess(setup.index("Generating Hindi narration"), setup.index("checkpoint_urls"))
+        self.assertIn("'--tries=3'", setup)
+        self.assertIn("OpenTalker/SadTalker/releases/download/v0.0.2-rc", setup)
+        self.assertNotIn("scripts/download_models.sh", setup)
         self.assertIn("edge_tts.Communicate(script, 'hi-IN-SwaraNeural')", setup)
 
     def test_inference_uses_generated_audio_and_normalized_portrait(self):
