@@ -98,3 +98,12 @@ Be direct, practical, and honest. The target is a working deliverable, not a rea
 - Install/import Edge TTS before generating narration, and generate narration before cloning SadTalker or downloading large checkpoints so network/TTS failures fail fast.
 - Keep an eye out for stale variables after notebook edits (especially `images[0].name`); run static checks for the upload → TTS → inference → MP4 validation path after every change.
 - The notebook has passed static JSON/flow checks after these fixes, but has **not** been executed on a live Colab GPU. No actual MP4 or visual lip-sync quality has been verified yet.
+
+
+## Verified repository status (2026-10-19)
+
+- Fixed the broken inference cell in `social-content/Free_Hindi_Photo_LipSync_Colab.ipynb`: removed invalid `audio_import json`, defined the input/output paths and audio duration before use, invoked the actual upstream `SadTalker/inference.py` command, and added checks for newly generated MP4, video+audio streams, readable duration, full decode, and a downloadable output path.
+- Regression workflow passed on commit `3c23140c562954a1b0b5956cf6b38ddbf00ae1e9`: https://github.com/parmarharmad-art/Social-ai/actions/runs/39161930576
+- General tests passed on the same commit: https://github.com/parmarharmad-art/Social-ai/actions/runs/39161930523
+- The separate `social-content` workflow completed successfully and committed 30 Instagram cards plus 60 reel MP4s at commit `3109d456f27aef7739df0bf01649c260bbaa296c`. Those reels are voiceover/template outputs and are **not evidence of SadTalker lip-sync**.
+- **Still unverified:** the notebook has not been run on a live Colab GPU with a user portrait. Do not claim lip-sync delivery until the notebook produces a real MP4 and the audio/video checks pass; visual mouth movement still needs inspection.
