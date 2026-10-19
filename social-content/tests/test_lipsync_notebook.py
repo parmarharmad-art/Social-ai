@@ -30,6 +30,8 @@ class LipSyncNotebookContractTests(unittest.TestCase):
         self.assertIn("'--tries=3'", setup)
         self.assertIn("OpenTalker/SadTalker/releases/download/v0.0.2-rc", setup)
         self.assertNotIn("scripts/download_models.sh", setup)
+        self.assertIn("'SadTalker_V0.0.2_256.safetensors'", setup)
+        self.assertNotIn("SadTalker_V0.0.2_512.safetensors", setup)
         self.assertIn("edge_tts.Communicate(script, 'hi-IN-SwaraNeural')", setup)
 
     def test_inference_uses_generated_audio_and_normalized_portrait(self):
