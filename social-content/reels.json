@@ -1,62 +1,661 @@
 [
-{"n":1,"h":"Invoices That Send Themselves","pts":["Work marked done in a Sheet","Invoice is prepared","Reminders go out on time","DM AUTOMATE to get started"],"cap":"Invoices and payment reminders go out late.\n\nYou get paid sooner for the same work.\n\nYou review every invoice before it is sent."},
-{"n":2,"h":"This Page Posts By Itself","pts":["I add one Sheet row","Automation posts at 9 AM","Status is logged back","DM AUTOMATE to get started"],"cap":"Posting by hand every day does not last.\n\nThis setup runs my own pages.\n\nA person still approves anything important."},
-{"n":3,"h":"Count The Hours You Save","pts":["Time the manual task","Automate it","Compare after 30 days","DM AUTOMATE to get started"],"cap":"You cannot judge automation if you never measured the task.\n\nYou keep what saves time and drop what does not.\n\nA person still approves anything important."},
-{"n":4,"h":"5 Questions Before You Automate","pts":["Does it repeat?","Are the rules clear?","What if it fails?","DM AUTOMATE to get started"],"cap":"Automating the wrong task wastes weeks.\n\nGood tasks to automate pass all three.\n\nA person still approves anything important."},
-{"n":5,"h":"3 Easy Automations To Start","pts":["Leads into a Sheet","Reply drafts with AI","A weekly report","DM AUTOMATE to get started"],"cap":"Starting is the hardest part of automation.\n\nSmall, useful and low risk. Pick one this week.\n\nA person still approves anything important."},
-{"n":6,"h":"Which Task Can Run Itself?","pts":["Share your daily tasks","I map what can be automated","You get a clear short list","DM AUTOMATE to get started"],"cap":"Most owners do not know which of their tasks can be automated.\n\nA 15-minute call is enough to start.\n\nA person still approves anything important."},
-{"n":7,"h":"Automation Myths, Busted","pts":["Not only for big firms","It does not replace thinking","It still needs upkeep","DM AUTOMATE to get started"],"cap":"Many owners think automation is only for big companies.\n\nStart small, with one task.\n\nA person still approves anything important."},
-{"n":8,"h":"How We Build It","pts":["Audit your tasks","Build and test","Handover and support","DM AUTOMATE to get started"],"cap":"Hiring someone for automation feels unclear and risky.\n\nNo surprises, one small step at a time.\n\nA person still approves anything important."},
-{"n":9,"h":"30 Ideas, Which Is Yours?","pts":["Sales and profit","Inventory and reorders","Leads and follow-ups","DM AUTOMATE to get started"],"cap":"In 30 days we covered the tasks that eat most of a business day.\n\nOne of these is probably your daily time-waster.\n\nA person still approves anything important."},
-{"n":10,"h":"Tell Me Your Repeat Task","pts":["Name one daily task","I check if it can automate","Just tell me the steps","DM AUTOMATE to get started"],"cap":"The best automation idea is the task you already hate repeating.\n\nNo pressure. Honest answer.\n\nA person still approves anything important."},
-{"n":11,"h":"Daily Sales, Zero Effort","pts":["Sales saved in one Sheet","Totals update by themselves","Summary reaches you daily","DM AUTOMATE to get started"],"cap":"Daily sales sit in bills and notebooks, so nobody sees the full picture.\n\nYou know how the day went without opening a single file.\n\nA person still approves anything important."},
-{"n":12,"h":"Never Forget A Reorder","pts":["Set a minimum stock limit","Stock is checked daily","A reorder draft is prepared","DM AUTOMATE to get started"],"cap":"Reordering depends on someone remembering to check the shelf.\n\nFast items stop running out and slow items stop piling up.\n\nYou approve every order before it is sent."},
-{"n":13,"h":"Profit Without The Surprise","pts":["Add daily sales","Add purchase and expenses","See margin every evening","DM AUTOMATE to get started"],"cap":"Profit becomes a surprise at the end of the month.\n\nYou spot a falling margin while there is still time to act.\n\nA person still approves anything important."},
-{"n":14,"h":"Inventory Health Check","pts":["Track every item","Flag expiry, low and extra stock","Alert the right person","DM AUTOMATE to get started"],"cap":"Expiry and dead stock show up only when it is too late.\n\nMoney stops getting stuck on shelves.\n\nA person still approves anything important."},
-{"n":15,"h":"Payment Reminders On Autopilot","pts":["Mark invoices in a Sheet","Reminder before due date","Polite nudge after it","DM AUTOMATE to get started"],"cap":"Chasing payments is awkward and easy to forget.\n\nPayments arrive sooner and nobody feels awkward.\n\nA person still approves anything important."},
-{"n":16,"h":"Your Day In 3 Lines","pts":["Data gathered automatically","AI writes a short summary","It reaches you every evening","DM AUTOMATE to get started"],"cap":"Reading ten sheets to understand one day wastes your time.\n\nYou get the full picture in one minute.\n\nA person still approves anything important."},
-{"n":17,"h":"You Stay In Control","pts":["Automation drafts","You review","Only approved items go out","DM AUTOMATE to get started"],"cap":"Many owners fear automation will act without asking them.\n\nYou get the speed of automation and keep the final say.\n\nA person still approves anything important."},
-{"n":18,"h":"Leads Lost In Chats?","pts":["Customer fills a simple form","Lead lands in a Sheet","You get an instant alert","DM AUTOMATE to get started"],"cap":"Enquiries get lost between calls, chats and notes.\n\nEvery enquiry has a row, and nobody has to scroll through chats.\n\nA person still approves anything important."},
-{"n":19,"h":"Follow-Ups That Never Slip","pts":["Track last contact date","Wait three days","A polite nudge goes out","DM AUTOMATE to get started"],"cap":"Most leads go quiet because nobody follows up.\n\nFewer leads go cold.\n\nA person approves the message before it goes."},
-{"n":20,"h":"Same Questions, Instant Drafts","pts":["Give it your real FAQs","AI drafts the reply","You approve and send","DM AUTOMATE to get started"],"cap":"The same ten questions take up most of your day.\n\nReplies are fast and still sound like you.\n\nA human always has the send button."},
-{"n":21,"h":"Reviews On Autopilot","pts":["Customer buys or visits","A friendly message goes out","Review link inside","DM AUTOMATE to get started"],"cap":"Happy customers rarely leave a review unless someone asks.\n\nTrust builds without anyone remembering to ask.\n\nA person still approves anything important."},
-{"n":22,"h":"Reminders That Fill Your Slots","pts":["Booking saved in a Sheet","Reminder goes the day before","Reply updates the status","DM AUTOMATE to get started"],"cap":"Missed appointments waste slots and money.\n\nYour day stays planned.\n\nA person still approves anything important."},
-{"n":23,"h":"Never Miss An Enquiry","pts":["New enquiry arrives","You get an instant alert","Unanswered ones are flagged","DM AUTOMATE to get started"],"cap":"A missed enquiry is a missed sale, and busy hours hide them.\n\nNobody waits for a reply that never comes.\n\nA person still approves anything important."},
-{"n":24,"h":"Feedback You Can Count","pts":["Ask after every sale","Answers saved in a Sheet","Weekly summary for you","DM AUTOMATE to get started"],"cap":"Feedback sits in chats and never gets counted.\n\nYou see patterns instead of random comments.\n\nA person still approves anything important."},
-{"n":25,"h":"Medicine Expiry Alerts","pts":["Keep stock in one Sheet","Alert 60 days before expiry","Return or sell in time","DM AUTOMATE to get started"],"cap":"Short-expiry medicines get noticed only when it is too late.\n\nDead stock gets caught early.\n\nA person still approves anything important."},
-{"n":26,"h":"Stock Under Control","pts":["Daily sales update stock","Low items flagged","Slow items flagged too","DM AUTOMATE to get started"],"cap":"Fast items run out while slow items pile up.\n\nYour money goes to items that actually sell.\n\nA person still approves anything important."},
-{"n":27,"h":"Clinic Appointments On Autopilot","pts":["Patient books through a form","Confirmation goes out","Reminder the day before","DM AUTOMATE to get started"],"cap":"The front desk spends hours on calls about timings.\n\nFewer calls, fewer missed visits.\n\nA person still approves anything important."},
-{"n":28,"h":"Fee Reminders Done Politely","pts":["Fees tracked in a Sheet","Reminder before due date","Follow-up after it","DM AUTOMATE to get started"],"cap":"Fee follow-ups take teachers' time and feel awkward.\n\nTeachers teach, and fees arrive on time.\n\nA person still approves anything important."},
-{"n":29,"h":"Salon Bookings, No Clashes","pts":["Every booking in one Sheet","Clashes flagged","Customer gets a reminder","DM AUTOMATE to get started"],"cap":"Bookings arrive by call and by chat, and they clash.\n\nA calm day with a full chair.\n\nA person still approves anything important."},
-{"n":30,"h":"Order Updates On Autopilot","pts":["New order lands in a Sheet","Status changes as you work","Customer gets updates","DM AUTOMATE to get started"],"cap":"Order status updates are typed by hand, one customer at a time.\n\nFewer 'where is my order' messages.\n\nA person still approves anything important."},
-{"n":31,"h":"Idempotency Explained","pts":["Same step, same result","Check before you write","Mark status after success"],"cap":"Retries should never create duplicates.\n\nCheck before you write and update the status only after the action succeeds."},
-{"n":32,"h":"Rate Limits Explained","pts":["APIs limit requests","Slow down with Sleep","Break and retry later"],"cap":"A 429 error means slow down.\n\nSpace out your calls and let failed bundles retry later."},
-{"n":33,"h":"Data Store Or Sheet?","pts":["Sheet is for humans","Data store is for the machine","Do not mix them up"],"cap":"Both hold rows, but they serve different jobs.\n\nUse Sheets for people and a Data store for scenario state."},
-{"n":34,"h":"Iterators Explained","pts":["Splits a list into items","Each item runs on its own","Aggregate to merge back"],"cap":"An Iterator turns one bundle into many.\n\nWithout an Aggregator later, your operations can grow fast."},
-{"n":35,"h":"Routers Explained","pts":["One input, many paths","Add a filter per route","Keep a fallback route"],"cap":"Use a Router when the same data needs different treatment.\n\nAlways keep a fallback so nothing silently disappears."},
-{"n":36,"h":"Make Operations Explained","pts":["Each module run counts","Filters do not cost operations","Plan your bundles"],"cap":"Know what uses your operations.\n\nEvery module run per bundle counts, so design with bundle counts in mind."},
-{"n":37,"h":"Secure Your Webhooks","pts":["Add a secret token","Validate the payload","Rotate leaked URLs"],"cap":"A public webhook URL is an open door.\n\nCheck a secret token at the start of the scenario."},
-{"n":38,"h":"JSON In 30 Seconds","pts":["Keys and values","Curly braces for objects","Square brackets for lists"],"cap":"JSON is how apps and AI talk to each other.\n\nLearn these three basics and automation gets much easier."},
-{"n":39,"h":"Parse AI Output Safely","pts":["Ask for JSON only","Strip code fences","Validate before using"],"cap":"Free-text AI output breaks scenarios.\n\nAsk for strict JSON and validate it before the next module."},
-{"n":40,"h":"Prompt Chaining","pts":["Extract","Draft","Check","Publish"],"cap":"One prompt, one job.\n\nChain small steps so each one is easy to test and improve."},
-{"n":41,"h":"Instagram Automation Basics","pts":["Use a Business account","Host a public image URL","Add caption and hashtags"],"cap":"Posting to Instagram through automation has rules.\n\nYou need a Business or Creator account linked to a Facebook Page and a public image link."},
-{"n":42,"h":"LinkedIn Automation Basics","pts":["Queue in a Sheet","Write an expert caption","Attach an image","Log the post"],"cap":"A reliable LinkedIn flow is simple.\n\nQueue, caption, image and a log of what was posted."},
-{"n":43,"h":"The Human Approval Gate","pts":["Draft status","Approved status","Publish approved only"],"cap":"Add one status column and keep control.\n\nAutomation publishes only what you approved."},
-{"n":44,"h":"Hooks That Stop The Scroll","pts":["Name a clear problem","Promise a fix","Keep it short"],"cap":"The first line decides whether people keep reading.\n\nName the problem and promise a fix."},
-{"n":45,"h":"CTA Ideas That Work","pts":["Ask a question","Ask people to save","Ask them to share"],"cap":"A post without a call to action leaves reach on the table.\n\nEnd with one clear, easy ask."},
-{"n":46,"h":"Build A Simple Lead Magnet","pts":["Pick one problem","Make a short checklist","Deliver it by email automatically"],"cap":"A lead magnet does not need to be big.\n\nOne useful checklist, delivered automatically, can start your list."},
-{"n":47,"h":"Email Triage With AI","pts":["Classify each email","Route it automatically","Review low-confidence cases"],"cap":"Let AI sort the inbox.\n\nUse fixed categories and keep a review path for unclear emails."},
-{"n":48,"h":"Timezones In Automation","pts":["Check scenario timezone","Format dates explicitly","Test near midnight"],"cap":"Wrong posting times are usually a timezone issue.\n\nFormat dates with a clear timezone and test around midnight."},
-{"n":49,"h":"Weekly Report Automation","pts":["Collect numbers in a Sheet","AI writes the summary","Send it every Monday"],"cap":"Stop rebuilding the same report.\n\nLet automation gather the data and AI draft the summary."},
-{"n":50,"h":"Do Not Automate Chaos","pts":["Map the process","Simplify it","Then automate"],"cap":"Order matters.\n\nMap first, simplify second and automate last."},
-{"n":51,"h":"Measure Automation ROI","pts":["Time the manual task","Add build and upkeep time","Compare after 30 days"],"cap":"Measure whether automation really paid off.\n\nInclude maintenance time in your numbers, not only the build."},
-{"n":52,"h":"Fallbacks For AI Steps","pts":["A default value","A backup model","A human review path"],"cap":"AI services can fail or hit limits.\n\nGive every AI step a plan B so the workflow still finishes."},
-{"n":53,"h":"Image Prompts That Work","pts":["Subject and clothing","Pose and background","Lighting and lens"],"cap":"Better image prompts give better visuals.\n\nDescribe the subject, the scene and the light in clear words."},
-{"n":54,"h":"Name Your Modules","pts":["Name by purpose","Add short notes","Future you says thanks"],"cap":"Default module names become a puzzle later.\n\nRename them by purpose and leave short notes."},
-{"n":55,"h":"Connections Keep Breaking?","pts":["Tokens expire","Scopes can be missing","Re-authorize carefully"],"cap":"Sudden 401 and 403 errors usually mean login problems.\n\nCheck token expiry and that every needed permission was ticked."},
-{"n":56,"h":"Clean Data First","pts":["Trim extra spaces","Lowercase emails","Block empty fields"],"cap":"Most random failures come from messy input.\n\nClean the data before you write it anywhere."},
-{"n":57,"h":"Start Small, Scale Later","pts":["Pick one task","Build one scenario","Prove the value"],"cap":"Big plans stall. Small wins compound.\n\nAutomate one task well before adding the next."},
-{"n":58,"h":"Choose Tools By Constraint","pts":["How complex is the logic?","Who will maintain it?","Budget and data rules"],"cap":"Ask what matters most before picking a tool.\n\nComplexity, maintenance and data rules decide more than hype."},
-{"n":59,"h":"Learn Automation In 30 Days","pts":["Week 1: map tasks","Week 2: build one","Week 3: test it","Week 4: measure it"],"cap":"A simple 30-day path.\n\nMap, build, test and measure. Small steps, steady progress."},
-{"n":60,"h":"Your Automation Habit","pts":["Automate one thing a week","Document each change","Review every month"],"cap":"Automation is a habit, not a one-time project.\n\nOne small improvement a week adds up fast."}
+ {
+  "n": 1,
+  "h": "Invoices That Send Themselves",
+  "pts": [
+   "Work marked done in a Sheet",
+   "Invoice is prepared",
+   "Reminders go out on time",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Invoices and payment reminders go out late.\n\nYou get paid sooner for the same work.\n\nYou review every invoice before it is sent."
+ },
+ {
+  "n": 2,
+  "h": "This Page Posts By Itself",
+  "pts": [
+   "I add one Sheet row",
+   "Automation posts at 9 AM",
+   "Status is logged back",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Posting by hand every day does not last.\n\nThis setup runs my own pages.\n\nA person still approves anything important."
+ },
+ {
+  "n": 3,
+  "h": "Count The Hours You Save",
+  "pts": [
+   "Time the manual task",
+   "Automate it",
+   "Compare after 30 days",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "You cannot judge automation if you never measured the task.\n\nYou keep what saves time and drop what does not.\n\nA person still approves anything important."
+ },
+ {
+  "n": 4,
+  "h": "5 Questions Before You Automate",
+  "pts": [
+   "Does it repeat?",
+   "Are the rules clear?",
+   "What if it fails?",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Automating the wrong task wastes weeks.\n\nGood tasks to automate pass all three.\n\nA person still approves anything important."
+ },
+ {
+  "n": 5,
+  "h": "3 Easy Automations To Start",
+  "pts": [
+   "Leads into a Sheet",
+   "Reply drafts with AI",
+   "A weekly report",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Starting is the hardest part of automation.\n\nSmall, useful and low risk. Pick one this week.\n\nA person still approves anything important."
+ },
+ {
+  "n": 6,
+  "h": "Which Task Can Run Itself?",
+  "pts": [
+   "Share your daily tasks",
+   "I map what can be automated",
+   "You get a clear short list",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Most owners do not know which of their tasks can be automated.\n\nA 15-minute call is enough to start.\n\nA person still approves anything important."
+ },
+ {
+  "n": 7,
+  "h": "Automation Myths, Busted",
+  "pts": [
+   "Not only for big firms",
+   "It does not replace thinking",
+   "It still needs upkeep",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Many owners think automation is only for big companies.\n\nStart small, with one task.\n\nA person still approves anything important."
+ },
+ {
+  "n": 8,
+  "h": "How We Build It",
+  "pts": [
+   "Review your tasks",
+   "Build and test",
+   "Handover and support",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Hiring someone for automation feels unclear and risky.\n\nNo surprises, one small step at a time.\n\nA person still approves anything important."
+ },
+ {
+  "n": 9,
+  "h": "30 Ideas, Which Is Yours?",
+  "pts": [
+   "Sales and profit",
+   "Inventory and reorders",
+   "Leads and follow-ups",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "In 30 days we covered the tasks that eat most of a business day.\n\nOne of these is probably your daily time-waster.\n\nA person still approves anything important."
+ },
+ {
+  "n": 10,
+  "h": "Tell Me Your Repeat Task",
+  "pts": [
+   "Name one daily task",
+   "I check if it can automate",
+   "Just tell me the steps",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "The best automation idea is the task you already hate repeating.\n\nNo pressure. Honest answer.\n\nA person still approves anything important."
+ },
+ {
+  "n": 11,
+  "h": "Daily Sales, Zero Effort",
+  "pts": [
+   "Sales saved in one Sheet",
+   "Totals update by themselves",
+   "Summary reaches you daily",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Daily sales sit in bills and notebooks, so nobody sees the full picture.\n\nYou know how the day went without opening a single file.\n\nA person still approves anything important."
+ },
+ {
+  "n": 12,
+  "h": "Never Forget A Reorder",
+  "pts": [
+   "Set a minimum stock limit",
+   "Stock is checked daily",
+   "A reorder draft is prepared",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Reordering depends on someone remembering to check the shelf.\n\nFast items stop running out and slow items stop piling up.\n\nYou approve every order before it is sent."
+ },
+ {
+  "n": 13,
+  "h": "Profit Without The Surprise",
+  "pts": [
+   "Add daily sales",
+   "Add purchase and expenses",
+   "See margin every evening",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Profit becomes a surprise at the end of the month.\n\nYou spot a falling margin while there is still time to act.\n\nA person still approves anything important."
+ },
+ {
+  "n": 14,
+  "h": "Inventory Health Check",
+  "pts": [
+   "Track every item",
+   "Flag expiry, low and extra stock",
+   "Alert the right person",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Expiry and dead stock show up only when it is too late.\n\nMoney stops getting stuck on shelves.\n\nA person still approves anything important."
+ },
+ {
+  "n": 15,
+  "h": "Payment Reminders On Autopilot",
+  "pts": [
+   "Mark invoices in a Sheet",
+   "Reminder before due date",
+   "Polite nudge after it",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Chasing payments is awkward and easy to forget.\n\nPayments arrive sooner and nobody feels awkward.\n\nA person still approves anything important."
+ },
+ {
+  "n": 16,
+  "h": "Your Day In 3 Lines",
+  "pts": [
+   "Data gathered automatically",
+   "AI writes a short summary",
+   "It reaches you every evening",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Reading ten sheets to understand one day wastes your time.\n\nYou get the full picture in one minute.\n\nA person still approves anything important."
+ },
+ {
+  "n": 17,
+  "h": "You Stay In Control",
+  "pts": [
+   "Automation drafts",
+   "You review",
+   "Only approved items go out",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Many owners fear automation will act without asking them.\n\nYou get the speed of automation and keep the final say.\n\nA person still approves anything important."
+ },
+ {
+  "n": 18,
+  "h": "Leads Lost In Chats?",
+  "pts": [
+   "Customer fills a simple form",
+   "Lead lands in a Sheet",
+   "You get an instant alert",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Enquiries get lost between calls, chats and notes.\n\nEvery enquiry has a row, and nobody has to scroll through chats.\n\nA person still approves anything important."
+ },
+ {
+  "n": 19,
+  "h": "Follow-Ups That Never Slip",
+  "pts": [
+   "Track last contact date",
+   "Wait three days",
+   "A polite nudge goes out",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Most leads go quiet because nobody follows up.\n\nFewer leads go cold.\n\nA person approves the message before it goes."
+ },
+ {
+  "n": 20,
+  "h": "Same Questions, Instant Drafts",
+  "pts": [
+   "Give it your real FAQs",
+   "AI drafts the reply",
+   "You approve and send",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "The same ten questions take up most of your day.\n\nReplies are fast and still sound like you.\n\nA human always has the send button."
+ },
+ {
+  "n": 21,
+  "h": "Reviews On Autopilot",
+  "pts": [
+   "Customer buys or visits",
+   "A friendly message goes out",
+   "Review link inside",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Happy customers rarely leave a review unless someone asks.\n\nTrust builds without anyone remembering to ask.\n\nA person still approves anything important."
+ },
+ {
+  "n": 22,
+  "h": "Reminders That Fill Your Slots",
+  "pts": [
+   "Booking saved in a Sheet",
+   "Reminder goes the day before",
+   "Reply updates the status",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Missed appointments waste slots and money.\n\nYour day stays planned.\n\nA person still approves anything important."
+ },
+ {
+  "n": 23,
+  "h": "Never Miss An Enquiry",
+  "pts": [
+   "New enquiry arrives",
+   "You get an instant alert",
+   "Unanswered ones are flagged",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "A missed enquiry is a missed sale, and busy hours hide them.\n\nNobody waits for a reply that never comes.\n\nA person still approves anything important."
+ },
+ {
+  "n": 24,
+  "h": "Feedback You Can Count",
+  "pts": [
+   "Ask after every sale",
+   "Answers saved in a Sheet",
+   "Weekly summary for you",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Feedback sits in chats and never gets counted.\n\nYou see patterns instead of random comments.\n\nA person still approves anything important."
+ },
+ {
+  "n": 25,
+  "h": "Medicine Expiry Alerts",
+  "pts": [
+   "Keep stock in one Sheet",
+   "Alert 60 days before expiry",
+   "Return or sell in time",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Short-expiry medicines get noticed only when it is too late.\n\nDead stock gets caught early.\n\nA person still approves anything important."
+ },
+ {
+  "n": 26,
+  "h": "Stock Under Control",
+  "pts": [
+   "Daily sales update stock",
+   "Low items flagged",
+   "Slow items flagged too",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Fast items run out while slow items pile up.\n\nYour money goes to items that actually sell.\n\nA person still approves anything important."
+ },
+ {
+  "n": 27,
+  "h": "Clinic Appointments On Autopilot",
+  "pts": [
+   "Patient books through a form",
+   "Confirmation goes out",
+   "Reminder the day before",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "The front desk spends hours on calls about timings.\n\nFewer calls, fewer missed visits.\n\nA person still approves anything important."
+ },
+ {
+  "n": 28,
+  "h": "Fee Reminders Done Politely",
+  "pts": [
+   "Fees tracked in a Sheet",
+   "Reminder before due date",
+   "Follow-up after it",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Fee follow-ups take teachers' time and feel awkward.\n\nTeachers teach, and fees arrive on time.\n\nA person still approves anything important."
+ },
+ {
+  "n": 29,
+  "h": "Salon Bookings, No Clashes",
+  "pts": [
+   "Every booking in one Sheet",
+   "Clashes flagged",
+   "Customer gets a reminder",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Bookings arrive by call and by chat, and they clash.\n\nA calm day with a full chair.\n\nA person still approves anything important."
+ },
+ {
+  "n": 30,
+  "h": "Order Updates On Autopilot",
+  "pts": [
+   "New order lands in a Sheet",
+   "Status changes as you work",
+   "Customer gets updates",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Order status updates are typed by hand, one customer at a time.\n\nFewer 'where is my order' messages.\n\nA person still approves anything important."
+ },
+ {
+  "n": 31,
+  "h": "Gym Renewals, Handled",
+  "pts": [
+   "Expiry dates sit in one Sheet",
+   "Reminder goes out 7 days before",
+   "Renewals are tracked in one place",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Gym owners lose members when renewals are forgotten.\n\nMembers get a reminder before expiry.\n\nA person still approves anything important."
+ },
+ {
+  "n": 32,
+  "h": "Clinic Follow-Up Reminders",
+  "pts": [
+   "Visit date stored in a Sheet",
+   "Message sent a day before",
+   "Replies update the status",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Patients skip follow-ups because nobody reminds them.\n\nFewer lost visits and a fuller schedule.\n\nA person still approves anything important."
+ },
+ {
+  "n": 33,
+  "h": "School Attendance Alerts",
+  "pts": [
+   "Teacher marks attendance once",
+   "Absent list is built for you",
+   "Parents get a short message",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Parents learn about absences late.\n\nParents hear the same day.\n\nA person still approves anything important."
+ },
+ {
+  "n": 34,
+  "h": "Real Estate Lead Sorting",
+  "pts": [
+   "Enquiries land in one Sheet",
+   "Each gets an instant reply",
+   "Hot leads are flagged for you",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Property enquiries arrive from five places.\n\nEvery lead gets a first reply fast.\n\nA person still approves anything important."
+ },
+ {
+  "n": 35,
+  "h": "Restaurant Daily Report",
+  "pts": [
+   "Orders saved to one Sheet",
+   "Totals calculated each evening",
+   "Summary sent to your phone",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Owners wait until night to know how the day went.\n\nThe numbers reach you without asking.\n\nA person still approves anything important."
+ },
+ {
+  "n": 36,
+  "h": "Wholesale Order Intake",
+  "pts": [
+   "Order message captured",
+   "Items copied into a Sheet",
+   "Picking list is prepared",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Orders by chat get typed again by hand.\n\nOne entry, no retyping.\n\nA person still approves anything important."
+ },
+ {
+  "n": 37,
+  "h": "Supplier Price Tracking",
+  "pts": [
+   "Upload the new price list",
+   "Old and new prices compared",
+   "Rises are highlighted",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Price changes hide inside supplier lists.\n\nYou see rises before you reorder.\n\nA person still approves anything important."
+ },
+ {
+  "n": 38,
+  "h": "Staff Shift Reminders",
+  "pts": [
+   "Roster kept in one Sheet",
+   "Reminder sent the night before",
+   "Changes notify the team",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Shift mix-ups cost a full day.\n\nEveryone knows their shift.\n\nA person still approves anything important."
+ },
+ {
+  "n": 39,
+  "h": "Customer Birthday Offers",
+  "pts": [
+   "Birthdays stored with phone",
+   "Message goes out on the day",
+   "Redemptions get tracked",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Loyal customers are never thanked.\n\nA small gesture brings them back.\n\nA person still approves anything important."
+ },
+ {
+  "n": 40,
+  "h": "Lost Lead Win-Back",
+  "pts": [
+   "Filter leads quiet for 30 days",
+   "Send one polite check-in",
+   "Replies are routed to you",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Old enquiries are never followed up.\n\nSome of them still need you.\n\nA person still approves anything important."
+ },
+ {
+  "n": 41,
+  "h": "Invoice From A Form",
+  "pts": [
+   "Details entered once in a form",
+   "Invoice is filled from a template",
+   "Copy saved and sent",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Invoices are rebuilt from scratch each time.\n\nBilling takes minutes, not an hour.\n\nA person still approves anything important."
+ },
+ {
+  "n": 42,
+  "h": "Daily Cash Closing",
+  "pts": [
+   "Closing cash entered once",
+   "Compared with recorded sales",
+   "Differences are flagged",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Cash mismatches are found days later.\n\nYou catch gaps the same evening.\n\nA person still approves anything important."
+ },
+ {
+  "n": 43,
+  "h": "Vendor Payment Calendar",
+  "pts": [
+   "Due dates kept in a Sheet",
+   "Alert before each due date",
+   "Paid items are marked off",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Payment dates slip and relations suffer.\n\nNothing falls through the cracks.\n\nA person still approves anything important."
+ },
+ {
+  "n": 44,
+  "h": "Tutor Fee Collection",
+  "pts": [
+   "Fee status in a Sheet",
+   "Reminder goes to unpaid ones",
+   "Receipts are sent after payment",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Tutors chase parents for fees every month.\n\nFees arrive without awkward calls.\n\nA person still approves anything important."
+ },
+ {
+  "n": 45,
+  "h": "Event Registration Flow",
+  "pts": [
+   "Form collects every detail",
+   "Rows land in one Sheet",
+   "Confirmation goes out instantly",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Registrations arrive in chats and slips.\n\nYour guest list builds itself.\n\nA person still approves anything important."
+ },
+ {
+  "n": 46,
+  "h": "Pharmacy Refill Reminders",
+  "pts": [
+   "Refill dates stored",
+   "Reminder before they run out",
+   "One tap to reorder",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Chronic customers forget to refill.\n\nCustomers return on time.\n\nA person still approves anything important."
+ },
+ {
+  "n": 47,
+  "h": "Review Request After Sale",
+  "pts": [
+   "Sale marks the order done",
+   "Thank you message follows",
+   "Review link is included",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Reviews are asked for rarely.\n\nSocial proof grows on its own.\n\nA person still approves anything important."
+ },
+ {
+  "n": 48,
+  "h": "Quote Follow-Up System",
+  "pts": [
+   "Each quote logged with date",
+   "Follow-up after 3 days",
+   "Status updates when they reply",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Quotes are sent and then forgotten.\n\nFewer quotes go cold.\n\nA person still approves anything important."
+ },
+ {
+  "n": 49,
+  "h": "Employee Leave Tracking",
+  "pts": [
+   "Requests come through a form",
+   "Balance updates itself",
+   "Manager approves in one tap",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Leave balances live in chat threads.\n\nEveryone sees the same balance.\n\nA person still approves anything important."
+ },
+ {
+  "n": 50,
+  "h": "Stock Count Variance",
+  "pts": [
+   "Counts entered in a Sheet",
+   "Compared with system stock",
+   "Variances are highlighted",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Stock counts differ and no one knows why.\n\nGaps are visible the same day.\n\nA person still approves anything important."
+ },
+ {
+  "n": 51,
+  "h": "Delivery Delay Alerts",
+  "pts": [
+   "Dispatch time recorded",
+   "Delay detected automatically",
+   "Customer gets an update",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Customers call to ask where the order is.\n\nThey are told before they ask.\n\nA person still approves anything important."
+ },
+ {
+  "n": 52,
+  "h": "Support Ticket Sorting",
+  "pts": [
+   "Messages logged in one Sheet",
+   "Tagged by simple keywords",
+   "Urgent ones are flagged",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Support messages arrive in no order.\n\nUrgent ones are seen first.\n\nA person still approves anything important."
+ },
+ {
+  "n": 53,
+  "h": "Weekly Report Without Work",
+  "pts": [
+   "Data pulled from your Sheets",
+   "Totals and charts refreshed",
+   "Report sent every Friday",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Weekly reports eat a Friday afternoon.\n\nThe report is ready before you ask.\n\nA person still approves anything important."
+ },
+ {
+  "n": 54,
+  "h": "Appointment No-Show Fix",
+  "pts": [
+   "Booking confirmed at once",
+   "Reminder the day before",
+   "Cancelled slot is offered again",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "No-shows empty expensive slots.\n\nSlots get filled, not wasted.\n\nA person still approves anything important."
+ },
+ {
+  "n": 55,
+  "h": "Content Calendar Autopilot",
+  "pts": [
+   "Posts queued in a Sheet",
+   "Scheduled at a fixed time",
+   "Status updated after posting",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Posting daily by hand does not last.\n\nContent goes out while you work.\n\nA person still approves anything important."
+ },
+ {
+  "n": 56,
+  "h": "Customer Onboarding Steps",
+  "pts": [
+   "New customer added once",
+   "Welcome message goes out",
+   "Checklist tracks each step",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "New customers get a different welcome each time.\n\nEvery customer starts the same way.\n\nA person still approves anything important."
+ },
+ {
+  "n": 57,
+  "h": "Expense Tracking By Photo",
+  "pts": [
+   "Send the receipt photo",
+   "Amount is read into a Sheet",
+   "Category added for you",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Receipts pile up until month end.\n\nMonth end stops being a panic.\n\nA person still approves anything important."
+ },
+ {
+  "n": 58,
+  "h": "Inventory Low Alert",
+  "pts": [
+   "Minimum level set per item",
+   "Stock checked every morning",
+   "Alert lists what to reorder",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Items run out at the worst time.\n\nYou reorder before the shelf is empty.\n\nA person still approves anything important."
+ },
+ {
+  "n": 59,
+  "h": "Referral Tracking",
+  "pts": [
+   "Source captured for each lead",
+   "Linked to the referrer",
+   "Thank-you sent automatically",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Referrals are remembered, not recorded.\n\nEvery referrer is thanked.\n\nA person still approves anything important."
+ },
+ {
+  "n": 60,
+  "h": "Start With One Task",
+  "pts": [
+   "List your repeated tasks",
+   "Pick the most painful one",
+   "DM AUTOMATE to get started"
+  ],
+  "cap": "Big automation plans never get started.\n\nOne working task beats ten ideas.\n\nA person still approves anything important."
+ }
 ]
