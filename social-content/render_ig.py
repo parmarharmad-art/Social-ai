@@ -123,3 +123,86 @@ for item in json.load(open(data_path)):
     out = os.path.join(out_dir, f"{item['n']:02d}.jpg")
     canvas.convert("RGB").save(out, quality=90, optimize=True)
 print("ok")
+
+
+# ---------------------------------------------------------------- carousels
+# Optional: if carousels.json exists next to this script, render every slide as
+# ig_cards/c<NN>_<k>.jpg (1080x1350). Instagram carousels need 2-10 images.
+def render_carousels(path, out_dir):
+    data = json.load(open(path, encoding="utf-8"))
+    navy = (8, 24, 58)
+
+    def fnt(p, s):
+        return ImageFont.truetype(p, s)
+
+    for item in data:
+        slides = item["slides"]
+        total = len(slides)
+        for k, s in enumerate(slides, 1):
+            canvas = background()
+            d = ImageDraw.Draw(canvas)
+            kind = s.get("kind", "text")
+            if kind == "cover":
+                person_src, pw = (person_a, 700) if item["n"] % 2 else (person_b, 600)
+                ph = int(person_src.height * pw / person_src.width)
+                person = person_src.resize((pw, ph), Image.LANCZOS)
+                layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+                layer.paste(person, (W - pw + 10, H - BAND - ph + 2), person)
+                canvas = Image.alpha_composite(canvas, layer)
+                d = ImageDraw.Draw(canvas)
+                d.rectangle((60, 130, 150, 140), fill=yellow)
+                f = fnt(bold, 92)
+                y = 175
+                for ln in wrap(d, s["h"], f, 900):
+                    d.text((60, y), ln, font=f, fill=(255, 255, 255))
+                    y += 110
+                d.text((60, y + 30), "SWIPE  >", font=fnt(bold, 40), fill=yellow)
+            elif kind == "cta":
+                d.rectangle((60, 300, 150, 310), fill=yellow)
+                f = fnt(bold, 92)
+                y = 345
+                for ln in wrap(d, s["h"], f, 900):
+                    d.text((60, y), ln, font=f, fill=(255, 255, 255))
+                    y += 110
+                f2 = fnt(semi, 52)
+                y += 30
+                for ln in wrap(d, s["t"], f2, 900):
+                    d.text((60, y), ln, font=f2, fill=(235, 241, 255))
+                    y += 68
+                bx, by = 60, y + 50
+                d.rounded_rectangle((bx, by, bx + 560, by + 120), radius=60, fill=yellow)
+                tw = d.textlength("DM  AUTOMATE", font=fnt(bold, 54))
+                d.text((bx + (560 - tw) / 2, by + 28), "DM  AUTOMATE", font=fnt(bold, 54), fill=navy)
+            else:
+                tile = str(s.get("tile", k - 1))
+                d.ellipse((60, 150, 200, 290), fill=yellow)
+                tf = fnt(bold, 64 if len(tile) < 2 else 50)
+                tw = d.textlength(tile, font=tf)
+                d.text((130 - tw / 2, 178 if len(tile) < 2 else 188), tile, font=tf, fill=navy)
+                f = fnt(bold, 84)
+                y = 350
+                for ln in wrap(d, s["h"], f, 900):
+                    d.text((60, y), ln, font=f, fill=(255, 255, 255))
+                    y += 100
+                f2 = fnt(semi, 56)
+                y += 30
+                for ln in wrap(d, s["t"], f2, 900):
+                    d.text((60, y), ln, font=f2, fill=(228, 236, 255))
+                    y += 74
+            # bottom band (same as cards)
+            d.rectangle((0, H - BAND, W, H), fill=(6, 18, 44))
+            d.rectangle((0, H - BAND, W, H - BAND + 5), fill=yellow)
+            d.text((60, H - BAND + 22), "KIRAN KUMAR", font=fnt(bold, 46), fill=(255, 255, 255))
+            d.text((60, H - BAND + 78), "AI AUTOMATION EXPERT", font=fnt(semi, 26), fill=yellow)
+            cnt = f"{k}/{total}"
+            cf = fnt(bold, 34)
+            d.text((W - 60 - d.textlength(cnt, font=cf), H - BAND + 48), cnt, font=cf, fill=yellow)
+            out = os.path.join(out_dir, f"c{item['n']:02d}_{k}.jpg")
+            canvas.convert("RGB").save(out, quality=90, optimize=True)
+    print(f"carousels ok: {len(data)} sets")
+
+
+_cp = os.path.join(os.path.dirname(os.path.abspath(__file__)), "carousels.json")
+if os.path.exists(_cp):
+    render_carousels(_cp, out_dir)
+        
