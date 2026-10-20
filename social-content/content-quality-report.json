@@ -35,7 +35,7 @@
       "unique_hooks": 60,
       "errors": [],
       "warnings": [
-        "No recognizable CTA language at entries: 1, 2, 8, 13, 14, 15, 16, 18, 22, 25, 26, 30, 33, 34, 35, 36, 40, 42, 43, 44"
+        "No recognizable CTA language at entries: 1, 2, 8, 13, 14, 15, 16, 18, 22, 25, 26, 30, 31, 37, 38, 39, 41, 42, 43, 44"
       ],
       "checks": {
         "required_fields": true,
