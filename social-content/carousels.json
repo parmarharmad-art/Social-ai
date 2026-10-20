@@ -1,0 +1,1712 @@
+[
+ {
+  "n": 1,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Know Your Sales Every Evening"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Daily sales sit in bills and notebooks, so nobody sees the full picture."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Collect",
+    "t": "Each day's sales go into one Google Sheet, by a simple form or an export."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Calculate",
+    "t": "Totals, top sellers and slow movers update on their own."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Send",
+    "t": "A short summary reaches you every evening."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "You know how the day went without opening a single file."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Shops, clinics, distributors and online sellers."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Daily sales sit in bills and notebooks, so nobody sees the full picture.\n\nYou know how the day went without opening a single file.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 2,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Reorders That Never Get Forgotten"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Reordering depends on someone remembering to check the shelf."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Set limits",
+    "t": "Each item gets a minimum stock level."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Watch stock",
+    "t": "The sheet checks stock against the limit every day."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Draft the order",
+    "t": "A reorder draft is prepared for the right supplier."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Fast items stop running out and slow items stop piling up."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "You approve every order before it is sent."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Medical stores, retail shops and small distributors."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Reordering depends on someone remembering to check the shelf.\n\nFast items stop running out and slow items stop piling up.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 3,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "See Profit Before Month End"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Profit becomes a surprise at the end of the month."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Add sales",
+    "t": "Daily sales flow into one sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Add costs",
+    "t": "Purchases and expenses go in beside them."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "See margin",
+    "t": "Sales minus purchase minus expenses is calculated every evening."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "You spot a falling margin while there is still time to act."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Owners of shops, clinics and small companies."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Profit becomes a surprise at the end of the month.\n\nYou spot a falling margin while there is still time to act.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 4,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Spot Stock Problems Early"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Expiry and dead stock show up only when it is too late."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Track",
+    "t": "Stock, daily sales and expiry dates live in one sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Flag",
+    "t": "Items near expiry, running low or overstocked are marked automatically."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Alert",
+    "t": "The buyer or owner gets the list every day."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Money stops getting stuck on shelves."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Pharmacies, grocery and retail stores."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Expiry and dead stock show up only when it is too late.\n\nMoney stops getting stuck on shelves.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 5,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Stop Chasing Payments By Hand"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Chasing payments is awkward and easy to forget."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Log invoices",
+    "t": "Each invoice and its due date goes in a sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Remind early",
+    "t": "A friendly reminder goes out before the due date."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Follow up",
+    "t": "A polite nudge goes out after it."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Payments arrive sooner and nobody feels awkward."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Freelancers, distributors and service businesses."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Chasing payments is awkward and easy to forget.\n\nPayments arrive sooner and nobody feels awkward.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 6,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "One Short Note Replaces Ten Sheets"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Reading ten sheets to understand one day wastes your time."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Gather",
+    "t": "The day's numbers are collected into one place."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Summarise",
+    "t": "AI writes three lines: what moved, what is at risk, what to do."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Deliver",
+    "t": "The note reaches you by message or email every evening."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "You get the full picture in one minute."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Any owner who checks numbers daily."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Reading ten sheets to understand one day wastes your time.\n\nYou get the full picture in one minute.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 7,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Automation That Waits For Your OK"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Many owners fear automation will act without asking them."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Draft",
+    "t": "The automation prepares the message, order or post."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Review",
+    "t": "You see it first and approve or edit."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Send",
+    "t": "Only approved items go out."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "You get the speed of automation and keep the final say."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Owners who want control."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Many owners fear automation will act without asking them.\n\nYou get the speed of automation and keep the final say.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 8,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Never Lose An Enquiry Again"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Enquiries get lost between calls, chats and notes."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Capture",
+    "t": "A simple form collects name, number and need."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Store",
+    "t": "Every enquiry lands in one Google Sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Alert",
+    "t": "You get an alert the moment a new lead arrives."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Every enquiry has a row, and nobody has to scroll through chats."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Clinics, coaching centres, salons and local services."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Enquiries get lost between calls, chats and notes.\n\nEvery enquiry has a row, and nobody has to scroll through chats.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 9,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Follow Up Without Remembering"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Most leads go quiet because nobody follows up."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Track",
+    "t": "Each lead's last contact date is stored."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Wait",
+    "t": "After three quiet days the rule triggers."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Nudge",
+    "t": "A polite follow-up is prepared for you to send."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Fewer leads go cold."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person approves the message before it goes."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Anyone who sells by enquiry."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Most leads go quiet because nobody follows up.\n\nFewer leads go cold.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 10,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Answer Repeat Questions In Seconds"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "The same ten questions take up most of your day."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Teach",
+    "t": "Your real FAQs and prices are stored once."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Draft",
+    "t": "AI drafts a reply as soon as a question arrives."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Approve",
+    "t": "You check it and send, in one tap."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Replies are fast and still sound like you."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A human always has the send button."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Shops, clinics and service businesses."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "The same ten questions take up most of your day.\n\nReplies are fast and still sound like you.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 11,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Get More Reviews Automatically"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Happy customers rarely leave a review unless someone asks."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Trigger",
+    "t": "A completed purchase or visit starts the flow."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Ask",
+    "t": "A friendly message goes out a day later."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Link",
+    "t": "The review link is already inside it."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Trust builds without anyone remembering to ask."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Stores, clinics, salons and restaurants."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Happy customers rarely leave a review unless someone asks.\n\nTrust builds without anyone remembering to ask.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 12,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Fewer Missed Appointments"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Missed appointments waste slots and money."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Save",
+    "t": "Each booking goes into one calendar sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Remind",
+    "t": "A reminder goes out the day before."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Update",
+    "t": "The customer's reply updates the booking status."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Your day stays planned."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Clinics, salons, coaching and repair shops."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Missed appointments waste slots and money.\n\nYour day stays planned.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 13,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "A Missed Enquiry Is A Missed Sale"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "A missed enquiry is a missed sale, and busy hours hide them."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Detect",
+    "t": "Every new enquiry is logged on arrival."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Alert",
+    "t": "You get an instant message."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Flag",
+    "t": "Anything unanswered after a set time is highlighted."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Nobody waits for a reply that never comes."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Any business with walk-in or message enquiries."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "A missed enquiry is a missed sale, and busy hours hide them.\n\nNobody waits for a reply that never comes.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 14,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Turn Feedback Into Numbers"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Feedback sits in chats and never gets counted."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Ask",
+    "t": "A short feedback question goes out after each sale or visit."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Save",
+    "t": "Answers land in one sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Summarise",
+    "t": "AI writes a short weekly summary of what customers say."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "You see patterns instead of random comments."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Stores, clinics and restaurants."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Feedback sits in chats and never gets counted.\n\nYou see patterns instead of random comments.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 15,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Never Miss A Short-Expiry Medicine"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Short-expiry medicines get noticed only when it is too late."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Track",
+    "t": "Batch, quantity and expiry date go into one sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Alert",
+    "t": "An alert goes out 60 days before expiry."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Act",
+    "t": "Push the sale or return it to the supplier in time."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Dead stock gets caught early."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Medical stores and pharmacies."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Short-expiry medicines get noticed only when it is too late.\n\nDead stock gets caught early.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 16,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Know What To Reorder And What To Pause"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Fast items run out while slow items pile up."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Record",
+    "t": "Daily sales reduce stock in the sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Flag low",
+    "t": "Items that will run out soon are marked."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Flag slow",
+    "t": "Items that barely move are marked so you can pause buying."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Your money goes to items that actually sell."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Kirana, grocery and general stores."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Fast items run out while slow items pile up.\n\nYour money goes to items that actually sell.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 17,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Let The Front Desk Stop Answering Timing Calls"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "The front desk spends hours on calls about timings."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Book",
+    "t": "Patients choose a slot through a simple form."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Confirm",
+    "t": "A confirmation message goes out."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Remind",
+    "t": "A reminder goes out the day before."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Fewer calls, fewer missed visits."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Clinics and diagnostic centres."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "The front desk spends hours on calls about timings.\n\nFewer calls, fewer missed visits.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 18,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Fee Follow-Ups Without The Awkwardness"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Fee follow-ups take teachers' time and feel awkward."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Track",
+    "t": "Each student's fee and due date go in one sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Remind",
+    "t": "Parents get a polite reminder before the due date."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Follow up",
+    "t": "A second note goes out if it is still pending."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Teachers teach, and fees arrive on time."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Coaching classes and tuition centres."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Fee follow-ups take teachers' time and feel awkward.\n\nTeachers teach, and fees arrive on time.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 19,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "One Booking Sheet For Calls And Chats"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Bookings arrive by call and by chat, and they clash."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Collect",
+    "t": "Every booking goes into one shared sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Check",
+    "t": "Double bookings are flagged on entry."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Remind",
+    "t": "Customers get a reminder before the visit."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "A calm day with a full chair."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Salons, spas and parlours."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Bookings arrive by call and by chat, and they clash.\n\nA calm day with a full chair.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 20,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Order Updates Without Typing Each One"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Order status updates are typed by hand, one customer at a time."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Collect",
+    "t": "New orders land in one sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Update",
+    "t": "You change the status as you pack and ship."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Notify",
+    "t": "The customer receives each update automatically."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Fewer 'where is my order' messages."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Online sellers and home businesses."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Order status updates are typed by hand, one customer at a time.\n\nFewer 'where is my order' messages.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 21,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Send Invoices And Reminders On Time"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Invoices and payment reminders go out late."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Mark done",
+    "t": "You mark a job complete in a sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Prepare",
+    "t": "An invoice draft is created from it."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Remind",
+    "t": "Payment reminders follow the due date."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "You get paid sooner for the same work."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "You review every invoice before it is sent."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Freelancers and consultants."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Invoices and payment reminders go out late.\n\nYou get paid sooner for the same work.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 22,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Posting Daily Without Opening The App"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Posting by hand every day does not last."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Queue",
+    "t": "I write posts in a Google Sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Publish",
+    "t": "A daily automation posts to LinkedIn and Instagram at 9 AM."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Log",
+    "t": "The post status goes back into the sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "This setup runs my own pages."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Business owners who want to show up daily."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Posting by hand every day does not last.\n\nThis setup runs my own pages.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 23,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Measure The Hours You Get Back"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "You cannot judge automation if you never measured the task."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Time it",
+    "t": "Note how long the task takes by hand."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Automate it",
+    "t": "Build the simple version first."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Compare",
+    "t": "Check the time again after 30 days, including upkeep."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "You keep what saves time and drop what does not."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Any owner thinking of automation."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "You cannot judge automation if you never measured the task.\n\nYou keep what saves time and drop what does not.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 24,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Ask These 5 Questions First"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Automating the wrong task wastes weeks."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Repeat",
+    "t": "Does the task happen every day or week?"
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Rules",
+    "t": "Can you explain the steps in plain words?"
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Failure",
+    "t": "Who checks it, and what happens if it breaks?"
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Good tasks to automate pass all three."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Anyone starting with automation."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Automating the wrong task wastes weeks.\n\nGood tasks to automate pass all three.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 25,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Start With These 3 Easy Automations"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Starting is the hardest part of automation."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Leads",
+    "t": "Every enquiry lands in a Sheet."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Replies",
+    "t": "AI drafts answers to repeat questions."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Report",
+    "t": "A weekly summary arrives on its own."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Small, useful and low risk. Pick one this week."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Small business owners."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Starting is the hardest part of automation.\n\nSmall, useful and low risk. Pick one this week.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 26,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Find Out What Can Run On Its Own"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Most owners do not know which of their tasks can be automated."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Share",
+    "t": "You tell me what you do every day."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Map",
+    "t": "I mark what can run on its own and what should stay human."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Decide",
+    "t": "You get a short, clear list to act on."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "A 15-minute call is enough to start."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Owners with repeat daily work."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Most owners do not know which of their tasks can be automated.\n\nA 15-minute call is enough to start.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 27,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "3 Myths About Automation"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Many owners think automation is only for big companies."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Myth 1",
+    "t": "It is not only for big companies. Small shops gain a lot."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Myth 2",
+    "t": "It does not replace thinking. It removes repeat work."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Myth 3",
+    "t": "It still needs a little upkeep."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "Start small, with one task."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Small business owners."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Many owners think automation is only for big companies.\n\nStart small, with one task.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 28,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "How An Automation Project Works"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "Hiring someone for automation feels unclear and risky."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Review",
+    "t": "We list your repeat tasks and pick the best first one."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Build and test",
+    "t": "I build it and test it on sample data first."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Hand over",
+    "t": "You get a simple guide and you approve what goes live."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "No surprises, one small step at a time."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Owners considering automation."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "Hiring someone for automation feels unclear and risky.\n\nNo surprises, one small step at a time.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 29,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "30 Days, 30 Ideas. Which One Is Yours?"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "In 30 days we covered the tasks that eat most of a business day."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Back office",
+    "t": "Sales, purchase, profit and inventory health."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Customers",
+    "t": "Leads, follow-ups, reviews and reminders."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Your industry",
+    "t": "Stores, clinics, salons, coaching and online sellers."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "One of these is probably your daily time-waster."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Every business owner who read along."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "In 30 days we covered the tasks that eat most of a business day.\n\nOne of these is probably your daily time-waster.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ },
+ {
+  "n": 30,
+  "slides": [
+   {
+    "kind": "cover",
+    "h": "Tell Me Your Repeat Task"
+   },
+   {
+    "kind": "text",
+    "tile": "!",
+    "h": "The problem",
+    "t": "The best automation idea is the task you already hate repeating."
+   },
+   {
+    "kind": "text",
+    "tile": "1",
+    "h": "Pick",
+    "t": "Choose one task you repeat every day."
+   },
+   {
+    "kind": "text",
+    "tile": "2",
+    "h": "Describe",
+    "t": "Tell me the steps in your own words."
+   },
+   {
+    "kind": "text",
+    "tile": "3",
+    "h": "Learn",
+    "t": "I tell you honestly whether and how automation fits."
+   },
+   {
+    "kind": "text",
+    "tile": "+",
+    "h": "The result",
+    "t": "No pressure. Honest answer."
+   },
+   {
+    "kind": "text",
+    "tile": "OK",
+    "h": "You stay in control",
+    "t": "A person still approves anything important."
+   },
+   {
+    "kind": "text",
+    "tile": "?",
+    "h": "Works well for",
+    "t": "Anyone with a repeat task."
+   },
+   {
+    "kind": "cta",
+    "h": "Is this your business?",
+    "t": "DM \"AUTOMATE\" and I will show you how it can run on its own."
+   }
+  ],
+  "cap": "The best automation idea is the task you already hate repeating.\n\nNo pressure. Honest answer.\n\nWhich of your daily tasks eats the most time? DM \"AUTOMATE\" and I will show you how it can run on its own."
+ }
+]
