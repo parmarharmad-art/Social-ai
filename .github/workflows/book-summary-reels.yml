@@ -13,6 +13,8 @@ on:
       - "social-content/validate_book_summaries.py"
       - "social-content/render_book_reels.py"
       - "social-content/voice.py"
+      - "social-content/prepare_book_covers.py"
+      - "social-content/gen_reels.py"
       - ".github/workflows/book-summary-reels.yml"
 permissions:
   contents: read
@@ -38,7 +40,13 @@ jobs:
           sudo apt-get install -y ffmpeg fonts-noto-core fonts-dejavu-core
           python -m pip install --upgrade pip
           python -m pip install pillow numpy gTTS
-      - name: Render 30 book-summary Reels with clear Hindi voiceover
+      - name: Fetch the matching book cover for every Reel
+        working-directory: social-content
+        run: |
+          set -euo pipefail
+          mkdir -p book_reels/covers
+          python prepare_book_covers.py book_summaries.json book_reels/covers
+      - name: Render 30 book-summary Reels with book covers and Hindi voiceover
         working-directory: social-content
         env:
           REQUIRE_VOICE: "1"
@@ -47,8 +55,10 @@ jobs:
         run: |
           set -euo pipefail
           OUT="book_reels/${GITHUB_RUN_ID}"
-          mkdir -p "$OUT"
-          python render_book_reels.py book_summaries.json assets "$OUT"
+          ASSETS="$(mktemp -d)"
+          cp -a assets/. "$ASSETS/"
+          cp book_reels/covers/book_*.png "$ASSETS/"
+          python render_book_reels.py book_summaries.json "$ASSETS" "$OUT"
       - name: Validate all 30 MP4 videos and audio streams
         shell: bash
         run: |
