@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gmail Automation — Approval-First Demo</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#08111f;color:#e8f1ff}
+*{box-sizing:border-box}body{margin:0;padding:22px;background:radial-gradient(circle at top right,#162c4b,#08111f 55%)}
+main{max-width:900px;margin:auto}.tag{display:inline-block;padding:6px 10px;border:1px solid #f0b44c;border-radius:99px;color:#ffd98b;font-size:12px}
+h1{font-size:clamp(26px,5vw,40px);margin:14px 0 8px}.muted{color:#9fb2cc;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:20px 0}
+.card{background:#101e31;border:1px solid #263b58;border-radius:16px;padding:16px}
+button{background:#2878d0;color:white;border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer}
+button:disabled{opacity:.4;cursor:not-allowed}.secondary{background:#30445e}
+select,textarea{width:100%;margin:8px 0;padding:10px;border-radius:9px;border:1px solid #38516f;background:#091626;color:#e8f1ff}
+textarea{min-height:110px;resize:vertical}.msg{padding:12px;border:1px solid #30445e;border-radius:12px;margin:10px 0;background:#0b192a}
+.pill{font-size:11px;color:#9bd4ff}.notice{border-left:3px solid #e6ad48;padding:10px 12px;background:#302716;color:#ffe2a6;border-radius:6px}
+label{display:flex;gap:9px;align-items:flex-start;margin:12px 0;color:#c9d8eb}input{margin-top:4px}
+#log{white-space:pre-wrap;color:#a8c6e8;font-size:13px}
+</style></head>
+<body><main>
+<span class="tag">SIMULATION ONLY · NOT CONNECTED TO GMAIL</span>
+<h1>Gmail Automation</h1>
+<p class="muted">Inbox triage → suggested reply → human approval. This demo uses fictional messages and never sends email.</p>
+<div class="notice">No Gmail account is accessed. “Simulate send” only records a local demo event on this page.</div>
+<div class="grid">
+<section class="card"><h2>1. Sample inbox</h2><select id="sample">
+<option value="order">Order status request</option><option value="meeting">Meeting request</option><option value="complaint">Customer complaint</option>
+</select><div id="message" class="msg"></div><button id="classify">Classify message</button></section>
+<section class="card"><h2>2. Triage result</h2><p id="category" class="pill">Not classified yet</p><p id="priority" class="muted">Priority will appear here.</p><p class="muted">Suggested action: review and draft a response.</p></section>
+</div>
+<section class="card"><h2>3. Reply draft</h2><textarea id="draft" aria-label="Reply draft">Select a sample message and classify it to generate a draft.</textarea>
+<label><input type="checkbox" id="approve"> I reviewed this draft and approve the simulated action.</label>
+<button id="send" disabled>Simulate send (no email sent)</button> <button id="reset" class="secondary">Reset demo</button></section>
+<section class="card"><h2>Activity log</h2><div id="log">No activity yet.</div></section>
+</main>
+<script>
+const samples={
+order:{from:"customer@example.test",subject:"Where is my order?",body:"Hello, could you please share an update on my order?"},
+meeting:{from:"partner@example.test",subject:"Meeting next week",body:"Can we schedule a short meeting next week to discuss the project?"},
+complaint:{from:"customer@example.test",subject:"Issue with recent service",body:"I had a problem with my recent service and would appreciate help."}
+};
+const $=id=>document.getElementById(id);let classified=false;
+function showMessage(){const m=samples[$("sample").value];$("message").textContent="From: "+m.from+"\nSubject: "+m.subject+"\n\n"+m.body;$("approve").checked=false;$("send").disabled=true;classified=false}
+function log(s){$("log").textContent=new Date().toLocaleTimeString()+" — "+s+"\n"+($("log").textContent==="No activity yet."?"":$("log").textContent)}
+$("sample").addEventListener("change",showMessage);
+$("classify").addEventListener("click",()=>{const k=$("sample").value;const data={
+order:["Order enquiry","Normal","Thank you for reaching out. We can check the order status and share an update. Please provide your order reference through our official support channel."],
+meeting:["Scheduling","Normal","Thanks for your message. Please share a few suitable time slots and your time zone, and we’ll confirm a meeting time."],
+complaint:["Customer issue","High","Thank you for letting us know. We’re sorry to hear about the issue. We’ll review the details and follow up through the appropriate support channel."]
+}[k];$("category").textContent="Category: "+data[0];$("priority").textContent="Priority: "+data[1];$("draft").value=data[2];classified=true;$("approve").checked=false;$("send").disabled=true;log("Classified sample as "+data[0]+" ("+data[1]+"). Draft generated.")});
+$("approve").addEventListener("change",()=>{$("send").disabled=!(classified&&$("approve").checked)});
+$("send").addEventListener("click",()=>{if(!classified||!$("approve").checked)return;log("SIMULATION ONLY: approval recorded; no email was sent.");$("send").disabled=true;$("approve").checked=false});
+$("reset").addEventListener("click",()=>{$("category").textContent="Not classified yet";$("priority").textContent="Priority will appear here.";$("draft").value="Select a sample message and classify it to generate a draft.";$("approve").checked=false;$("send").disabled=true;$("log").textContent="No activity yet.";classified=false;showMessage()});
+showMessage();
+</script></body></html>
