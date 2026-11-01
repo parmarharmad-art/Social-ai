@@ -60,14 +60,15 @@ else:
 
 def load_poses():
     out = []
-    for p in sorted(glob.glob(os.path.join(assets, "person*.png"))):
+    pattern = "book_*.png" if os.environ.get("BOOK_MODE") == "1" else "person*.png"
+    for p in sorted(glob.glob(os.path.join(assets, pattern))):
         im = Image.open(p).convert("RGBA")
         bb = im.getchannel("A").point(lambda v: 255 if v > 20 else 0).getbbox()
         if bb:
             im = im.crop(bb)
         out.append(im)
     if not out:
-        raise SystemExit("no person*.png in %s" % assets)
+        raise SystemExit("no %s images in %s" % (pattern, assets))
     return out
 
 
@@ -277,8 +278,14 @@ def build(item):
         badge = circle_badge(pose, 280, acc)
         bg.alpha_composite(badge, (60, 110))
         d = ImageDraw.Draw(bg)
-        d.text((400, 160), "KIRAN KUMAR", font=ImageFont.truetype(BOLD, 62), fill=th["txt"])
-        d.text((400, 240), "AI AUTOMATION EXPERT", font=ImageFont.truetype(SEMI, 32), fill=acc)
+        if os.environ.get("BOOK_MODE") == "1":
+            title = item.get("book", "BOOK SUMMARY")
+            author = item.get("author", "")
+            d.text((400, 160), title[:22], font=ImageFont.truetype(BOLD, 48), fill=th["txt"])
+            d.text((400, 230), author[:28], font=ImageFont.truetype(SEMI, 28), fill=acc)
+        else:
+            d.text((400, 160), "KIRAN KUMAR", font=ImageFont.truetype(BOLD, 62), fill=th["txt"])
+            d.text((400, 240), "AI AUTOMATION EXPERT", font=ImageFont.truetype(SEMI, 32), fill=acc)
         d.rectangle((400, 296, 520, 304), fill=acc)
         head = make_head(100, 118)
         hy = 470
