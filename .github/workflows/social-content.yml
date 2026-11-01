@@ -83,14 +83,8 @@ jobs:
             social-content/reels/*.mp4
           if-no-files-found: error
           retention-days: 7
-      - name: Commit outputs
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@users.noreply.github.com"
-          git add social-content
-          git commit -m "Generate Instagram cards and reels" || echo "nothing to commit"
-          git pull --rebase
-          git push
+      - name: Report generated outputs
+        run: echo "Generated media is preserved in the validated workflow artifact above; binary MP4s are not rebased into the source branch."
       - name: Publish selected Reel to Instagram
         if: github.event_name == 'workflow_dispatch' && inputs.publish_reel == true
         env:
