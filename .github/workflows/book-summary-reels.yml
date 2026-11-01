@@ -12,12 +12,13 @@ on:
       - "social-content/book_summaries.json"
       - "social-content/validate_book_summaries.py"
       - "social-content/render_book_reels.py"
+      - "social-content/voice.py"
       - ".github/workflows/book-summary-reels.yml"
 permissions:
   contents: read
 concurrency:
   group: book-summary-reels-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   build:
     if: github.event_name != 'workflow_dispatch' || inputs.confirm_review_only == true
@@ -31,43 +32,52 @@ jobs:
       - name: Validate 30-day book-summary plan
         working-directory: social-content
         run: python validate_book_summaries.py
-      - name: Install video rendering dependencies
+      - name: Install video rendering dependencies and neural TTS
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y ffmpeg espeak-ng fonts-noto-core fonts-dejavu-core
+          sudo apt-get install -y ffmpeg fonts-noto-core fonts-dejavu-core
           python -m pip install --upgrade pip
-          pip install pillow numpy
-      - name: Render 30 book-summary Reels with real Hindi voiceover
+          pip install pillow numpy edge-tts
+      - name: Render 30 book-summary Reels with neural Hindi voiceover
         working-directory: social-content
         env:
           REQUIRE_VOICE: "1"
           REEL_TTS_LANGUAGE: "hi"
+          REEL_TTS_VOICE: "hi-IN-MadhurNeural"
+          REEL_TTS_RATE: "-8%"
           SKIP_EXISTING: "0"
-        run: python render_book_reels.py book_summaries.json assets book_reels
+        run: |
+          set -euo pipefail
+          OUT="book_reels/${GITHUB_RUN_ID}"
+          mkdir -p "$OUT"
+          python render_book_reels.py book_summaries.json assets "$OUT"
       - name: Validate all 30 MP4 videos and audio streams
         shell: bash
         run: |
           set -euo pipefail
-          COUNT="$(find social-content/book_reels -maxdepth 1 -type f -name '*.mp4' | wc -l)"
+          OUT="social-content/book_reels/${GITHUB_RUN_ID}"
+          COUNT="$(find "$OUT" -maxdepth 1 -type f -name '*.mp4' | wc -l)"
           test "$COUNT" -eq 30
           for n in $(seq -w 1 30); do
-            f="social-content/book_reels/${n}.mp4"
+            f="$OUT/${n}.mp4"
             test -s "$f"
             DIM="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$f" | head -1)"
             AUDIO="$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_type -of csv=p=0 "$f" | head -1)"
+            DURATION="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f")"
             test "$DIM" = "1080x1920"
             test "$AUDIO" = "audio"
+            awk -v d="$DURATION" 'BEGIN { exit !(d >= 12 && d <= 120) }'
           done
-          echo "PASS: 30 book-summary Reels, 1080x1920, with audio."
-      - name: Upload book Reels and review package
+          echo "PASS: 30 Reels, 1080x1920, neural Hindi audio, unique run folder."
+      - name: Upload uniquely named book Reels review package
         uses: actions/upload-artifact@v4
         with:
-          name: book-summary-reels
+          name: book-summary-reels-${{ github.run_id }}
           path: |
-            social-content/book_reels/*.mp4
+            social-content/book_reels/${{ github.run_id }}/*.mp4
             social-content/book_summaries.json
             social-content/book-summary-quality-report.json
           if-no-files-found: error
           retention-days: 30
       - name: Confirm review-only delivery
-        run: echo "Book-summary Reels generated and uploaded for review. Instagram publishing is disabled."
+        run: echo "Neural Hindi book-summary Reels generated for review. Instagram publishing is disabled."
