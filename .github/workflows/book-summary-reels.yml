@@ -1,0 +1,40 @@
+name: book-summary-reels
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_review_only:
+        description: "Confirm this run prepares content only; it does not publish to Instagram"
+        required: true
+        type: boolean
+        default: true
+  push:
+    paths:
+      - "social-content/book_summaries.json"
+      - "social-content/validate_book_summaries.py"
+      - ".github/workflows/book-summary-reels.yml"
+permissions:
+  contents: read
+concurrency:
+  group: book-summary-reels-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    if: github.event_name != 'workflow_dispatch' || inputs.confirm_review_only == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate 30-day book-summary plan
+        run: python social-content/validate_book_summaries.py
+      - name: Upload reviewed content package
+        uses: actions/upload-artifact@v4
+        with:
+          name: book-summary-content-plan
+          path: |
+            social-content/book_summaries.json
+            social-content/book-summary-quality-report.json
+          if-no-files-found: error
+          retention-days: 30
