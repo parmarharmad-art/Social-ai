@@ -2,7 +2,7 @@
 Usage: python tutorial_reel.py reels.json assets out_dir [reel_number]
 Requires Pillow, numpy, ffmpeg and the repository voice.py dependencies.
 """
-import json, os, sys, subprocess, tempfile, wave
+import json, os, sys, subprocess, tempfile, wave, glob
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -17,12 +17,26 @@ MUTED = (163, 180, 207)
 ACCENT = (151, 112, 255)
 
 def font(size, bold=True):
-    paths = [
+    # Prefer a Devanagari-capable Noto font and enable shaping for Hindi matras/ligatures.
+    patterns = [
         "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Bold.ttf" if bold else "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf",
+        "/usr/share/fonts/**/*Devanagari*Bold*.ttf" if bold else "/usr/share/fonts/**/*Devanagari*Regular*.ttf",
+        "/usr/share/fonts/**/*Devanagari*.ttf",
+    ]
+    candidates = []
+    for pattern in patterns:
+        candidates.extend(glob.glob(pattern, recursive=True))
+    candidates += [
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     ]
-    for p in paths:
-        if os.path.exists(p): return ImageFont.truetype(p, size)
+    layout = getattr(ImageFont, "Layout", None)
+    engine = layout.RAQM if layout and hasattr(layout, "RAQM") else None
+    for path in candidates:
+        if os.path.exists(path):
+            try:
+                return ImageFont.truetype(path, size, layout_engine=engine) if engine is not None else ImageFont.truetype(path, size)
+            except Exception:
+                continue
     return ImageFont.load_default()
 
 def rounded(draw, xy, radius, fill, outline=None, width=2):
