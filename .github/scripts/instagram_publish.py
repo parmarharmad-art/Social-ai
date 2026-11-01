@@ -4,9 +4,10 @@
 Required GitHub Actions secrets:
   INSTAGRAM_USER_ID
   INSTAGRAM_ACCESS_TOKEN
-Optional repository variables:
-  INSTAGRAM_REEL_VIDEO_URL (overrides auto-selected public GitHub raw URL)
-  INSTAGRAM_CAPTION
+Optional workflow inputs / repository variables:
+  reel_number (latest or an exact numbered MP4 such as 07)
+  caption (overrides the matching reels.json caption)
+  INSTAGRAM_REEL_VIDEO_URL (overrides the auto-selected public GitHub raw URL)
   META_GRAPH_API_VERSION
 The repository must be public for the default raw URL to be fetchable by Meta.
 """
@@ -36,7 +37,22 @@ def request(method, url, data=None):
         body = exc.read().decode("utf-8", "replace")
         raise RuntimeError(f"Meta API HTTP {exc.code}: {body}") from exc
 
-def resolve_video_url():
+def select_reel():
+    reel_dir = Path("social-content/reels")
+    requested = os.getenv("INSTAGRAM_REEL_NUMBER", "latest").strip().lower()
+    candidates = {p.stem: p for p in reel_dir.glob("*.mp4") if p.is_file() and p.stem.isdigit()}
+    if not candidates:
+        raise RuntimeError("No generated numbered MP4 found in social-content/reels.")
+    if requested in ("", "latest"):
+        key = max(candidates, key=lambda value: int(value))
+    else:
+        key = str(int(requested)).zfill(2)
+        if key not in candidates:
+            raise RuntimeError(f"Requested Reel {requested} was not generated. Available: {', '.join(sorted(candidates))}")
+    return int(key), candidates[key]
+
+
+def resolve_video_url(path):
     override = os.getenv("INSTAGRAM_REEL_VIDEO_URL", "").strip()
     if override:
         if not override.startswith("https://"):
@@ -45,18 +61,28 @@ def resolve_video_url():
     repo = os.getenv("GITHUB_REPOSITORY", "").strip()
     if not repo:
         raise RuntimeError("No INSTAGRAM_REEL_VIDEO_URL and GITHUB_REPOSITORY is unavailable.")
-    reel_dir = Path("social-content/reels")
-    candidates = [p for p in reel_dir.glob("*.mp4") if p.is_file()]
-    if not candidates:
-        raise RuntimeError("No generated MP4 found in social-content/reels.")
-    newest = max(candidates, key=lambda p: p.stat().st_mtime)
-    # The workflow commits/pushes outputs before this step, so main points to the published file.
-    return f"https://raw.githubusercontent.com/{repo}/main/{newest.as_posix()}"
+    # The workflow commits/pushes outputs before this step; repository must be public.
+    return f"https://raw.githubusercontent.com/{repo}/main/{path.as_posix()}"
+
+
+def resolve_caption(reel_number):
+    override = os.getenv("INSTAGRAM_CAPTION", "").strip()
+    if override:
+        return override
+    content_file = Path("social-content/reels.json")
+    if content_file.exists():
+        with content_file.open(encoding="utf-8") as handle:
+            items = json.load(handle)
+        for item in items:
+            if int(item.get("n", -1)) == reel_number:
+                return str(item.get("cap", "Follow @officialkiraankumar for AI automation tips.")).strip()
+    return "Follow @officialkiraankumar for AI automation tips."
 
 def main():
     user_id = os.getenv("INSTAGRAM_USER_ID", "").strip()
     token = os.getenv("INSTAGRAM_ACCESS_TOKEN", "").strip()
-    caption = os.getenv("INSTAGRAM_CAPTION", "Created with SocialPilot AI").strip()
+    reel_number, reel_path = select_reel()
+    caption = resolve_caption(reel_number)
     missing = [name for name, value in [
         ("INSTAGRAM_USER_ID", user_id),
         ("INSTAGRAM_ACCESS_TOKEN", token),
@@ -64,8 +90,8 @@ def main():
     if missing:
         print("Instagram publishing skipped; missing GitHub Actions secrets: " + ", ".join(missing))
         sys.exit(2)
-    video_url = resolve_video_url()
-    print("Publishing Reel URL:", video_url)
+    video_url = resolve_video_url(reel_path)
+    print(f"Publishing Reel {reel_number:02d}: {video_url}")
     create = request("POST", f"{BASE}/{urllib.parse.quote(user_id)}/media", {
         "media_type": "REELS",
         "video_url": video_url,
