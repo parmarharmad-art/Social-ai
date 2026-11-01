@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Fetch verified title/author book-cover images from Open Library."""
 import json
+from io import BytesIO
+from PIL import Image
 import sys
 import time
 import urllib.parse
@@ -65,12 +67,11 @@ def main():
         if len(data) < 3000 or not data.startswith(bytes.fromhex("ffd8ff")):
             raise SystemExit("Invalid or missing cover image for: " + row["book"])
         path = out / ("book_%02d.png" % int(row["id"]))
-        # Keep JPEG bytes as .jpg so image decoders can identify them correctly.
-        path = path.with_suffix(".jpg")
-        path.write_bytes(data)
-        print("Fetched matching cover:", row["book"], "by", row["author"], "->", path.name, len(data), "bytes", flush=True)
+        with Image.open(BytesIO(data)) as cover:
+            cover.convert("RGB").save(path, format="PNG", optimize=True)
+        print("Fetched matching cover:", row["book"], "by", row["author"], "->", path.name, path.stat().st_size, "bytes", flush=True)
         time.sleep(1)
-    if len(list(out.glob("book_*.jpg"))) != len(rows):
+    if len(list(out.glob("book_*.png"))) != len(rows):
         raise SystemExit("Book-cover count mismatch")
 if __name__ == "__main__":
     main()
