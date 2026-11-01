@@ -1,0 +1,49 @@
+name: tutorial-style-reel
+on:
+  workflow_dispatch:
+    inputs:
+      reel_number:
+        description: "Existing original Reel brief number from reels.json (1-60)"
+        required: true
+        type: string
+        default: "1"
+permissions:
+  contents: read
+jobs:
+  render-tutorial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install renderer dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg espeak-ng fonts-noto-core
+          pip install pillow numpy edge-tts gTTS
+      - name: Render selected tutorial-style Reel
+        working-directory: social-content
+        env:
+          REQUIRE_VOICE: "1"
+        run: |
+          python tutorial_reel.py reels.json assets tutorial_output "${{ inputs.reel_number }}"
+      - name: Validate rendered video
+        working-directory: social-content
+        run: |
+          set -euo pipefail
+          FILE="tutorial_output/$(printf '%02d' "${{ inputs.reel_number }}")-tutorial.mp4"
+          test -s "$FILE"
+          DIM="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$FILE" | head -1)"
+          AUDIO="$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_type -of csv=p=0 "$FILE" | head -1)"
+          test "$DIM" = "1080x1920"
+          test "$AUDIO" = "audio"
+          echo "PASS: $FILE ($DIM, audio present)"
+      - name: Upload tutorial Reel
+        uses: actions/upload-artifact@v4
+        with:
+          name: tutorial-style-reel-${{ inputs.reel_number }}
+          path: social-content/tutorial_output/*.mp4
+          if-no-files-found: error
+          retention-days: 7
