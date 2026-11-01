@@ -218,7 +218,21 @@ def audio_for(item, tmp, narration):
         wf.setsampwidth(2)
         wf.setframerate(SR)
         wf.writeframes((mix * 32767).astype(np.int16).tobytes())
-    return wav_path, duration
+    # Build timed Hinglish subtitles from the exact generated speech segments.
+    def stamp(seconds):
+        millis = int(round(seconds * 1000))
+        hours, millis = divmod(millis, 3600000)
+        minutes, millis = divmod(millis, 60000)
+        secs, millis = divmod(millis, 1000)
+        return "%02d:%02d:%02d,%03d" % (hours, minutes, secs, millis)
+
+    srt_path = os.path.join(tmp, "captions.srt")
+    with open(srt_path, "w", encoding="utf-8") as captions:
+        for index, (start, samples, spoken_text) in enumerate(zip(starts, clips, narration), 1):
+            end = start + len(samples) / SR
+            captions.write("%d\\n%s --> %s\\n%s\\n\\n" %
+                           (index, stamp(start), stamp(end), spoken_text))
+    return wav_path, duration, srt_path
 
 
 def render(item):
@@ -231,7 +245,7 @@ def render(item):
     scenes = item.get("scenes", [])
     scene_count = max(1, len(scenes), len(narration))
     tmp = tempfile.mkdtemp(prefix="book_reel_")
-    wav, duration = audio_for(item, tmp, narration)
+    wav, duration, srt_path = audio_for(item, tmp, narration)
 
     # Scene images are timed to their matching voice segments, with a cover intro.
     frames = []
@@ -258,7 +272,12 @@ def render(item):
     # Preserve concat-demuxer scene timestamps and generate a full 24-fps
     # video stream. zoompan(d=1) collapsed each still image to one frame,
     # causing the audio/video output to be truncated by -shortest.
-    vf = "fps=%d,format=yuv420p" % FPS
+    subtitle_filter = (
+        "subtitles='%s':force_style='FontName=Noto Sans,FontSize=44,"
+        "PrimaryColour=&H00FFFFFF,OutlineColour=&H00101010,"
+        "BorderStyle=1,Outline=3,Shadow=1,Alignment=2,MarginV=420'"
+    ) % srt_path.replace("\\\\", "/")
+    vf = "fps=%d,%s,format=yuv420p" % (FPS, subtitle_filter)
     cmd = ["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0",
            "-i", concat_path, "-i", wav, "-vf", vf, "-t", "%.2f" % duration,
            "-r", str(FPS), "-c:v", "libx264", "-preset", "veryfast",
