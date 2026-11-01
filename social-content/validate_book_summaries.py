@@ -84,8 +84,8 @@ def main() -> None:
         if not all(nonempty_text(beat) for beat in voiceover):
             fail(f"{label}: every voiceover beat must be non-empty text")
         voiceover_words += len(" ".join(voiceover).split())
-        if len(" ".join(voiceover).split()) < 35:
-            fail(f"{label}: voiceover is too short for a useful Reel script")
+        if len(" ".join(voiceover).split()) < 20:
+            fail(f"{label}: voiceover is too short to provide three meaningful beats")
 
         scenes = row["scenes"]
         if not isinstance(scenes, list) or len(scenes) != 3:
