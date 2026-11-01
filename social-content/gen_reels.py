@@ -379,63 +379,34 @@ def plan_audio(item, tmp):
 
 
 def render(item):
+    """Render one branded slide Reel efficiently; narration remains synchronized."""
     bg, items, cta, layout, th, acc = build(item)
     tmp = tempfile.mkdtemp()
     plan = plan_audio(item, tmp)
     if not plan and os.environ.get("REQUIRE_VOICE") == "1":
         raise SystemExit("ERROR: voice generation failed for Reel %s; refusing to create a silent preview." % item["n"])
-    npts = len(item["pts"])
     if plan:
         starts, dur, wav = plan
-        bullet_t = [s - 0.1 for s in starts[1:1 + npts]]
-        cta_start = starts[-1] - 0.1
         audio_in = ["-i", wav]
     else:
-        dur = item.get("dur", 6 + 2.4 * npts)
-        bullet_t = [1.2 + i * 2.2 for i in range(npts)]
-        cta_start = dur - 2.6
+        dur = item.get("dur", 6 + 2.4 * len(item["pts"]))
         audio_in = ["-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100"]
-    total = int(dur * FPS)
+    # Compose once rather than sending thousands of full-resolution PIL frames
+    # through a pipe. This keeps 1080x1920 output and real narration, with a
+    # clean, readable slide-style Reel.
+    frame = bg.copy()
+    for layer, x, y, kind in items:
+        frame.alpha_composite(layer, (int(x), int(y)))
+    frame.alpha_composite(cta, ((W - cta.width) // 2, H - BAND - 150))
+    frame_path = os.path.join(tmp, "frame.png")
+    frame.convert("RGB").save(frame_path, optimize=False)
     out = os.path.join(out_dir, "%02d.mp4" % item["n"])
-    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
-           "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"] + audio_in + [
-           "-t", "%.2f" % dur, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "ultrafast",
-           "-crf", "22", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", out]
-    p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-    bullets = [it for it in items if it[3] in ("bullet", "single")]
-    for f in range(total):
-        t = f / FPS
-        frame = bg.copy()
-        a = ease(t / 0.7)
-        hl, hx, hy, _ = items[0]
-        if layout == "side":
-            paste_fade(frame, hl, hx, hy, a, dx=(1 - a) * -120)
-        else:
-            paste_fade(frame, hl, hx, hy, a, dy=(1 - a) * 60)
-        for i, (layer, x, y, kind) in enumerate(bullets):
-            a = ease((t - bullet_t[i]) / 0.6)
-            if kind == "single":
-                if i + 1 < len(bullets) and t >= bullet_t[i + 1]:
-                    continue
-                paste_fade(frame, layer, x, y, a, dx=(1 - a) * 160)
-            elif layout == "side":
-                paste_fade(frame, layer, x, y, a, dx=(1 - a) * -160)
-            else:
-                paste_fade(frame, layer, x, y, a, dy=(1 - a) * 50)
-        if layout == "single":
-            d = ImageDraw.Draw(frame)
-            cur = max([i for i in range(npts) if t >= bullet_t[i]] or [-1])
-            for i in range(npts):
-                d.ellipse((60 + i * 44, H - BAND - 34, 60 + i * 44 + 26, H - BAND - 10),
-                          fill=acc + (255,) if i == cur else acc + (70,))
-        if t >= cta_start:
-            a = ease((t - cta_start) / 0.5)
-            paste_fade(frame, cta, (W - cta.width) // 2, H - BAND - 150, a, dy=(1 - a) * 40)
-        d = ImageDraw.Draw(frame)
-        d.rectangle((0, 0, int(W * t / dur), 10), fill=acc + (255,))
-        p.stdin.write(np.asarray(frame.convert("RGB")).tobytes())
-    p.stdin.close()
-    p.wait()
+    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-loop", "1", "-framerate", str(FPS),
+           "-i", frame_path] + audio_in + [
+           "-t", "%.2f" % dur, "-c:v", "libx264", "-pix_fmt", "yuv420p",
+           "-preset", "ultrafast", "-crf", "23", "-c:a", "aac", "-b:a", "128k",
+           "-shortest", "-movflags", "+faststart", out]
+    subprocess.run(cmd, check=True, timeout=180)
     print("wrote", out, th["name"], layout, "voice" if plan else "silent", "%.1fs" % dur)
 
 
