@@ -1,5 +1,9 @@
 name: tutorial-style-reel
 on:
+  push:
+    paths:
+      - "social-content/tutorial_reel.py"
+      - ".github/workflows/tutorial-style-reel.yml"
   workflow_dispatch:
     inputs:
       reel_number:
@@ -28,7 +32,7 @@ jobs:
         env:
           REQUIRE_VOICE: "1"
         run: |
-          python tutorial_reel.py reels.json assets tutorial_output "${{ inputs.reel_number }}"
+          python tutorial_reel.py reels.json assets tutorial_output "${{ inputs.reel_number || '1' }}"
       - name: Validate rendered video
         working-directory: social-content
         run: |
