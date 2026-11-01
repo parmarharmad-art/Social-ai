@@ -22,7 +22,7 @@ data_path, assets, out_dir = sys.argv[1], sys.argv[2], sys.argv[3]
 only = int(sys.argv[4]) if len(sys.argv) > 4 and sys.argv[4].isdigit() else None
 os.makedirs(out_dir, exist_ok=True)
 
-W, H, FPS = 1080, 1920, 30
+W, H, FPS = 1080, 1920, 24
 BAND = 190
 white = (255, 255, 255)
 
@@ -399,7 +399,7 @@ def render(item):
     out = os.path.join(out_dir, "%02d.mp4" % item["n"])
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
            "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-"] + audio_in + [
-           "-t", "%.2f" % dur, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium",
+           "-t", "%.2f" % dur, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "ultrafast",
            "-crf", "22", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", out]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     bullets = [it for it in items if it[3] in ("bullet", "single")]
