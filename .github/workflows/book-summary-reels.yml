@@ -32,20 +32,18 @@ jobs:
       - name: Validate 30-day book-summary plan
         working-directory: social-content
         run: python validate_book_summaries.py
-      - name: Install video rendering dependencies and neural TTS
+      - name: Install video rendering dependencies and Hindi TTS
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ffmpeg fonts-noto-core fonts-dejavu-core
           python -m pip install --upgrade pip
-          pip install pillow numpy edge-tts
-      - name: Render 30 book-summary Reels with neural Hindi voiceover
+          pip install pillow numpy gTTS
+      - name: Render 30 book-summary Reels with clear Hindi voiceover
         working-directory: social-content
         env:
           REQUIRE_VOICE: "1"
           REEL_TTS_LANGUAGE: "hi"
-          REEL_TTS_VOICE: "hi-IN-MadhurNeural"
-          REEL_TTS_RATE: "-8%"
-          SKIP_EXISTING: "0"
+                    SKIP_EXISTING: "0"
         run: |
           set -euo pipefail
           OUT="book_reels/${GITHUB_RUN_ID}"
@@ -68,7 +66,7 @@ jobs:
             test "$AUDIO" = "audio"
             awk -v d="$DURATION" 'BEGIN { exit !(d >= 12 && d <= 120) }'
           done
-          echo "PASS: 30 Reels, 1080x1920, neural Hindi audio, unique run folder."
+          echo "PASS: 30 Reels, 1080x1920, Hindi narration audio, unique run folder."
       - name: Upload uniquely named book Reels review package
         uses: actions/upload-artifact@v4
         with:
