@@ -11,6 +11,7 @@ This folder is the GitHub source of truth for reusable social-content briefs. It
 | [BOOK_SUMMARY_REELS.md](BOOK_SUMMARY_REELS.md) | Editorial format, Android production notes and rights safeguards |
 | [book-summary-make-config.json](book-summary-make-config.json) | Machine-readable source and field-mapping contract for Make |
 | [BOOK_SUMMARY_MAKE_HANDOFF.md](BOOK_SUMMARY_MAKE_HANDOFF.md) | Claude + Make integration handoff and boundaries |
+| [EXTERNAL_SKILLS.md](EXTERNAL_SKILLS.md) | Reviewed MIT-licensed public skills and safe reuse guidance |
 | [book-summary-reels.yml](../.github/workflows/book-summary-reels.yml) | GitHub Actions QA workflow |
 
 ## Integration contract
