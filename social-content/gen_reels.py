@@ -258,8 +258,7 @@ def render(item):
     # Slow zoom + moving progress indicator creates motion without distracting transitions.
     vf = ("zoompan=z='min(zoom+0.00035,1.035)':d=1:"
           "x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=%d,"
-          "drawbox=x=0:y=0:w=iw*t/%0.3f:h=12:color=0x3AD2FF@0.95:t=fill,"
-          "format=yuv420p" % (FPS, max(duration, 1)))
+          "format=yuv420p" % FPS)
     cmd = ["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0",
            "-i", concat_path, "-i", wav, "-vf", vf, "-t", "%.2f" % duration,
            "-r", str(FPS), "-c:v", "libx264", "-preset", "veryfast",
