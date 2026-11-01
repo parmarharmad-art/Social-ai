@@ -74,7 +74,7 @@ jobs:
           report = []
           for index, path in enumerate(files, 1):
               probe = subprocess.run(
-                  ["ffprobe", "-v", "error", "-show_entries", "stream=codec_type,width,height", "-show_entries", "format=duration", "-of", "json", str(path)],
+                  ["ffprobe", "-v", "error", "-count_frames", "-show_entries", "stream=codec_type,width,height,duration,nb_read_frames,avg_frame_rate", "-show_entries", "format=duration", "-of", "json", str(path)],
                   capture_output=True, text=True
               )
               if probe.returncode:
@@ -83,7 +83,16 @@ jobs:
               streams = data.get("streams", [])
               video = next((s for s in streams if s.get("codec_type") == "video"), None)
               audio = next((s for s in streams if s.get("codec_type") == "audio"), None)
-              duration = float(data.get("format", {}).get("duration", 0))
+              # Prefer the video stream's measured duration; MP4 container duration can be
+              # misleading for concat-demuxer output. Fall back to counted frames/FPS.
+              stream_duration = float(video.get("duration", 0) or 0) if video else 0
+              frame_rate = video.get("avg_frame_rate", "0/1") if video else "0/1"
+              try:
+                  numerator, denominator = map(float, frame_rate.split("/"))
+                  counted_duration = int(video.get("nb_read_frames", 0)) * denominator / numerator if numerator else 0
+              except (ValueError, ZeroDivisionError):
+                  counted_duration = 0
+              duration = max(stream_duration, counted_duration, float(data.get("format", {}).get("duration", 0)))
               if not video or (video.get("width"), video.get("height")) != (1080, 1920):
                   raise SystemExit(f"{path.name}: invalid video stream/dimensions: {video}")
               if not audio:
