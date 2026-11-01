@@ -27,7 +27,9 @@ jobs:
       - name: Install renderer dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y ffmpeg espeak-ng fonts-noto-core
+          sudo apt-get install -y ffmpeg espeak-ng fontconfig fonts-noto-core
+          fc-match -f '%{file}\n' 'Noto Sans Devanagari:lang=hi'
+          python -c "from PIL import features; print('Pillow RAQM:', features.check_feature('raqm'))" || true
           pip install pillow numpy edge-tts gTTS
       - name: Render selected tutorial-style Reel
         working-directory: social-content
