@@ -6,7 +6,7 @@ on:
         description: "Publish one generated Reel to Instagram after validation"
         required: false
         type: boolean
-        default: true
+        default: false
       reel_number:
         description: "Reel number to publish (latest or 01-60)"
         required: false
@@ -28,7 +28,7 @@ on:
       - "!social-content/ig_cards/**"
       - "!social-content/reels/**"
 concurrency:
-  group: social-content-${{ github.ref }}-${{ github.sha }}
+  group: social-content-${{ github.ref }}
   cancel-in-progress: true
 permissions:
   contents: write
