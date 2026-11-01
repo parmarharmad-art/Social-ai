@@ -17,27 +17,24 @@ MUTED = (163, 180, 207)
 ACCENT = (151, 112, 255)
 
 def font(size, bold=True):
-    # Prefer a Devanagari-capable Noto font and enable shaping for Hindi matras/ligatures.
-    patterns = [
-        "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Bold.ttf" if bold else "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf",
-        "/usr/share/fonts/**/*Devanagari*Bold*.ttf" if bold else "/usr/share/fonts/**/*Devanagari*Regular*.ttf",
-        "/usr/share/fonts/**/*Devanagari*.ttf",
-    ]
-    candidates = []
-    for pattern in patterns:
-        candidates.extend(glob.glob(pattern, recursive=True))
-    candidates += [
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-    ]
+    # Resolve the installed Hindi font through fontconfig, then require RAQM shaping.
+    # Falling back silently to DejaVu produces unreadable square glyphs for Devanagari.
+    pattern = "Noto Sans Devanagari:style=Bold:lang=hi" if bold else "Noto Sans Devanagari:style=Regular:lang=hi"
+    try:
+        path = subprocess.check_output(
+            ["fc-match", "-f", "%{file}", pattern], text=True
+        ).strip()
+    except Exception as exc:
+        raise RuntimeError("Hindi font lookup failed; install fonts-noto-core") from exc
+    if not path or not os.path.isfile(path):
+        raise RuntimeError("Noto Sans Devanagari font file not found")
     layout = getattr(ImageFont, "Layout", None)
-    engine = layout.RAQM if layout and hasattr(layout, "RAQM") else None
-    for path in candidates:
-        if os.path.exists(path):
-            try:
-                return ImageFont.truetype(path, size, layout_engine=engine) if engine is not None else ImageFont.truetype(path, size)
-            except Exception:
-                continue
-    return ImageFont.load_default()
+    if not layout or not hasattr(layout, "RAQM"):
+        raise RuntimeError("Pillow RAQM is required for correct Hindi shaping")
+    try:
+        return ImageFont.truetype(path, size, layout_engine=layout.RAQM)
+    except Exception as exc:
+        raise RuntimeError(f"Could not load Hindi font with RAQM: {path}") from exc
 
 def rounded(draw, xy, radius, fill, outline=None, width=2):
     draw.rounded_rectangle(xy, radius=radius, fill=fill, outline=outline, width=width)
