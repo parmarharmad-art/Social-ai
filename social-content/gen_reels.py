@@ -1,301 +1,146 @@
-"""Create faceless, animated book-summary Reels (1080x1920).
-
-Usage:
-  python gen_reels.py book_summaries.json assets_dir out_dir [only_id]
-
-Book mode is intentionally faceless: it uses assets/book_*.png only and never
-loads person*.png. Requires Pillow, numpy, ffmpeg, and social-content/voice.py.
-"""
-import glob
-import json
-import os
-import subprocess
-import sys
-import tempfile
-import wave
-
-# Clearer, slightly slower Hindi narration unless the workflow overrides it.
-os.environ.setdefault("REEL_VOICE", "hi-IN-MadhurNeural")
-os.environ.setdefault("REEL_TTS_RATE", "-8%")
-
+#!/usr/bin/env python3
+"""v3 animated Reel renderer: normal reels + BOOK_MODE, Hindi voice, karaoke captions."""
+import glob, json, os, subprocess, sys, tempfile, wave
+from pathlib import Path
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import voice
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import voice  # noqa: E402
-
-VERSION = "v3-animated-book"
-W, H, FPS, SR = 1080, 1920, 24, 44100
-WHITE = (250, 250, 255)
-BG = (7, 16, 38)
-ACCENT = (58, 210, 255)
-GOLD = (255, 198, 82)
-
-if len(sys.argv) < 4:
-    raise SystemExit("Usage: python gen_reels.py input.json assets_dir out_dir [only_id]")
-DATA_PATH, ASSETS, OUT_DIR = sys.argv[1:4]
-ONLY = int(sys.argv[4]) if len(sys.argv) > 4 and sys.argv[4].isdigit() else None
-os.makedirs(OUT_DIR, exist_ok=True)
-
-
-def font_path():
-    candidates = [
-        os.path.join(ASSETS, "fonts", "NotoSansDevanagari-Bold.ttf"),
-        "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Bold.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-    ]
-    for path in candidates:
-        if os.path.isfile(path):
-            return path
-    raise SystemExit("No compatible font found. Add NotoSansDevanagari-Bold.ttf to assets/fonts.")
-
-
-FONT_FILE = font_path()
-
-
-def fit_font(draw, text, max_width, start=68, minimum=34):
-    for size in range(start, minimum - 1, -2):
-        f = ImageFont.truetype(FONT_FILE, size)
-        if draw.textbbox((0, 0), text, font=f)[2] <= max_width:
-            return f
-    return ImageFont.truetype(FONT_FILE, minimum)
-
-
-def wrap_text(draw, text, font, width):
-    words, lines, current = str(text).split(), [], ""
-    for word in words:
-        test = (current + " " + word).strip()
-        if draw.textbbox((0, 0), test, font=font)[2] <= width:
-            current = test
-        else:
-            if current:
-                lines.append(current)
-            current = word
-    if current:
-        lines.append(current)
-    return lines or [""]
-
-
-def gradient():
-    arr = np.zeros((H, W, 3), dtype=np.uint8)
-    top = np.array((7, 16, 38), dtype=float)
-    bottom = np.array((20, 48, 82), dtype=float)
-    for y in range(H):
-        t = y / max(1, H - 1)
-        arr[y, :, :] = (top * (1 - t) + bottom * t).astype(np.uint8)
-    return Image.fromarray(arr, "RGB").convert("RGBA")
-
-
-def load_book_cover(book_id):
-    patterns = [
-        os.path.join(ASSETS, "book_%02d.png" % book_id),
-        os.path.join(ASSETS, "book_%d.png" % book_id),
-        os.path.join(ASSETS, "book-cover-%02d.png" % book_id),
-    ]
-    for p in patterns:
-        if os.path.isfile(p):
-            return Image.open(p).convert("RGBA")
-    covers = sorted(glob.glob(os.path.join(ASSETS, "book_*.png")))
-    if covers:
-        return Image.open(covers[(book_id - 1) % len(covers)]).convert("RGBA")
-    return None
-
-
-def cover_card(canvas, cover, title, author):
-    d = ImageDraw.Draw(canvas)
-    card = Image.new("RGBA", (690, 900), (255, 255, 255, 15))
-    cd = ImageDraw.Draw(card)
-    cd.rounded_rectangle((0, 0, 689, 899), radius=34, fill=(255, 255, 255, 18),
-                         outline=(100, 190, 255, 110), width=3)
-    if cover:
-        cover.thumbnail((520, 650), Image.Resampling.LANCZOS)
-        x, y = (690 - cover.width) // 2, 35 + (650 - cover.height) // 2
-        shadow = Image.new("RGBA", cover.size, (0, 0, 0, 130))
-        shadow.putalpha(cover.getchannel("A").point(lambda a: int(a * .55)))
-        card.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(18)), (x + 8, y + 16))
-        card.alpha_composite(cover, (x, y))
-    else:
-        cd.rounded_rectangle((85, 70, 605, 650), radius=22, fill=(17, 45, 75, 255),
-                             outline=(58, 210, 255, 255), width=4)
-        tf = fit_font(cd, title, 440, 52, 32)
-        lines = wrap_text(cd, title, tf, 440)
-        yy = 250 - 45 * len(lines)
-        for line in lines:
-            cd.text((345, yy), line, font=tf, fill=WHITE, anchor="mm")
-            yy += 92
-    title_font = fit_font(cd, title, 610, 36, 24)
-    cd.text((345, 730), title, font=title_font, fill=WHITE, anchor="mm")
-    author_font = fit_font(cd, author, 610, 28, 20)
-    cd.text((345, 795), author, font=author_font, fill=GOLD, anchor="mm")
-    canvas.alpha_composite(card, ((W - card.width) // 2, 180))
-
-
-def make_frame(item, scene_index, scene_count, subtitle=''):
-    canvas = gradient()
-    d = ImageDraw.Draw(canvas)
-    # Soft decorative glows; no person photos are loaded or rendered.
-    glow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    gd = ImageDraw.Draw(glow)
-    gd.ellipse((650, 900, 1300, 1550), fill=(20, 130, 220, 65))
-    canvas = Image.alpha_composite(canvas, glow.filter(ImageFilter.GaussianBlur(110)))
-    d = ImageDraw.Draw(canvas)
-    d.rounded_rectangle((55, 55, 1025, 145), radius=34, fill=(255, 255, 255, 18),
-                        outline=(58, 210, 255, 100), width=2)
-    d.text((90, 78), "KIRAN KUMAR  •  BOOK INSIGHTS", font=ImageFont.truetype(FONT_FILE, 30),
-           fill=ACCENT)
-
-    if scene_index == 0:
-        cover_card(canvas, load_book_cover(int(item.get("id", item.get("n", 1)))),
-                   item.get("book", "BOOK SUMMARY"), item.get("author", ""))
-        headline = item.get("hook", item.get("h", "Aaj ka book lesson"))
-        hf = fit_font(d, headline, 930, 58, 36)
-        lines = wrap_text(d, headline, hf, 930)
-        yy = 1190
-        for line in lines[:3]:
-            d.text((W // 2, yy), line, font=hf, fill=WHITE, anchor="mm",
-                   stroke_width=1, stroke_fill=(0, 0, 0, 90))
-            yy += 78
-    else:
-        scenes = item.get("scenes", [])
-        scene = scenes[min(scene_index - 1, len(scenes) - 1)] if scenes else {}
-        overlay = scene.get("overlay", "")
-        label = item.get("theme", "KEY IDEA").upper()
-        d.rounded_rectangle((70, 330, 1010, 520), radius=34, fill=(255, 255, 255, 17),
-                            outline=(58, 210, 255, 100), width=2)
-        d.text((110, 375), label[:36], font=ImageFont.truetype(FONT_FILE, 30), fill=GOLD)
-        of = fit_font(d, overlay, 850, 64, 36)
-        lines = wrap_text(d, overlay, of, 850)
-        yy = 680
-        for line in lines[:5]:
-            d.text((W // 2, yy), line, font=of, fill=WHITE, anchor="mm")
-            yy += 92
-        # Animated-feeling scene cards made from the original editorial copy.
-        d.rounded_rectangle((110, 1260, 970, 1470), radius=32,
-                            fill=(12, 38, 66, 230), outline=(58, 210, 255, 120), width=3)
-        d.text((W // 2, 1365), "%02d  /  %02d" % (scene_index, scene_count),
-               font=ImageFont.truetype(FONT_FILE, 54), fill=ACCENT, anchor="mm")
-
-    # Readable caption for the matching narration segment.
-    if subtitle:
-        caption_font = fit_font(d, subtitle, 880, 42, 28)
-        caption_lines = wrap_text(d, subtitle, caption_font, 840)[:3]
-        box_top, box_bottom = 1430, 1570
-        d.rounded_rectangle((80, box_top, 1000, box_bottom), radius=28,
-                            fill=(0, 0, 0, 220), outline=(58, 210, 255, 150), width=2)
-        line_height = 42
-        start_y = box_top + (box_bottom - box_top - len(caption_lines) * line_height) // 2
-        for line in caption_lines:
-            d.text((W // 2, start_y), line, font=caption_font, fill=WHITE, anchor="mm",
-                   stroke_width=1, stroke_fill=(0, 0, 0, 255))
-            start_y += line_height
-
-    # Persistent brand footer and clear CTA.
-    d.rounded_rectangle((70, 1590, 1010, 1810), radius=36, fill=(3, 10, 25, 235),
-                        outline=(58, 210, 255, 120), width=2)
-    cta = item.get("cta", "Save karo aur follow @officialkiraankumar")
-    cf = fit_font(d, cta, 850, 42, 28)
-    d.text((W // 2, 1665), cta, font=cf, fill=GOLD, anchor="mm")
-    d.text((W // 2, 1750), "@officialkiraankumar", font=ImageFont.truetype(FONT_FILE, 30),
-           fill=WHITE, anchor="mm")
-    return canvas.convert("RGB")
-
-
-def audio_for(item, tmp, narration):
-    clips, starts = [], []
-    cursor = 0.35
-    for i, text in enumerate(narration):
-        path = os.path.join(tmp, "voice_%02d.mp3" % i)
-        if not voice.synth(text, path):
-            raise RuntimeError("Hindi voice generation failed on narration segment %d" % (i + 1))
-        raw = subprocess.run(["ffmpeg", "-v", "error", "-i", path, "-f", "s16le",
-                              "-ac", "1", "-ar", str(SR), "-"], check=True,
-                             capture_output=True).stdout
-        samples = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
-        clips.append(samples)
-        starts.append(cursor)
-        cursor += len(samples) / SR + 0.38
-    duration = max(cursor + 0.5, 8.0)
-    mix = np.zeros(int(duration * SR), dtype=np.float32)
-    # Very soft original instrumental bed, kept well below speech.
-    t = np.arange(len(mix), dtype=np.float32) / SR
-    bed = (np.sin(2 * np.pi * 110 * t) + .45 * np.sin(2 * np.pi * 164.81 * t)) * .012
-    mix += bed.astype(np.float32)
-    for start, samples in zip(starts, clips):
-        pos = int(start * SR)
-        mix[pos:pos + len(samples)] += samples * .78
-    peak = max(float(np.max(np.abs(mix))), 0.01)
-    mix = np.clip(mix * min(1.0, .92 / peak), -0.98, .98)
-    wav_path = os.path.join(tmp, "narration.wav")
-    with wave.open(wav_path, "wb") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
-        wf.setframerate(SR)
-        wf.writeframes((mix * 32767).astype(np.int16).tobytes())
-    return wav_path, duration
-
-
+VERSION = "v3-animated"
+W,H,FPS,SR = 1080,1920,24,44100
+THEMES = {
+ "navy":((7,16,38),(20,48,82),(58,210,255)),
+ "violet":((24,12,48),(67,35,112),(190,130,255)),
+ "ember":((43,16,12),(112,42,24),(255,166,75)),
+ "forest":((7, thirty:=24, 27),(20,75,57),(106,230,164)),
+ "crimson":((38,9,24),(105,25,49),(255,105,140)),
+ "indigo":((12,17,54),(37,47,116),(133,160,255)),
+}
+if len(sys.argv)<4: raise SystemExit("Usage: gen_reels.py reels.json assets_dir out_dir [only_n]")
+DATA,ASSETS,OUT=sys.argv[1:4]
+ONLY=int(sys.argv[4]) if len(sys.argv)>4 and sys.argv[4].isdigit() else None
+BOOK_MODE=os.getenv("BOOK_MODE")=="1"
+os.makedirs(OUT,exist_ok=True)
+FONT_CANDIDATES=[os.path.join(ASSETS,"fonts","NotoSansDevanagari-Bold.ttf"),"/usr/share/fonts/truetype/noto/NotoSansDevanagari-Bold.ttf","/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"]
+FONT=next((p for p in FONT_CANDIDATES if os.path.isfile(p)),None)
+if not FONT: raise SystemExit("Noto/DejaVu font missing")
+def ft(size): return ImageFont.truetype(FONT,size)
+def fit(draw,s,maxw,size=60):
+ while size>28 and draw.textbbox((0,0),str(s),font=ft(size))[2]>maxw: size-=2
+ return ft(size)
+def wrap(draw,s,font,width):
+ out=[]; line=""
+ for word in str(s).split():
+  test=(line+" "+word).strip()
+  if draw.textbbox((0,0),test,font=font)[2]<=width: line=test
+ else:
+  if line: out.append(line)
+  return out or [""]
+def theme_for(item):
+ key=str(item.get("theme","navy")).lower()
+ return THEMES.get(key,THEMES[list(THEMES)[int(item.get("n",item.get("id",1)))%len(THEMES)]])
+def bg(item):
+ top,bottom,accent=theme_for(item)
+ a=np.zeros((H,W,3),dtype=np.uint8)
+ for y in range(H):
+  t=y/(H-1); a[y,:,:]=(np.array(top)*(1-t)+np.array(bottom)*t).astype("uint8")
+ im=Image.fromarray(a,"RGB").convert("RGBA")
+ glow=Image.new("RGBA",(W,H),(0,0,0,0)); gd=ImageDraw.Draw(glow)
+ gd.ellipse((650,900,1320,1580),fill=(*accent,70))
+ return Image.alpha_composite(im,glow.filter(ImageFilter.GaussianBlur(120)))
+def cover_for(n):
+ for p in [os.path.join(ASSETS,f"book_{n:02d}.png"),os.path.join(ASSETS,f"book_{n}.png")]:
+  if os.path.isfile(p): return Image.open(p).convert("RGBA")
+ pool=sorted(glob.glob(os.path.join(ASSETS,"book_*.png")))
+ return Image.open(pool[(n-1)%len(pool)]).convert("RGBA") if pool else None
+def draw_center(d,text,y,font,fill,anchor="mm"):
+ d.text((W//2,y),text,font=font,fill=fill,anchor=anchor)
+def make_frame(item,headline,caption,highlight=None,idx=0,total=1):
+ top,bottom,accent=theme_for(item); im=bg(item); d=ImageDraw.Draw(im)
+ d.rounded_rectangle((55,55,1025,145),radius=30,fill=(255,255,255,18),outline=(*accent,170),width=2)
+ d.text((88,82),"KIRAN KUMAR  •  AI INSIGHTS",font=ft(30),fill=(*accent,255))
+ if BOOK_MODE and idx==0:
+  cover=cover_for(int(item.get("n",item.get("id",1))))
+  if cover:
+   cover.thumbnail((490,620),Image.Resampling.LANCZOS)
+   im.alpha_composite(cover,((W-cover.width)//2,205))
+  else:
+   d.rounded_rectangle((240,210,840,850),radius=36,fill=(*top,255),outline=(*accent,255),width=5)
+   for j,line in enumerate(wrap(d,item.get("book","BOOK INSIGHT"),fit(d,item.get("book","BOOK INSIGHT"),500,56),500)):
+    draw_center(d,line,480+j*75,fit(d,line,500,56),(255,255,255,255))
+  title=item.get("book",headline)
+  for j,line in enumerate(wrap(d,title,fit(d,title,900,48),900)[:2]): draw_center(d,line,950+j*60,fit(d,line,900,48),(255,255,255,255))
+  draw_center(d,item.get("author",""),1080,ft(32),(*accent,255))
+ else:
+  for j,line in enumerate(wrap(d,headline,fit(d,headline,900,70),900)[:4]): draw_center(d,line,440+j*88,fit(d,line,900,70),(255,255,255,255))
+ if caption:
+  words=caption.split(); d.rounded_rectangle((70,1120,1010,1510),radius=34,fill=(0,0,0,210),outline=(*accent,210),width=3)
+  shown=words if highlight is None else words[:highlight+1]
+  # Word-by-word karaoke: active word is accent-colored.
+  full=" ".join(shown); f=fit(d,full,850,44)
+  lines=wrap(d,full,f,850)
+  for j,line in enumerate(lines[:4]): draw_center(d,line,1210+j*72,f,(255,255,255,255))
+  if highlight is not None and words:
+   active=words[min(highlight,len(words)-1)]
+   draw_center(d,"▶ "+active,1460,fit(d,active,700,38),(*accent,255))
+ d.rounded_rectangle((70,1580,1010,1810),radius=34,fill=(3,10,25,235),outline=(*accent,180),width=2)
+ cta=item.get("cta","Save karo aur follow @officialkiraankumar")
+ draw_center(d,cta,1660,fit(d,cta,850,42),(255,205,100,255))
+ draw_center(d,"@officialkiraankumar",1740,ft(30),(255,255,255,255))
+ return im.convert("RGB")
+def make_audio(lines,tmp):
+ clips=[]; starts=[]; cursor=.35
+ for i,line in enumerate(lines):
+  p=os.path.join(tmp,f"voice_{i:02d}.mp3")
+  if not voice.synth(line,p): raise RuntimeError(f"Voice generation failed at segment {i+1}; refusing silent render")
+  raw=subprocess.run(["ffmpeg","-v","error","-i",p,"-f","s16le","-ac","1","-ar",str(SR),"-"],check=True,capture_output=True).stdout
+  samples=np.frombuffer(raw,dtype=np.int16).astype(np.float32)/32768
+  clips.append(samples); starts.append(cursor); cursor+=len(samples)/SR+.32
+ dur=cursor+.6; mix=np.zeros(int(dur*SR),dtype=np.float32)
+ t=np.arange(len(mix))/SR
+ bed=(np.sin(2*np.pi*110*t)+.4*np.sin(2*np.pi*165*t))*.009
+ mix+=bed.astype(np.float32)
+ for start,s in zip(starts,clips):
+  pos=int(start*SR); mix[pos:pos+len(s)]+=s*.78
+ peak=max(float(np.max(np.abs(mix))),.01); mix=np.clip(mix*min(1,.92/peak),-.98,.98)
+ wavp=os.path.join(tmp,"mix.wav")
+ with wave.open(wavp,"wb") as w:
+  w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR); w.writeframes((mix*32767).astype(np.int16).tobytes())
+ return wavp,dur,starts,[len(s)/SR for s in clips]
 def render(item):
-    narration = item.get("voiceover")
-    if not narration:
-        narration = [item.get("h", item.get("hook", "Aaj ka important lesson"))] + item.get("pts", [])
-    narration = [str(x).strip() for x in narration if str(x).strip()]
-    if not narration:
-        raise ValueError("No narration found for item %s" % item.get("id", item.get("n")))
-    scenes = item.get("scenes", [])
-    scene_count = max(1, len(scenes), len(narration))
-    tmp = tempfile.mkdtemp(prefix="book_reel_")
-    wav, duration = audio_for(item, tmp, narration)
-
-    # Scene images are timed to their matching voice segments, with a cover intro.
-    frames = []
-    frame_durations = []
-    intro = min(2.8, max(1.8, duration * .18))
-    frames.append(make_frame(item, 0, scene_count, narration[0]))
-    frame_durations.append(intro)
-    remaining = duration - intro
-    per = remaining / max(1, scene_count - 1)
-    for i in range(1, scene_count):
-        frames.append(make_frame(item, i, scene_count, narration[min(i, len(narration) - 1)]))
-        frame_durations.append(per)
-
-    concat_path = os.path.join(tmp, "frames.txt")
-    with open(concat_path, "w", encoding="utf-8") as f:
-        for i, (frame, seconds) in enumerate(zip(frames, frame_durations)):
-            p = os.path.join(tmp, "frame_%02d.png" % i)
-            frame.save(p)
-            f.write("file '%s'\n" % p.replace("'", "'\\''"))
-            f.write("duration %.3f\n" % seconds)
-        f.write("file '%s'\n" % os.path.join(tmp, "frame_%02d.png" % (len(frames)-1)))
-
-    out = os.path.join(OUT_DIR, "%02d.mp4" % int(item.get("id", item.get("n", 1))))
-    # Preserve concat-demuxer scene timestamps and generate a full 24-fps
-    # video stream. zoompan(d=1) collapsed each still image to one frame,
-    # causing the audio/video output to be truncated by -shortest.
-    vf = "fps=%d,format=yuv420p" % FPS
-    cmd = ["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0",
-           "-i", concat_path, "-i", wav, "-vf", vf, "-t", "%.2f" % duration,
-           "-r", str(FPS), "-c:v", "libx264", "-preset", "veryfast",
-           "-crf", "21", "-c:a", "aac", "-b:a", "160k",
-           "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-shortest",
-           "-movflags", "+faststart", out]
-    subprocess.run(cmd, check=True, timeout=300)
-    print("Rendered", out, "|", item.get("book", "Book lesson"), "|", round(duration, 1), "sec")
-
-
+ n=int(item.get("n",item.get("id",1)))
+ narration=item.get("voiceover") or ([item.get("h",item.get("hook","Aaj ka lesson"))]+item.get("pts",[]))
+ narration=[str(x).strip() for x in narration if str(x).strip()]
+ if not narration: raise ValueError(f"No narration for reel {n}")
+ tmp=tempfile.mkdtemp(prefix="reel_v3_")
+ wav,duration,starts,lengths=make_audio(narration,tmp)
+ frames=[]; durations=[]
+ # Intro title and scene narration, with four progressive karaoke states per spoken line.
+ frames.append(make_frame(item,item.get("h",item.get("hook",narration[0])),narration[0],0,0,len(narration)))
+ durations.append(min(1.6,max(.9,duration*.10)))
+ for i,line in enumerate(narration):
+  words=line.split(); count=min(len(words),8)
+  segdur=lengths[i]/max(1,count)
+  for k in range(count):
+   frames.append(make_frame(item,line,line,min(len(words)-1,int((k+1)*len(words)/count)-1),i+1,len(narration)))
+   durations.append(max(.25,segdur))
+ concat=os.path.join(tmp,"frames.txt")
+ with open(concat,"w",encoding="utf-8") as f:
+  for i,(im,sec) in enumerate(zip(frames,durations)):
+   p=os.path.join(tmp,f"f{i:04d}.jpg"); im.save(p,quality=88)
+   f.write(f"file '{p}'\nduration {sec:.3f}\n")
+  f.write(f"file '{os.path.join(tmp,f'f{len(frames)-1:04d}.jpg')}'\n")
+ out=os.path.join(OUT,f"{n:02d}.mp4")
+ cmd=["ffmpeg","-y","-v","error","-f","concat","-safe","0","-i",concat,"-i",wav,"-vf",f"fps={FPS},scale={W}:{H},format=yuv420p","-t",f"{duration:.2f}","-r",str(FPS),"-c:v","libx264","-preset","veryfast","-crf","22","-c:a","aac","-b:a","160k","-af","loudnorm=I=-14:TP=-1.5:LRA=11","-shortest","-movflags","+faststart",out]
+ subprocess.run(cmd,check=True,timeout=900)
+ print(f"Rendered {out} ({duration:.1f}s) [{VERSION}]")
 def main():
-    with open(DATA_PATH, "r", encoding="utf-8") as f:
-        records = json.load(f)
-    if isinstance(records, dict):
-        records = records.get("books", records.get("items", []))
-    for item in records:
-        item_id = int(item.get("id", item.get("n", 0)))
-        if ONLY is not None and item_id != ONLY:
-            continue
-        render(item)
-    with open(os.path.join(OUT_DIR, ".ver"), "w", encoding="utf-8") as f:
-        f.write(VERSION + "\n")
-
-
-if __name__ == "__main__":
-    main()
+ with open(DATA,encoding="utf-8") as f: records=json.load(f)
+ if isinstance(records,dict): records=records.get("reels",records.get("books",records.get("items",[])))
+ if not isinstance(records,list) or not records: raise SystemExit("Input JSON must contain a non-empty list")
+ for item in records:
+  n=int(item.get("n",item.get("id",0)))
+  if ONLY is None or n==ONLY: render(item)
+ Path(OUT,".ver").write_text(VERSION+"\n",encoding="utf-8")
+if __name__=="__main__": main()
