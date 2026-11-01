@@ -30,25 +30,20 @@ def get(url, attempts=4):
 def find_cover(row):
     params = urllib.parse.urlencode({
         "title": row["book"],
-        "author": row["author"],
-        "limit": 10,
+        "limit": 20,
         "fields": "title,author_name,cover_i"
     })
     payload = json.loads(get("https://openlibrary.org/search.json?" + params).decode("utf-8"))
     wanted_title = row["book"].strip().casefold()
-    wanted_author = row["author"].strip().casefold()
+    wanted_authors = [part.strip().casefold() for part in row["author"].replace(" and ", ",").split(",") if part.strip()]
+    # Open Library indexes co-authors separately; query by exact title, then
+    # require a title match and at least one supplied author surname/token.
     docs = payload.get("docs", [])
-    # Prefer exact title + author; otherwise accept a result only when both
-    # requested title and author are present in the returned metadata.
     for doc in docs:
         title = str(doc.get("title", "")).casefold()
         authors = " ".join(doc.get("author_name", [])).casefold()
-        if doc.get("cover_i") and wanted_title in title and wanted_author in authors:
-            return doc["cover_i"]
-    for doc in docs:
-        title = str(doc.get("title", "")).casefold()
-        authors = " ".join(doc.get("author_name", [])).casefold()
-        if doc.get("cover_i") and (wanted_title in title or title in wanted_title) and wanted_author in authors:
+        author_match = any((name.split()[-1] in authors) for name in wanted_authors)
+        if doc.get("cover_i") and (wanted_title in title or title in wanted_title) and author_match:
             return doc["cover_i"]
     return None
 
