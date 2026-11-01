@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch a matching book-cover thumbnail for each book using Google Books."""
+"""Fetch verified title/author book-cover images from Open Library."""
 import json
 import sys
 import time
@@ -7,20 +7,48 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-def get(url, attempts=5):
-    import time
+def get(url, attempts=4):
     last = None
     for attempt in range(attempts):
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "SocialAI-BookReels/1.0"})
-            with urllib.request.urlopen(req, timeout=35) as response:
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "KiranBookReels/1.0 (book-summary-video-builder)"}
+            )
+            with urllib.request.urlopen(req, timeout=30) as response:
                 return response.read()
         except Exception as exc:
             last = exc
-            delay = min(60, 5 * (2 ** attempt))
-            print("Request failed; retrying in", delay, "seconds:", exc, flush=True)
-            time.sleep(delay)
-    raise RuntimeError("Book cover request failed after retries: " + str(last))
+            if attempt + 1 < attempts:
+                delay = 4 * (attempt + 1)
+                print("Request failed; retrying in", delay, "seconds:", exc, flush=True)
+                time.sleep(delay)
+    raise RuntimeError("Open Library request failed after retries: " + str(last))
+
+def find_cover(row):
+    params = urllib.parse.urlencode({
+        "title": row["book"],
+        "author": row["author"],
+        "limit": 10,
+        "fields": "title,author_name,cover_i"
+    })
+    payload = json.loads(get("https://openlibrary.org/search.json?" + params).decode("utf-8"))
+    wanted_title = row["book"].strip().casefold()
+    wanted_author = row["author"].strip().casefold()
+    docs = payload.get("docs", [])
+    # Prefer exact title + author; otherwise accept a result only when both
+    # requested title and author are present in the returned metadata.
+    for doc in docs:
+        title = str(doc.get("title", "")).casefold()
+        authors = " ".join(doc.get("author_name", [])).casefold()
+        if doc.get("cover_i") and wanted_title in title and wanted_author in authors:
+            return doc["cover_i"]
+    for doc in docs:
+        title = str(doc.get("title", "")).casefold()
+        authors = " ".join(doc.get("author_name", [])).casefold()
+        if doc.get("cover_i") and (wanted_title in title or title in wanted_title) and wanted_author in authors:
+            return doc["cover_i"]
+    return None
 
 def main():
     if len(sys.argv) != 3:
@@ -29,25 +57,20 @@ def main():
     out = Path(sys.argv[2])
     out.mkdir(parents=True, exist_ok=True)
     for row in rows:
-        query = urllib.parse.urlencode({"q": "intitle:" + row["book"] + " inauthor:" + row["author"], "maxResults": 5})
-        payload = json.loads(get("https://www.googleapis.com/books/v1/volumes?" + query).decode("utf-8"))
-        cover = None
-        for item in payload.get("items", []):
-            links = item.get("volumeInfo", {}).get("imageLinks", {})
-            cover = links.get("thumbnail") or links.get("smallThumbnail")
-            if cover:
-                break
-        if not cover:
-            raise SystemExit("No matching book-cover image found for: " + row["book"])
-        data = get(cover.replace("http://", "https://").replace("&edge=curl", ""))
-        if len(data) < 3000:
-            raise SystemExit("Book-cover image is too small: " + row["book"])
+        cover_id = find_cover(row)
+        if not cover_id:
+            raise SystemExit("No matching Open Library cover found for: " + row["book"] + " — " + row["author"])
+        url = "https://covers.openlibrary.org/b/id/%s-L.jpg?default=false" % cover_id
+        data = get(url)
+        if len(data) < 3000 or not data.startswith(bytes.fromhex("ffd8ff")):
+            raise SystemExit("Invalid or missing cover image for: " + row["book"])
         path = out / ("book_%02d.png" % int(row["id"]))
+        # Keep JPEG bytes as .jpg so image decoders can identify them correctly.
+        path = path.with_suffix(".jpg")
         path.write_bytes(data)
-        print("Fetched cover:", row["book"], "->", path.name, len(data), "bytes")
-        time.sleep(3)
-    if len(list(out.glob("book_*"))) != len(rows):
+        print("Fetched matching cover:", row["book"], "by", row["author"], "->", path.name, len(data), "bytes", flush=True)
+        time.sleep(1)
+    if len(list(out.glob("book_*.jpg"))) != len(rows):
         raise SystemExit("Book-cover count mismatch")
-
 if __name__ == "__main__":
     main()
