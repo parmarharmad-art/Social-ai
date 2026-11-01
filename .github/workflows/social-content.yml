@@ -28,7 +28,7 @@ on:
       - "!social-content/ig_cards/**"
       - "!social-content/reels/**"
 concurrency:
-  group: social-content-${{ github.ref }}
+  group: social-content-${{ github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 permissions:
   contents: write
