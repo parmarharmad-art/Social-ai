@@ -131,7 +131,7 @@ def cover_card(canvas, cover, title, author):
     canvas.alpha_composite(card, ((W - card.width) // 2, 180))
 
 
-def make_frame(item, scene_index, scene_count):
+def make_frame(item, scene_index, scene_count, subtitle=''):
     canvas = gradient()
     d = ImageDraw.Draw(canvas)
     # Soft decorative glows; no person photos are loaded or rendered.
@@ -176,6 +176,20 @@ def make_frame(item, scene_index, scene_count):
         d.text((W // 2, 1365), "%02d  /  %02d" % (scene_index, scene_count),
                font=ImageFont.truetype(FONT_FILE, 54), fill=ACCENT, anchor="mm")
 
+    # Readable caption for the matching narration segment.
+    if subtitle:
+        caption_font = fit_font(d, subtitle, 880, 42, 28)
+        caption_lines = wrap_text(d, subtitle, caption_font, 840)[:3]
+        box_top, box_bottom = 1430, 1570
+        d.rounded_rectangle((80, box_top, 1000, box_bottom), radius=28,
+                            fill=(0, 0, 0, 220), outline=(58, 210, 255, 150), width=2)
+        line_height = 42
+        start_y = box_top + (box_bottom - box_top - len(caption_lines) * line_height) // 2
+        for line in caption_lines:
+            d.text((W // 2, start_y), line, font=caption_font, fill=WHITE, anchor="mm",
+                   stroke_width=1, stroke_fill=(0, 0, 0, 255))
+            start_y += line_height
+
     # Persistent brand footer and clear CTA.
     d.rounded_rectangle((70, 1590, 1010, 1810), radius=36, fill=(3, 10, 25, 235),
                         outline=(58, 210, 255, 120), width=2)
@@ -218,21 +232,7 @@ def audio_for(item, tmp, narration):
         wf.setsampwidth(2)
         wf.setframerate(SR)
         wf.writeframes((mix * 32767).astype(np.int16).tobytes())
-    # Build timed Hinglish subtitles from the exact generated speech segments.
-    def stamp(seconds):
-        millis = int(round(seconds * 1000))
-        hours, millis = divmod(millis, 3600000)
-        minutes, millis = divmod(millis, 60000)
-        secs, millis = divmod(millis, 1000)
-        return "%02d:%02d:%02d,%03d" % (hours, minutes, secs, millis)
-
-    srt_path = os.path.join(tmp, "captions.srt")
-    with open(srt_path, "w", encoding="utf-8") as captions:
-        for index, (start, samples, spoken_text) in enumerate(zip(starts, clips, narration), 1):
-            end = start + len(samples) / SR
-            captions.write("%d\\n%s --> %s\\n%s\\n\\n" %
-                           (index, stamp(start), stamp(end), spoken_text))
-    return wav_path, duration, srt_path
+    return wav_path, duration
 
 
 def render(item):
@@ -245,18 +245,18 @@ def render(item):
     scenes = item.get("scenes", [])
     scene_count = max(1, len(scenes), len(narration))
     tmp = tempfile.mkdtemp(prefix="book_reel_")
-    wav, duration, srt_path = audio_for(item, tmp, narration)
+    wav, duration = audio_for(item, tmp, narration)
 
     # Scene images are timed to their matching voice segments, with a cover intro.
     frames = []
     frame_durations = []
     intro = min(2.8, max(1.8, duration * .18))
-    frames.append(make_frame(item, 0, scene_count))
+    frames.append(make_frame(item, 0, scene_count, narration[0]))
     frame_durations.append(intro)
     remaining = duration - intro
     per = remaining / max(1, scene_count - 1)
     for i in range(1, scene_count):
-        frames.append(make_frame(item, i, scene_count))
+        frames.append(make_frame(item, i, scene_count, narration[min(i, len(narration) - 1)]))
         frame_durations.append(per)
 
     concat_path = os.path.join(tmp, "frames.txt")
@@ -272,12 +272,7 @@ def render(item):
     # Preserve concat-demuxer scene timestamps and generate a full 24-fps
     # video stream. zoompan(d=1) collapsed each still image to one frame,
     # causing the audio/video output to be truncated by -shortest.
-    subtitle_filter = (
-        "subtitles='%s':force_style='FontName=Noto Sans,FontSize=44,"
-        "PrimaryColour=&H00FFFFFF,OutlineColour=&H00101010,"
-        "BorderStyle=1,Outline=3,Shadow=1,Alignment=2,MarginV=420'"
-    ) % srt_path.replace("\\\\", "/")
-    vf = "fps=%d,%s,format=yuv420p" % (FPS, subtitle_filter)
+    vf = "fps=%d,format=yuv420p" % FPS
     cmd = ["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0",
            "-i", concat_path, "-i", wav, "-vf", vf, "-t", "%.2f" % duration,
            "-r", str(FPS), "-c:v", "libx264", "-preset", "veryfast",
