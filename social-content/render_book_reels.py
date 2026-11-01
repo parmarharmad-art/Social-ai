@@ -28,6 +28,8 @@ def main() -> None:
             "voice_cta": row["cta"],
             "book": row["book"],
             "author": row["author"],
+            "theme": row["theme"],
+            "scenes": row["scenes"],
         })
     output.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="book-reels-") as temp:
