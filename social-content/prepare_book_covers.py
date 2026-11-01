@@ -7,10 +7,20 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-def get(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "SocialAI-BookReels/1.0"})
-    with urllib.request.urlopen(req, timeout=25) as response:
-        return response.read()
+def get(url, attempts=5):
+    import time
+    last = None
+    for attempt in range(attempts):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "SocialAI-BookReels/1.0"})
+            with urllib.request.urlopen(req, timeout=35) as response:
+                return response.read()
+        except Exception as exc:
+            last = exc
+            delay = min(60, 5 * (2 ** attempt))
+            print("Request failed; retrying in", delay, "seconds:", exc, flush=True)
+            time.sleep(delay)
+    raise RuntimeError("Book cover request failed after retries: " + str(last))
 
 def main():
     if len(sys.argv) != 3:
@@ -35,7 +45,7 @@ def main():
         path = out / ("book_%02d.png" % int(row["id"]))
         path.write_bytes(data)
         print("Fetched cover:", row["book"], "->", path.name, len(data), "bytes")
-        time.sleep(0.15)
+        time.sleep(3)
     if len(list(out.glob("book_*"))) != len(rows):
         raise SystemExit("Book-cover count mismatch")
 
