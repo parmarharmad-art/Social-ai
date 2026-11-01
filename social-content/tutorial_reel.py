@@ -17,24 +17,12 @@ MUTED = (163, 180, 207)
 ACCENT = (151, 112, 255)
 
 def font(size, bold=True):
-    # Resolve the installed Hindi font through fontconfig, then require RAQM shaping.
-    # Falling back silently to DejaVu produces unreadable square glyphs for Devanagari.
-    pattern = "Noto Sans Devanagari:style=Bold:lang=hi" if bold else "Noto Sans Devanagari:style=Regular:lang=hi"
-    try:
-        path = subprocess.check_output(
-            ["fc-match", "-f", "%{file}", pattern], text=True
-        ).strip()
-    except Exception as exc:
-        raise RuntimeError("Hindi font lookup failed; install fonts-noto-core") from exc
-    if not path or not os.path.isfile(path):
-        raise RuntimeError("Noto Sans Devanagari font file not found")
-    layout = getattr(ImageFont, "Layout", None)
-    if not layout or not hasattr(layout, "RAQM"):
-        raise RuntimeError("Pillow RAQM is required for correct Hindi shaping")
-    try:
-        return ImageFont.truetype(path, size, layout_engine=layout.RAQM)
-    except Exception as exc:
-        raise RuntimeError(f"Could not load Hindi font with RAQM: {path}") from exc
+    # The current Reel briefs use Roman-script Hinglish, so use a Latin font
+    # with complete glyph coverage rather than a Devanagari-only font.
+    path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    if not os.path.isfile(path):
+        raise RuntimeError("DejaVu Sans font file not found")
+    return ImageFont.truetype(path, size)
 
 def rounded(draw, xy, radius, fill, outline=None, width=2):
     draw.rounded_rectangle(xy, radius=radius, fill=fill, outline=outline, width=width)
