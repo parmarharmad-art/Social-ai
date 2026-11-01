@@ -1,5 +1,7 @@
-"""IG card renderer v2: 6 themes x 4 layouts so consecutive posts look different.
-Usage: python render_ig.py ig.json assets/person_rgba.png out_dir  (person_b.png must sit next to person_rgba.png)"""
+"""Instagram card and carousel renderer.
+Usage: python render_ig.py ig.json assets/person_rgba.png out_dir
+Photo assets are optional while SHOW_PHOTO is False.
+"""
 import json, os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -12,8 +14,10 @@ fdir = os.path.join(HERE, "assets", "fonts")
 bold = os.path.join(fdir, "Poppins-Bold.ttf")
 semi = os.path.join(fdir, "Poppins-SemiBold.ttf")
 if not os.path.exists(semi): semi = bold
+if not os.path.isfile(bold):
+    raise FileNotFoundError(f"Required font not found: {bold}")
 F = lambda p, s: ImageFont.truetype(p, s)
-SHOW_PHOTO = False   # True = put the person photo back on cards and carousels
+SHOW_PHOTO = False   # Set True only when both portrait assets are available
 
 # (top, bottom, accent, glow, dark text on accent)
 THEMES = [
@@ -24,24 +28,39 @@ THEMES = [
     ((60, 12, 24), (110, 24, 40), (255, 205, 110), (230, 60, 90)),
     ((22, 20, 74), (48, 40, 140), (255, 120, 180), (110, 100, 255)),
 ]
-pa = Image.open(person_path).convert("RGBA"); pa = pa.crop((0, 0, pa.width, 664))
-pb = Image.open(os.path.join(os.path.dirname(person_path), "person_b.png")).convert("RGBA")
+pa = pb = None
+if SHOW_PHOTO:
+    if not os.path.isfile(person_path):
+        raise FileNotFoundError(f"Portrait image not found: {person_path}")
+    person_b_path = os.path.join(os.path.dirname(person_path), "person_b.png")
+    if not os.path.isfile(person_b_path):
+        raise FileNotFoundError(f"Second portrait image not found: {person_b_path}")
+    pa = Image.open(person_path).convert("RGBA")
+    pa = pa.crop((0, 0, pa.width, min(pa.height, 664)))
+    pb = Image.open(person_b_path).convert("RGBA")
 
 def wrap(d, text, font, mw):
     out, cur = [], ""
-    for w in text.split():
+    for w in str(text).split():
         t = (cur + " " + w).strip()
-        if d.textlength(t, font=font) <= mw: cur = t
-        else: out.append(cur); cur = w
-    if cur: out.append(cur)
+        if d.textlength(t, font=font) <= mw:
+            cur = t
+        else:
+            if cur:
+                out.append(cur)
+            # Keep an unusually long token intact instead of emitting a blank line.
+            cur = w
+    if cur:
+        out.append(cur)
     return out
 
 def fit(d, text, path, start, mw, maxlines, minsize=40):
     s = start
-    while s > minsize:
-        if len(wrap(d, text, F(path, s), mw)) <= maxlines: break
+    while s > minsize and len(wrap(d, text, F(path, s), mw)) > maxlines:
         s -= 4
-    return F(path, s), wrap(d, text, F(path, s), mw)
+    s = max(minsize, s)
+    font = F(path, s)
+    return font, wrap(d, text, font, mw)
 
 def background(th, variant):
     top, bot, acc, glow = th
@@ -135,14 +154,30 @@ def cards(canvas, pts, th, y, x0=60, x1=1020, maxy=H-BAND-40):
         y += ch + gap
     return y
 
-for item in json.load(open(data_path, encoding="utf-8")):
+with open(data_path, encoding="utf-8") as source:
+    items = json.load(source)
+if not isinstance(items, list) or not items:
+    raise ValueError("Instagram input must be a non-empty JSON list.")
+seen_numbers = set()
+for item in items:
+    if not isinstance(item, dict) or not {"n", "h", "pts"}.issubset(item):
+        raise ValueError("Each Instagram item must contain n, h and pts.")
+    if not isinstance(item["n"], int) or item["n"] < 1 or item["n"] in seen_numbers:
+        raise ValueError(f"Instagram post number must be a unique positive integer: {item.get('n')}")
+    if not isinstance(item["h"], str) or not item["h"].strip():
+        raise ValueError(f"Instagram post {item['n']} has an empty headline.")
+    if not isinstance(item["pts"], list) or not item["pts"] or not all(isinstance(p, str) and p.strip() for p in item["pts"]):
+        raise ValueError(f"Instagram post {item['n']} must have a non-empty list of text points.")
+    seen_numbers.add(item["n"])
+
+for item in items:
     n = item["n"]
     th = THEMES[(n * 5 + n // 6) % len(THEMES)]
     lay = n % 4
     if not SHOW_PHOTO and lay < 2: lay = 2 + (n // 4) % 2
     canvas = background(th, n + lay)
     d = ImageDraw.Draw(canvas)
-    src = pa if n % 2 else pb
+    src = (pa if n % 2 else pb) if SHOW_PHOTO else None
     face = None
     if lay == 0:   # person bottom-right, bullets left
         pw = 700 if src is pa else 600
@@ -181,13 +216,33 @@ print("ok")
 # If carousels.json sits next to this script, every slide is rendered as
 # <out_dir>/c<NN>_<k>.jpg (1080x1350). One theme per carousel, themes rotate.
 def render_carousels(path, out_dir):
-    data = json.load(open(path, encoding="utf-8"))
+    with open(path, encoding="utf-8") as source:
+        data = json.load(source)
+    if not isinstance(data, list) or not data:
+        raise ValueError("Carousel input must be a non-empty JSON list.")
+    seen_numbers = set()
+    for item in data:
+        if not isinstance(item, dict) or not {"n", "slides"}.issubset(item):
+            raise ValueError("Each carousel must contain n and slides.")
+        n, slides = item["n"], item["slides"]
+        if not isinstance(n, int) or n < 1 or n in seen_numbers:
+            raise ValueError(f"Carousel number must be a unique positive integer: {n}")
+        if not isinstance(slides, list) or not slides:
+            raise ValueError(f"Carousel {n} must contain at least one slide.")
+        for slide in slides:
+            if not isinstance(slide, dict) or not isinstance(slide.get("h"), str) or not slide["h"].strip():
+                raise ValueError(f"Carousel {n} contains a slide with no headline.")
+            if slide.get("kind", "text") not in {"cover", "text", "cta"}:
+                raise ValueError(f"Carousel {n} contains unsupported slide kind: {slide.get('kind')}")
+            if slide.get("kind", "text") != "cover" and not isinstance(slide.get("t"), str):
+                raise ValueError(f"Carousel {n} slide text must be a string.")
+        seen_numbers.add(n)
     for item in data:
         n, slides = item["n"], item["slides"]
         th = THEMES[(n * 5 + n // 6 + 2) % len(THEMES)]
         acc, total = th[2], len(slides)
         cv = n % 3
-        src = pa if n % 2 else pb
+        src = (pa if n % 2 else pb) if SHOW_PHOTO else None
         for k, sl in enumerate(slides, 1):
             canvas = background(th, n + k)
             d = ImageDraw.Draw(canvas)
