@@ -1,661 +1,602 @@
 [
  {
   "n": 1,
-  "h": "Invoices That Send Themselves",
+  "h": "Invoice late? Payment bhi late.",
   "pts": [
-   "Work marked done in a Sheet",
-   "Invoice is prepared",
-   "Reminders go out on time",
-   "DM AUTOMATE to get started"
+   "Kaam complete, par invoice banana reh gaya.",
+   "Form submit hote hi invoice draft ready.",
+   "Approval ke baad invoice aur reminder schedule."
   ],
-  "cap": "Invoices and payment reminders go out late.\n\nYou get paid sooner for the same work.\n\nYou review every invoice before it is sent."
+  "cap": "Kaam complete, par invoice banana reh gaya.\n\nForm submit hote hi invoice draft ready.\n\nApproval ke baad invoice aur reminder schedule.\n\nSave this workflow idea; DM AUTOMATE to try it."
  },
  {
   "n": 2,
-  "h": "This Page Posts By Itself",
+  "h": "Roz post banana time kha raha hai?",
   "pts": [
-   "I add one Sheet row",
-   "Automation posts at 9 AM",
-   "Status is logged back",
-   "DM AUTOMATE to get started"
+   "Caption, creative aur timing sab manually.",
+   "Sheet se approved content pick hota hai.",
+   "Schedule, publish aur status log automatically."
   ],
-  "cap": "Posting by hand every day does not last.\n\nThis setup runs my own pages.\n\nA person still approves anything important."
+  "cap": "Caption, creative aur timing sab manually.\n\nSheet se approved content pick hota hai.\n\nSchedule, publish aur status log automatically.\n\nComment CONTENT to learn the workflow."
  },
  {
   "n": 3,
-  "h": "Count The Hours You Save",
+  "h": "Aapka time kahan ja raha hai?",
   "pts": [
-   "Time the manual task",
-   "Automate it",
-   "Compare after 30 days",
-   "DM AUTOMATE to get started"
+   "Same task roz repeat hota hai.",
+   "Pehle task ka time measure karo.",
+   "Phir automate karke 30 din compare karo."
   ],
-  "cap": "You cannot judge automation if you never measured the task.\n\nYou keep what saves time and drop what does not.\n\nA person still approves anything important."
+  "cap": "Same task roz repeat hota hai.\n\nPehle task ka time measure karo.\n\nPhir automate karke 30 din compare karo.\n\nTry one repeat task this week; DM AUTOMATE."
  },
  {
   "n": 4,
-  "h": "5 Questions Before You Automate",
+  "h": "Automation se pehle ye 5 checks.",
   "pts": [
-   "Does it repeat?",
-   "Are the rules clear?",
-   "What if it fails?",
-   "DM AUTOMATE to get started"
+   "Task repeat hota hai ya nahi?",
+   "Rules aur exception clear hain?",
+   "Failure alert aur human approval set hai?"
   ],
-  "cap": "Automating the wrong task wastes weeks.\n\nGood tasks to automate pass all three.\n\nA person still approves anything important."
+  "cap": "Task repeat hota hai ya nahi?\n\nRules aur exception clear hain?\n\nFailure alert aur human approval set hai?\n\nSave this checklist and share it with your team."
  },
  {
   "n": 5,
-  "h": "3 Easy Automations To Start",
+  "h": "3 simple automations se start karo.",
   "pts": [
-   "Leads into a Sheet",
-   "Reply drafts with AI",
-   "A weekly report",
-   "DM AUTOMATE to get started"
+   "New lead ka reply late hota hai.",
+   "Form se Sheet mein lead capture.",
+   "Reminder aur daily summary auto; approval human ka."
   ],
-  "cap": "Starting is the hardest part of automation.\n\nSmall, useful and low risk. Pick one this week.\n\nA person still approves anything important."
+  "cap": "New lead ka reply late hota hai.\n\nForm se Sheet mein lead capture.\n\nReminder aur daily summary auto; approval human ka.\n\nDM START to try one simple workflow."
  },
  {
   "n": 6,
-  "h": "Which Task Can Run Itself?",
+  "h": "Kaunsa kaam khud chal sakta hai?",
   "pts": [
-   "Share your daily tasks",
-   "I map what can be automated",
-   "You get a clear short list",
-   "DM AUTOMATE to get started"
+   "Copy-paste aur follow-up baar-baar?",
+   "Trigger, clear rule aur action define karo.",
+   "Result log karo; exceptions human dekhe."
   ],
-  "cap": "Most owners do not know which of their tasks can be automated.\n\nA 15-minute call is enough to start.\n\nA person still approves anything important."
+  "cap": "Copy-paste aur follow-up baar-baar?\n\nTrigger, clear rule aur action define karo.\n\nResult log karo; exceptions human dekhe.\n\nComment TASK with your repetitive task."
  },
  {
   "n": 7,
-  "h": "Automation Myths, Busted",
+  "h": "Automation ke 3 common myths.",
   "pts": [
-   "Not only for big firms",
-   "It does not replace thinking",
-   "It still needs upkeep",
-   "DM AUTOMATE to get started"
+   "Har process ko AI ki zarurat nahi.",
+   "Simple rules se bhi kaam automate hota hai.",
+   "Human approval important decisions par rahe."
   ],
-  "cap": "Many owners think automation is only for big companies.\n\nStart small, with one task.\n\nA person still approves anything important."
+  "cap": "Har process ko AI ki zarurat nahi.\n\nSimple rules se bhi kaam automate hota hai.\n\nHuman approval important decisions par rahe.\n\nShare this myth-buster with a business owner."
  },
  {
   "n": 8,
-  "h": "How We Build It",
+  "h": "Workflow banane ka simple process.",
   "pts": [
-   "Review your tasks",
-   "Build and test",
-   "Handover and support",
-   "DM AUTOMATE to get started"
+   "Pehle problem ko map karo.",
+   "Trigger, action aur exception define karo.",
+   "Test karo, phir limited rollout karo."
   ],
-  "cap": "Hiring someone for automation feels unclear and risky.\n\nNo surprises, one small step at a time.\n\nA person still approves anything important."
+  "cap": "Pehle problem ko map karo.\n\nTrigger, action aur exception define karo.\n\nTest karo, phir limited rollout karo.\n\nSave these steps before building your next flow."
  },
  {
   "n": 9,
-  "h": "30 Ideas, Which Is Yours?",
+  "h": "30 ideas, pehle ek choose karo.",
   "pts": [
-   "Sales and profit",
-   "Inventory and reorders",
-   "Leads and follow-ups",
-   "DM AUTOMATE to get started"
+   "Sab kuch ek saath automate mat karo.",
+   "High-repeat, low-risk task se start.",
+   "Time saved aur error rate track karo."
   ],
-  "cap": "In 30 days we covered the tasks that eat most of a business day.\n\nOne of these is probably your daily time-waster.\n\nA person still approves anything important."
+  "cap": "Sab kuch ek saath automate mat karo.\n\nHigh-repeat, low-risk task se start.\n\nTime saved aur error rate track karo.\n\nComment your first workflow idea."
  },
  {
   "n": 10,
-  "h": "Tell Me Your Repeat Task",
+  "h": "Aapka repeat task kya hai?",
   "pts": [
-   "Name one daily task",
-   "I check if it can automate",
-   "Just tell me the steps",
-   "DM AUTOMATE to get started"
+   "WhatsApp enquiries ya daily report?",
+   "Ek trigger se workflow start karo.",
+   "Owner ko status aur exception alert mile."
   ],
-  "cap": "The best automation idea is the task you already hate repeating.\n\nNo pressure. Honest answer.\n\nA person still approves anything important."
+  "cap": "WhatsApp enquiries ya daily report?\n\nEk trigger se workflow start karo.\n\nOwner ko status aur exception alert mile.\n\nSend your use case with DM AUTOMATE."
  },
  {
   "n": 11,
-  "h": "Daily Sales, Zero Effort",
+  "h": "Daily sales report bina copy-paste.",
   "pts": [
-   "Sales saved in one Sheet",
-   "Totals update by themselves",
-   "Summary reaches you daily",
-   "DM AUTOMATE to get started"
+   "Closing ke baad numbers scattered.",
+   "POS export approved Sheet mein aata hai.",
+   "Daily summary manager ko milti hai."
   ],
-  "cap": "Daily sales sit in bills and notebooks, so nobody sees the full picture.\n\nYou know how the day went without opening a single file.\n\nA person still approves anything important."
+  "cap": "Closing ke baad numbers scattered.\n\nPOS export approved Sheet mein aata hai.\n\nDaily summary manager ko milti hai.\n\nTry a daily report workflow; DM SALES."
  },
  {
   "n": 12,
-  "h": "Never Forget A Reorder",
+  "h": "Stock khatam hone se pehle alert.",
   "pts": [
-   "Set a minimum stock limit",
-   "Stock is checked daily",
-   "A reorder draft is prepared",
-   "DM AUTOMATE to get started"
+   "Fast-moving item ka reorder miss.",
+   "Stock threshold cross hote hi alert.",
+   "Manager quantity verify karke order approve kare."
   ],
-  "cap": "Reordering depends on someone remembering to check the shelf.\n\nFast items stop running out and slow items stop piling up.\n\nYou approve every order before it is sent."
+  "cap": "Fast-moving item ka reorder miss.\n\nStock threshold cross hote hi alert.\n\nManager quantity verify karke order approve kare.\n\nSave this inventory idea for your store."
  },
  {
   "n": 13,
-  "h": "Profit Without The Surprise",
+  "h": "Profit report sirf sales nahi hota.",
   "pts": [
-   "Add daily sales",
-   "Add purchase and expenses",
-   "See margin every evening",
-   "DM AUTOMATE to get started"
+   "Discount aur expenses alag jagah.",
+   "Sales, returns aur expenses combine karo.",
+   "Daily margin snapshot review ke liye ready."
   ],
-  "cap": "Profit becomes a surprise at the end of the month.\n\nYou spot a falling margin while there is still time to act.\n\nA person still approves anything important."
+  "cap": "Discount aur expenses alag jagah.\n\nSales, returns aur expenses combine karo.\n\nDaily margin snapshot review ke liye ready.\n\nComment PROFIT to learn the reporting flow."
  },
  {
   "n": 14,
-  "h": "Inventory Health Check",
+  "h": "Inventory health ek screen par.",
   "pts": [
-   "Track every item",
-   "Flag expiry, low and extra stock",
-   "Alert the right person",
-   "DM AUTOMATE to get started"
+   "Dead stock aur low stock late dikhta.",
+   "SKU-wise movement aur ageing track karo.",
+   "Low, ageing aur fast-moving list banao."
   ],
-  "cap": "Expiry and dead stock show up only when it is too late.\n\nMoney stops getting stuck on shelves.\n\nA person still approves anything important."
+  "cap": "Dead stock aur low stock late dikhta.\n\nSKU-wise movement aur ageing track karo.\n\nLow, ageing aur fast-moving list banao.\n\nDM STOCK to try an inventory report."
  },
  {
   "n": 15,
-  "h": "Payment Reminders On Autopilot",
+  "h": "Payment reminder polite aur timely.",
   "pts": [
-   "Mark invoices in a Sheet",
-   "Reminder before due date",
-   "Polite nudge after it",
-   "DM AUTOMATE to get started"
+   "Due date diary mein miss ho jaati.",
+   "Invoice due date se reminder draft banta.",
+   "Team review ke baad message send hota."
   ],
-  "cap": "Chasing payments is awkward and easy to forget.\n\nPayments arrive sooner and nobody feels awkward.\n\nA person still approves anything important."
+  "cap": "Due date diary mein miss ho jaati.\n\nInvoice due date se reminder draft banta.\n\nTeam review ke baad message send hota.\n\nSave this payment follow-up workflow."
  },
  {
   "n": 16,
-  "h": "Your Day In 3 Lines",
+  "h": "Manager ko din ka clear summary.",
   "pts": [
-   "Data gathered automatically",
-   "AI writes a short summary",
-   "It reaches you every evening",
-   "DM AUTOMATE to get started"
+   "Updates multiple chats mein bikhre.",
+   "Team form se key numbers collect.",
+   "3-line summary owner ko scheduled milti."
   ],
-  "cap": "Reading ten sheets to understand one day wastes your time.\n\nYou get the full picture in one minute.\n\nA person still approves anything important."
+  "cap": "Updates multiple chats mein bikhre.\n\nTeam form se key numbers collect.\n\n3-line summary owner ko scheduled milti.\n\nShare this with a store manager."
  },
  {
   "n": 17,
-  "h": "You Stay In Control",
+  "h": "Automation mein control aapka.",
   "pts": [
-   "Automation drafts",
-   "You review",
-   "Only approved items go out",
-   "DM AUTOMATE to get started"
+   "Har action auto-send karna zaroori nahi.",
+   "Draft aur recommendation AI bana sakta hai.",
+   "Final approval owner ke paas rehta hai."
   ],
-  "cap": "Many owners fear automation will act without asking them.\n\nYou get the speed of automation and keep the final say.\n\nA person still approves anything important."
+  "cap": "Har action auto-send karna zaroori nahi.\n\nDraft aur recommendation AI bana sakta hai.\n\nFinal approval owner ke paas rehta hai.\n\nTry approval-first automation; DM SAFE."
  },
  {
   "n": 18,
-  "h": "Leads Lost In Chats?",
+  "h": "Leads chats mein kho rahe hain?",
   "pts": [
-   "Customer fills a simple form",
-   "Lead lands in a Sheet",
-   "You get an instant alert",
-   "DM AUTOMATE to get started"
+   "Enquiry ka naam aur need miss hoti.",
+   "Approved form se lead Sheet mein save.",
+   "Owner, status aur next follow-up track."
   ],
-  "cap": "Enquiries get lost between calls, chats and notes.\n\nEvery enquiry has a row, and nobody has to scroll through chats.\n\nA person still approves anything important."
+  "cap": "Enquiry ka naam aur need miss hoti.\n\nApproved form se lead Sheet mein save.\n\nOwner, status aur next follow-up track.\n\nComment LEAD to learn this setup."
  },
  {
   "n": 19,
-  "h": "Follow-Ups That Never Slip",
+  "h": "Follow-up bhoolna band karo.",
   "pts": [
-   "Track last contact date",
-   "Wait three days",
-   "A polite nudge goes out",
-   "DM AUTOMATE to get started"
+   "Lead interested tha, callback miss.",
+   "Next date aur owner CRM/Sheet mein.",
+   "Due reminder team ko, reply human kare."
   ],
-  "cap": "Most leads go quiet because nobody follows up.\n\nFewer leads go cold.\n\nA person approves the message before it goes."
+  "cap": "Lead interested tha, callback miss.\n\nNext date aur owner CRM/Sheet mein.\n\nDue reminder team ko, reply human kare.\n\nSave this follow-up workflow."
  },
  {
   "n": 20,
-  "h": "Same Questions, Instant Drafts",
+  "h": "Same customer question roz aata?",
   "pts": [
-   "Give it your real FAQs",
-   "AI drafts the reply",
-   "You approve and send",
-   "DM AUTOMATE to get started"
+   "Team baar-baar same reply type karti.",
+   "FAQ se suggested answer draft hota.",
+   "Staff check karke customer ko send kare."
   ],
-  "cap": "The same ten questions take up most of your day.\n\nReplies are fast and still sound like you.\n\nA human always has the send button."
+  "cap": "Team baar-baar same reply type karti.\n\nFAQ se suggested answer draft hota.\n\nStaff check karke customer ko send kare.\n\nDM FAQ to try a reply assistant."
  },
  {
   "n": 21,
-  "h": "Reviews On Autopilot",
+  "h": "Review request right time par.",
   "pts": [
-   "Customer buys or visits",
-   "A friendly message goes out",
-   "Review link inside",
-   "DM AUTOMATE to get started"
+   "Sale ke baad feedback maangna bhoolte.",
+   "Order complete event se request draft.",
+   "Customer choice aur opt-out respect karo."
   ],
-  "cap": "Happy customers rarely leave a review unless someone asks.\n\nTrust builds without anyone remembering to ask.\n\nA person still approves anything important."
+  "cap": "Sale ke baad feedback maangna bhoolte.\n\nOrder complete event se request draft.\n\nCustomer choice aur opt-out respect karo.\n\nShare this customer-care idea."
  },
  {
   "n": 22,
-  "h": "Reminders That Fill Your Slots",
+  "h": "Appointment reminders without confusion.",
   "pts": [
-   "Booking saved in a Sheet",
-   "Reminder goes the day before",
-   "Reply updates the status",
-   "DM AUTOMATE to get started"
+   "Customer date aur time bhool sakta.",
+   "Booking ke baad reminder schedule.",
+   "Reschedule request staff ko notify."
   ],
-  "cap": "Missed appointments waste slots and money.\n\nYour day stays planned.\n\nA person still approves anything important."
+  "cap": "Customer date aur time bhool sakta.\n\nBooking ke baad reminder schedule.\n\nReschedule request staff ko notify.\n\nDM BOOKING to try reminders."
  },
  {
   "n": 23,
-  "h": "Never Miss An Enquiry",
+  "h": "Enquiry ka reply delay mat hone do.",
   "pts": [
-   "New enquiry arrives",
-   "You get an instant alert",
-   "Unanswered ones are flagged",
-   "DM AUTOMATE to get started"
+   "Missed call ke baad customer chala jata.",
+   "Call log ya form se enquiry capture.",
+   "Callback task owner ko assign."
   ],
-  "cap": "A missed enquiry is a missed sale, and busy hours hide them.\n\nNobody waits for a reply that never comes.\n\nA person still approves anything important."
+  "cap": "Missed call ke baad customer chala jata.\n\nCall log ya form se enquiry capture.\n\nCallback task owner ko assign.\n\nComment ENQUIRY to learn the flow."
  },
  {
   "n": 24,
-  "h": "Feedback You Can Count",
+  "h": "Feedback ko useful action banao.",
   "pts": [
-   "Ask after every sale",
-   "Answers saved in a Sheet",
-   "Weekly summary for you",
-   "DM AUTOMATE to get started"
+   "Reviews aate hain, par trend nahi dikhta.",
+   "Feedback category aur rating log karo.",
+   "Weekly issue summary manager review kare."
   ],
-  "cap": "Feedback sits in chats and never gets counted.\n\nYou see patterns instead of random comments.\n\nA person still approves anything important."
+  "cap": "Reviews aate hain, par trend nahi dikhta.\n\nFeedback category aur rating log karo.\n\nWeekly issue summary manager review kare.\n\nSave this feedback workflow."
  },
  {
   "n": 25,
-  "h": "Medicine Expiry Alerts",
+  "h": "Pharmacy expiry alert before loss.",
   "pts": [
-   "Keep stock in one Sheet",
-   "Alert 60 days before expiry",
-   "Return or sell in time",
-   "DM AUTOMATE to get started"
+   "Expiry date register mein buried.",
+   "Batch aur expiry data approved Sheet mein.",
+   "30/60/90-day alerts pharmacist ko."
   ],
-  "cap": "Short-expiry medicines get noticed only when it is too late.\n\nDead stock gets caught early.\n\nA person still approves anything important."
+  "cap": "Expiry date register mein buried.\n\nBatch aur expiry data approved Sheet mein.\n\n30/60/90-day alerts pharmacist ko.\n\nDM PHARMACY to explore expiry alerts."
  },
  {
   "n": 26,
-  "h": "Stock Under Control",
+  "h": "Pharmacy stock visibility improve karo.",
   "pts": [
-   "Daily sales update stock",
-   "Low items flagged",
-   "Slow items flagged too",
-   "DM AUTOMATE to get started"
+   "Fast-moving medicine ka stockout hota.",
+   "Minimum level aur daily sales track.",
+   "Reorder suggestion; pharmacist verifies."
   ],
-  "cap": "Fast items run out while slow items pile up.\n\nYour money goes to items that actually sell.\n\nA person still approves anything important."
+  "cap": "Fast-moving medicine ka stockout hota.\n\nMinimum level aur daily sales track.\n\nReorder suggestion; pharmacist verifies.\n\nShare this with a pharmacy operator."
  },
  {
   "n": 27,
-  "h": "Clinic Appointments On Autopilot",
+  "h": "Clinic appointments organised rakho.",
   "pts": [
-   "Patient books through a form",
-   "Confirmation goes out",
-   "Reminder the day before",
-   "DM AUTOMATE to get started"
+   "Calls aur diary entries overlap hoti.",
+   "Booking form se calendar request banti.",
+   "Staff confirm kare, reminder schedule ho."
   ],
-  "cap": "The front desk spends hours on calls about timings.\n\nFewer calls, fewer missed visits.\n\nA person still approves anything important."
+  "cap": "Calls aur diary entries overlap hoti.\n\nBooking form se calendar request banti.\n\nStaff confirm kare, reminder schedule ho.\n\nDM CLINIC to try appointment automation."
  },
  {
   "n": 28,
-  "h": "Fee Reminders Done Politely",
+  "h": "Fee reminders respectful rakho.",
   "pts": [
-   "Fees tracked in a Sheet",
-   "Reminder before due date",
-   "Follow-up after it",
-   "DM AUTOMATE to get started"
+   "Due list manually check karni padti.",
+   "Due-date list se reminder draft banta.",
+   "Office staff verify karke send kare."
   ],
-  "cap": "Fee follow-ups take teachers' time and feel awkward.\n\nTeachers teach, and fees arrive on time.\n\nA person still approves anything important."
+  "cap": "Due list manually check karni padti.\n\nDue-date list se reminder draft banta.\n\nOffice staff verify karke send kare.\n\nSave this school workflow."
  },
  {
   "n": 29,
-  "h": "Salon Bookings, No Clashes",
+  "h": "Salon bookings mein clash avoid karo.",
   "pts": [
-   "Every booking in one Sheet",
-   "Clashes flagged",
-   "Customer gets a reminder",
-   "DM AUTOMATE to get started"
+   "Same slot do baar book ho sakta.",
+   "Slot availability check before confirmation.",
+   "Staff final booking approve kare."
   ],
-  "cap": "Bookings arrive by call and by chat, and they clash.\n\nA calm day with a full chair.\n\nA person still approves anything important."
+  "cap": "Same slot do baar book ho sakta.\n\nSlot availability check before confirmation.\n\nStaff final booking approve kare.\n\nComment SALON to learn the flow."
  },
  {
   "n": 30,
-  "h": "Order Updates On Autopilot",
+  "h": "Order updates customer tak pahunchao.",
   "pts": [
-   "New order lands in a Sheet",
-   "Status changes as you work",
-   "Customer gets updates",
-   "DM AUTOMATE to get started"
+   "Customer baar-baar status poochta.",
+   "Order status change se update draft.",
+   "Approved channel par update send."
   ],
-  "cap": "Order status updates are typed by hand, one customer at a time.\n\nFewer 'where is my order' messages.\n\nA person still approves anything important."
+  "cap": "Customer baar-baar status poochta.\n\nOrder status change se update draft.\n\nApproved channel par update send.\n\nDM ORDER to try order notifications."
  },
  {
   "n": 31,
-  "h": "Gym Renewals, Handled",
+  "h": "Gym renewals ka timely follow-up.",
   "pts": [
-   "Expiry dates sit in one Sheet",
-   "Reminder goes out 7 days before",
-   "Renewals are tracked in one place",
-   "DM AUTOMATE to get started"
+   "Membership end date miss ho jaati.",
+   "Expiry date se reminder task create.",
+   "Front desk member ko contact kare."
   ],
-  "cap": "Gym owners lose members when renewals are forgotten.\n\nMembers get a reminder before expiry.\n\nA person still approves anything important."
+  "cap": "Membership end date miss ho jaati.\n\nExpiry date se reminder task create.\n\nFront desk member ko contact kare.\n\nSave this renewal workflow."
  },
  {
   "n": 32,
-  "h": "Clinic Follow-Up Reminders",
+  "h": "Clinic follow-up schedule miss na ho.",
   "pts": [
-   "Visit date stored in a Sheet",
-   "Message sent a day before",
-   "Replies update the status",
-   "DM AUTOMATE to get started"
+   "Visit ke baad next step bhool jata.",
+   "Doctor-approved plan se reminder task.",
+   "Staff patient communication verify kare."
   ],
-  "cap": "Patients skip follow-ups because nobody reminds them.\n\nFewer lost visits and a fuller schedule.\n\nA person still approves anything important."
+  "cap": "Visit ke baad next step bhool jata.\n\nDoctor-approved plan se reminder task.\n\nStaff patient communication verify kare.\n\nDM FOLLOWUP to explore clinic workflows."
  },
  {
   "n": 33,
-  "h": "School Attendance Alerts",
+  "h": "School attendance alert clear rakho.",
   "pts": [
-   "Teacher marks attendance once",
-   "Absent list is built for you",
-   "Parents get a short message",
-   "DM AUTOMATE to get started"
+   "Absence info parents tak late.",
+   "Attendance record se alert draft.",
+   "School policy ke hisaab se staff sends."
   ],
-  "cap": "Parents learn about absences late.\n\nParents hear the same day.\n\nA person still approves anything important."
+  "cap": "Absence info parents tak late.\n\nAttendance record se alert draft.\n\nSchool policy ke hisaab se staff sends.\n\nShare this school automation idea."
  },
  {
   "n": 34,
-  "h": "Real Estate Lead Sorting",
+  "h": "Real estate leads ko priority do.",
   "pts": [
-   "Enquiries land in one Sheet",
-   "Each gets an instant reply",
-   "Hot leads are flagged for you",
-   "DM AUTOMATE to get started"
+   "Har enquiry same urgency ki nahi.",
+   "Budget, location aur timeline capture.",
+   "Agent priority review karke callback kare."
   ],
-  "cap": "Property enquiries arrive from five places.\n\nEvery lead gets a first reply fast.\n\nA person still approves anything important."
+  "cap": "Har enquiry same urgency ki nahi.\n\nBudget, location aur timeline capture.\n\nAgent priority review karke callback kare.\n\nComment PROPERTY to try lead sorting."
  },
  {
   "n": 35,
-  "h": "Restaurant Daily Report",
+  "h": "Restaurant daily report in minutes.",
   "pts": [
-   "Orders saved to one Sheet",
-   "Totals calculated each evening",
-   "Summary sent to your phone",
-   "DM AUTOMATE to get started"
+   "Sales, wastage aur cash alag records.",
+   "Closing form se daily figures collect.",
+   "Owner ko variance summary milti."
   ],
-  "cap": "Owners wait until night to know how the day went.\n\nThe numbers reach you without asking.\n\nA person still approves anything important."
+  "cap": "Sales, wastage aur cash alag records.\n\nClosing form se daily figures collect.\n\nOwner ko variance summary milti.\n\nDM RESTAURANT to learn this workflow."
  },
  {
   "n": 36,
-  "h": "Wholesale Order Intake",
+  "h": "Wholesale orders structured banao.",
   "pts": [
-   "Order message captured",
-   "Items copied into a Sheet",
-   "Picking list is prepared",
-   "DM AUTOMATE to get started"
+   "WhatsApp order details incomplete.",
+   "Order form required fields capture kare.",
+   "Team stock and price verify karke confirm."
   ],
-  "cap": "Orders by chat get typed again by hand.\n\nOne entry, no retyping.\n\nA person still approves anything important."
+  "cap": "WhatsApp order details incomplete.\n\nOrder form required fields capture kare.\n\nTeam stock and price verify karke confirm.\n\nSave this wholesale workflow."
  },
  {
   "n": 37,
-  "h": "Supplier Price Tracking",
+  "h": "Supplier price changes track karo.",
   "pts": [
-   "Upload the new price list",
-   "Old and new prices compared",
-   "Rises are highlighted",
-   "DM AUTOMATE to get started"
+   "Rate updates old messages mein rehte.",
+   "Approved price list compare karo.",
+   "Change alert buyer review ke liye."
   ],
-  "cap": "Price changes hide inside supplier lists.\n\nYou see rises before you reorder.\n\nA person still approves anything important."
+  "cap": "Rate updates old messages mein rehte.\n\nApproved price list compare karo.\n\nChange alert buyer review ke liye.\n\nComment SUPPLIER to learn more."
  },
  {
   "n": 38,
-  "h": "Staff Shift Reminders",
+  "h": "Staff shift reminders automatic.",
   "pts": [
-   "Roster kept in one Sheet",
-   "Reminder sent the night before",
-   "Changes notify the team",
-   "DM AUTOMATE to get started"
+   "Shift timing changes miss ho jaate.",
+   "Approved roster se reminder draft.",
+   "Manager confirms changes before sending."
   ],
-  "cap": "Shift mix-ups cost a full day.\n\nEveryone knows their shift.\n\nA person still approves anything important."
+  "cap": "Shift timing changes miss ho jaate.\n\nApproved roster se reminder draft.\n\nManager confirms changes before sending.\n\nShare this with your operations team."
  },
  {
   "n": 39,
-  "h": "Customer Birthday Offers",
+  "h": "Birthday offers, with customer consent.",
   "pts": [
-   "Birthdays stored with phone",
-   "Message goes out on the day",
-   "Redemptions get tracked",
-   "DM AUTOMATE to get started"
+   "Offer dates manually yaad rakhni padti.",
+   "Consent-based date list triggers offer draft.",
+   "Customer opt-out aur limits respect karo."
   ],
-  "cap": "Loyal customers are never thanked.\n\nA small gesture brings them back.\n\nA person still approves anything important."
+  "cap": "Offer dates manually yaad rakhni padti.\n\nConsent-based date list triggers offer draft.\n\nCustomer opt-out aur limits respect karo.\n\nDM OFFER to try a customer workflow."
  },
  {
   "n": 40,
-  "h": "Lost Lead Win-Back",
+  "h": "Old leads ko respectfully reconnect karo.",
   "pts": [
-   "Filter leads quiet for 30 days",
-   "Send one polite check-in",
-   "Replies are routed to you",
-   "DM AUTOMATE to get started"
+   "Interested lead ka follow-up ruk gaya.",
+   "Old status aur last contact review.",
+   "Relevant message draft; person approves send."
   ],
-  "cap": "Old enquiries are never followed up.\n\nSome of them still need you.\n\nA person still approves anything important."
+  "cap": "Interested lead ka follow-up ruk gaya.\n\nOld status aur last contact review.\n\nRelevant message draft; person approves send.\n\nSave this win-back idea."
  },
  {
   "n": 41,
-  "h": "Invoice From A Form",
+  "h": "Form submit, invoice draft ready.",
   "pts": [
-   "Details entered once in a form",
-   "Invoice is filled from a template",
-   "Copy saved and sent",
-   "DM AUTOMATE to get started"
+   "Order details baar-baar type hote.",
+   "Form fields invoice template fill kare.",
+   "Accounts team verifies before issue."
   ],
-  "cap": "Invoices are rebuilt from scratch each time.\n\nBilling takes minutes, not an hour.\n\nA person still approves anything important."
+  "cap": "Order details baar-baar type hote.\n\nForm fields invoice template fill kare.\n\nAccounts team verifies before issue.\n\nComment INVOICE to learn this flow."
  },
  {
   "n": 42,
-  "h": "Daily Cash Closing",
+  "h": "Daily cash closing with fewer errors.",
   "pts": [
-   "Closing cash entered once",
-   "Compared with recorded sales",
-   "Differences are flagged",
-   "DM AUTOMATE to get started"
+   "Cash, UPI aur POS totals mismatch.",
+   "Closing form captures all payment modes.",
+   "Variance flag manager review ke liye."
   ],
-  "cap": "Cash mismatches are found days later.\n\nYou catch gaps the same evening.\n\nA person still approves anything important."
+  "cap": "Cash, UPI aur POS totals mismatch.\n\nClosing form captures all payment modes.\n\nVariance flag manager review ke liye.\n\nDM CASH to try a closing report."
  },
  {
   "n": 43,
-  "h": "Vendor Payment Calendar",
+  "h": "Vendor payments ka calendar clear.",
   "pts": [
-   "Due dates kept in a Sheet",
-   "Alert before each due date",
-   "Paid items are marked off",
-   "DM AUTOMATE to get started"
+   "Due dates emails mein chhup jaati.",
+   "Invoice due date register mein add.",
+   "Advance alert accounts team ko."
   ],
-  "cap": "Payment dates slip and relations suffer.\n\nNothing falls through the cracks.\n\nA person still approves anything important."
+  "cap": "Due dates emails mein chhup jaati.\n\nInvoice due date register mein add.\n\nAdvance alert accounts team ko.\n\nSave this vendor-payment workflow."
  },
  {
   "n": 44,
-  "h": "Tutor Fee Collection",
+  "h": "Tutor fees ka follow-up simple.",
   "pts": [
-   "Fee status in a Sheet",
-   "Reminder goes to unpaid ones",
-   "Receipts are sent after payment",
-   "DM AUTOMATE to get started"
+   "Payment status multiple chats mein.",
+   "Student-wise due list update hoti.",
+   "Polite reminder draft guardian review ke liye."
   ],
-  "cap": "Tutors chase parents for fees every month.\n\nFees arrive without awkward calls.\n\nA person still approves anything important."
+  "cap": "Payment status multiple chats mein.\n\nStudent-wise due list update hoti.\n\nPolite reminder draft guardian review ke liye.\n\nShare this with a coaching centre."
  },
  {
   "n": 45,
-  "h": "Event Registration Flow",
+  "h": "Event registrations organised rakho.",
   "pts": [
-   "Form collects every detail",
-   "Rows land in one Sheet",
-   "Confirmation goes out instantly",
-   "DM AUTOMATE to get started"
+   "Names aur confirmations scattered.",
+   "Form registration sheet update kare.",
+   "Confirmation draft aur attendee count ready."
   ],
-  "cap": "Registrations arrive in chats and slips.\n\nYour guest list builds itself.\n\nA person still approves anything important."
+  "cap": "Names aur confirmations scattered.\n\nForm registration sheet update kare.\n\nConfirmation draft aur attendee count ready.\n\nDM EVENT to try registration automation."
  },
  {
   "n": 46,
-  "h": "Pharmacy Refill Reminders",
+  "h": "Pharmacy refill reminders responsibly.",
   "pts": [
-   "Refill dates stored",
-   "Reminder before they run out",
-   "One tap to reorder",
-   "DM AUTOMATE to get started"
+   "Repeat customer ko refill date yaad nahi.",
+   "Opt-in refill date record and reminder draft.",
+   "Pharmacist verifies suitability before contact."
   ],
-  "cap": "Chronic customers forget to refill.\n\nCustomers return on time.\n\nA person still approves anything important."
+  "cap": "Repeat customer ko refill date yaad nahi.\n\nOpt-in refill date record and reminder draft.\n\nPharmacist verifies suitability before contact.\n\nSave this pharmacy follow-up idea."
  },
  {
   "n": 47,
-  "h": "Review Request After Sale",
+  "h": "Sale ke baad review request.",
   "pts": [
-   "Sale marks the order done",
-   "Thank you message follows",
-   "Review link is included",
-   "DM AUTOMATE to get started"
+   "Happy customer se feedback lena bhoolte.",
+   "Completed order triggers review request.",
+   "Frequency limits and opt-out included."
   ],
-  "cap": "Reviews are asked for rarely.\n\nSocial proof grows on its own.\n\nA person still approves anything important."
+  "cap": "Happy customer se feedback lena bhoolte.\n\nCompleted order triggers review request.\n\nFrequency limits and opt-out included.\n\nComment REVIEW to learn the flow."
  },
  {
   "n": 48,
-  "h": "Quote Follow-Up System",
+  "h": "Quotation follow-up timely banao.",
   "pts": [
-   "Each quote logged with date",
-   "Follow-up after 3 days",
-   "Status updates when they reply",
-   "DM AUTOMATE to get started"
+   "Quote bheja, next step track nahi.",
+   "Quote status and follow-up date saved.",
+   "Reminder owner ko; negotiation human handles."
   ],
-  "cap": "Quotes are sent and then forgotten.\n\nFewer quotes go cold.\n\nA person still approves anything important."
+  "cap": "Quote bheja, next step track nahi.\n\nQuote status and follow-up date saved.\n\nReminder owner ko; negotiation human handles.\n\nDM QUOTE to try this workflow."
  },
  {
   "n": 49,
-  "h": "Employee Leave Tracking",
+  "h": "Employee leave tracking in one place.",
   "pts": [
-   "Requests come through a form",
-   "Balance updates itself",
-   "Manager approves in one tap",
-   "DM AUTOMATE to get started"
+   "Leave requests chat mein scattered.",
+   "Form se request and dates captured.",
+   "Manager approves; calendar updates after approval."
   ],
-  "cap": "Leave balances live in chat threads.\n\nEveryone sees the same balance.\n\nA person still approves anything important."
+  "cap": "Leave requests chat mein scattered.\n\nForm se request and dates captured.\n\nManager approves; calendar updates after approval.\n\nSave this HR workflow."
  },
  {
   "n": 50,
-  "h": "Stock Count Variance",
+  "h": "Stock count variance quickly spot karo.",
   "pts": [
-   "Counts entered in a Sheet",
-   "Compared with system stock",
-   "Variances are highlighted",
-   "DM AUTOMATE to get started"
+   "Physical count aur system stock differ.",
+   "Count form SKU-wise variance calculate kare.",
+   "Supervisor recounts and approves adjustment."
   ],
-  "cap": "Stock counts differ and no one knows why.\n\nGaps are visible the same day.\n\nA person still approves anything important."
+  "cap": "Physical count aur system stock differ.\n\nCount form SKU-wise variance calculate kare.\n\nSupervisor recounts and approves adjustment.\n\nComment VARIANCE to learn more."
  },
  {
   "n": 51,
-  "h": "Delivery Delay Alerts",
+  "h": "Delivery delay alert before complaints.",
   "pts": [
-   "Dispatch time recorded",
-   "Delay detected automatically",
-   "Customer gets an update",
-   "DM AUTOMATE to get started"
+   "Late order ka update customer ko nahi.",
+   "Delay status triggers internal alert.",
+   "Team confirms revised ETA before messaging."
   ],
-  "cap": "Customers call to ask where the order is.\n\nThey are told before they ask.\n\nA person still approves anything important."
+  "cap": "Late order ka update customer ko nahi.\n\nDelay status triggers internal alert.\n\nTeam confirms revised ETA before messaging.\n\nShare this delivery workflow."
  },
  {
   "n": 52,
-  "h": "Support Ticket Sorting",
+  "h": "Support tickets ko priority do.",
   "pts": [
-   "Messages logged in one Sheet",
-   "Tagged by simple keywords",
-   "Urgent ones are flagged",
-   "DM AUTOMATE to get started"
+   "Urgent issue normal queue mein lost.",
+   "Form tags topic and urgency.",
+   "Agent reviews assignment and response."
   ],
-  "cap": "Support messages arrive in no order.\n\nUrgent ones are seen first.\n\nA person still approves anything important."
+  "cap": "Urgent issue normal queue mein lost.\n\nForm tags topic and urgency.\n\nAgent reviews assignment and response.\n\nDM SUPPORT to try ticket sorting."
  },
  {
   "n": 53,
-  "h": "Weekly Report Without Work",
+  "h": "Weekly report without manual chasing.",
   "pts": [
-   "Data pulled from your Sheets",
-   "Totals and charts refreshed",
-   "Report sent every Friday",
-   "DM AUTOMATE to get started"
+   "Har team se update collect karna padta.",
+   "Scheduled form gathers key metrics.",
+   "Owner reviews one weekly summary."
   ],
-  "cap": "Weekly reports eat a Friday afternoon.\n\nThe report is ready before you ask.\n\nA person still approves anything important."
+  "cap": "Har team se update collect karna padta.\n\nScheduled form gathers key metrics.\n\nOwner reviews one weekly summary.\n\nSave this reporting workflow."
  },
  {
   "n": 54,
-  "h": "Appointment No-Show Fix",
+  "h": "No-show reduce with reminders.",
   "pts": [
-   "Booking confirmed at once",
-   "Reminder the day before",
-   "Cancelled slot is offered again",
-   "DM AUTOMATE to get started"
+   "Appointment confirm nahi hota.",
+   "Reminder asks customer to confirm or reschedule.",
+   "Staff updates slot after response."
   ],
-  "cap": "No-shows empty expensive slots.\n\nSlots get filled, not wasted.\n\nA person still approves anything important."
+  "cap": "Appointment confirm nahi hota.\n\nReminder asks customer to confirm or reschedule.\n\nStaff updates slot after response.\n\nComment APPOINTMENT to learn this flow."
  },
  {
   "n": 55,
-  "h": "Content Calendar Autopilot",
+  "h": "Content calendar ka status visible.",
   "pts": [
-   "Posts queued in a Sheet",
-   "Scheduled at a fixed time",
-   "Status updated after posting",
-   "DM AUTOMATE to get started"
+   "Idea se publish tak tracking missing.",
+   "Calendar tracks draft, approval, schedule.",
+   "Published URL and result log automatically."
   ],
-  "cap": "Posting daily by hand does not last.\n\nContent goes out while you work.\n\nA person still approves anything important."
+  "cap": "Idea se publish tak tracking missing.\n\nCalendar tracks draft, approval, schedule.\n\nPublished URL and result log automatically.\n\nDM CONTENT to try a content workflow."
  },
  {
   "n": 56,
-  "h": "Customer Onboarding Steps",
+  "h": "New customer onboarding consistent.",
   "pts": [
-   "New customer added once",
-   "Welcome message goes out",
-   "Checklist tracks each step",
-   "DM AUTOMATE to get started"
+   "Welcome steps har baar miss hote.",
+   "Approved checklist assigns each next step.",
+   "Owner sees pending tasks and completion."
   ],
-  "cap": "New customers get a different welcome each time.\n\nEvery customer starts the same way.\n\nA person still approves anything important."
+  "cap": "Welcome steps har baar miss hote.\n\nApproved checklist assigns each next step.\n\nOwner sees pending tasks and completion.\n\nSave this onboarding workflow."
  },
  {
   "n": 57,
-  "h": "Expense Tracking By Photo",
+  "h": "Expense entry from photo, with review.",
   "pts": [
-   "Send the receipt photo",
-   "Amount is read into a Sheet",
-   "Category added for you",
-   "DM AUTOMATE to get started"
+   "Receipts baad mein enter hote.",
+   "OCR extracts date, amount and vendor.",
+   "Accounts verifies before posting to books."
   ],
-  "cap": "Receipts pile up until month end.\n\nMonth end stops being a panic.\n\nA person still approves anything important."
+  "cap": "Receipts baad mein enter hote.\n\nOCR extracts date, amount and vendor.\n\nAccounts verifies before posting to books.\n\nDM EXPENSE to explore this workflow."
  },
  {
   "n": 58,
-  "h": "Inventory Low Alert",
+  "h": "Low-stock alert before stockout.",
   "pts": [
-   "Minimum level set per item",
-   "Stock checked every morning",
-   "Alert lists what to reorder",
-   "DM AUTOMATE to get started"
+   "Reorder point late notice hota.",
+   "Daily stock check threshold compare kare.",
+   "Manager confirms purchase quantity."
   ],
-  "cap": "Items run out at the worst time.\n\nYou reorder before the shelf is empty.\n\nA person still approves anything important."
+  "cap": "Reorder point late notice hota.\n\nDaily stock check threshold compare kare.\n\nManager confirms purchase quantity.\n\nComment LOWSTOCK to learn the setup."
  },
  {
   "n": 59,
-  "h": "Referral Tracking",
+  "h": "Referral tracking made simple.",
   "pts": [
-   "Source captured for each lead",
-   "Linked to the referrer",
-   "Thank-you sent automatically",
-   "DM AUTOMATE to get started"
+   "Referral source record nahi hota.",
+   "Form captures consent and referral code.",
+   "Team tracks status and approved reward."
   ],
-  "cap": "Referrals are remembered, not recorded.\n\nEvery referrer is thanked.\n\nA person still approves anything important."
+  "cap": "Referral source record nahi hota.\n\nForm captures consent and referral code.\n\nTeam tracks status and approved reward.\n\nShare this growth workflow."
  },
  {
   "n": 60,
-  "h": "Start With One Task",
+  "h": "Start with one task, not ten.",
   "pts": [
-   "List your repeated tasks",
-   "Pick the most painful one",
-   "DM AUTOMATE to get started"
+   "Big automation project delay ho jata.",
+   "Choose one repeatable, low-risk task.",
+   "Measure results, improve, then expand."
   ],
-  "cap": "Big automation plans never get started.\n\nOne working task beats ten ideas.\n\nA person still approves anything important."
+  "cap": "Big automation project delay ho jata.\n\nChoose one repeatable, low-risk task.\n\nMeasure results, improve, then expand.\n\nDM AUTOMATE to start with one task."
  }
 ]
