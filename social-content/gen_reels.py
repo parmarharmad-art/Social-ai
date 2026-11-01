@@ -255,10 +255,10 @@ def render(item):
         f.write("file '%s'\n" % os.path.join(tmp, "frame_%02d.png" % (len(frames)-1)))
 
     out = os.path.join(OUT_DIR, "%02d.mp4" % int(item.get("id", item.get("n", 1))))
-    # Slow zoom + moving progress indicator creates motion without distracting transitions.
-    vf = ("zoompan=z='min(zoom+0.00035,1.035)':d=1:"
-          "x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=%d,"
-          "format=yuv420p" % FPS)
+    # Preserve concat-demuxer scene timestamps and generate a full 24-fps
+    # video stream. zoompan(d=1) collapsed each still image to one frame,
+    # causing the audio/video output to be truncated by -shortest.
+    vf = "fps=%d,format=yuv420p" % FPS
     cmd = ["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0",
            "-i", concat_path, "-i", wav, "-vf", vf, "-t", "%.2f" % duration,
            "-r", str(FPS), "-c:v", "libx264", "-preset", "veryfast",
