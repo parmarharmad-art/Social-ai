@@ -1,6 +1,22 @@
 name: social-content
 on:
   workflow_dispatch:
+    inputs:
+      publish_reel:
+        description: "Publish one generated Reel to Instagram after validation"
+        required: false
+        type: boolean
+        default: true
+      reel_number:
+        description: "Reel number to publish (latest or 01-60)"
+        required: false
+        type: string
+        default: "latest"
+      caption:
+        description: "Optional caption override; leave blank to use reels.json"
+        required: false
+        type: string
+        default: ""
   push:
     paths:
       - ".github/workflows/sai.zip"
@@ -75,16 +91,13 @@ jobs:
           git commit -m "Generate Instagram cards and reels" || echo "nothing to commit"
           git pull --rebase
           git push
-      - name: Publish Reel to Instagram (optional; requires Meta credentials and a public video URL)
+      - name: Publish selected Reel to Instagram
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_reel == true
         env:
           INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           INSTAGRAM_REEL_VIDEO_URL: ${{ vars.INSTAGRAM_REEL_VIDEO_URL }}
-          INSTAGRAM_CAPTION: ${{ vars.INSTAGRAM_CAPTION }}
+          INSTAGRAM_REEL_NUMBER: ${{ inputs.reel_number }}
+          INSTAGRAM_CAPTION: ${{ inputs.caption }}
           META_GRAPH_API_VERSION: ${{ vars.META_GRAPH_API_VERSION }}
-        run: |
-          if [ -z "$INSTAGRAM_USER_ID" ] || [ -z "$INSTAGRAM_ACCESS_TOKEN" ]; then
-            echo "Instagram auto-publish skipped: configure INSTAGRAM_USER_ID and INSTAGRAM_ACCESS_TOKEN GitHub Actions secrets. The workflow will auto-select the latest generated Reel URL."
-            exit 0
-          fi
-          python .github/scripts/instagram_publish.py
+        run: python .github/scripts/instagram_publish.py
