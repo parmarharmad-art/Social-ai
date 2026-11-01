@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "content_lane": "book_summaries",
+  "brand": {
+    "instagram_handle": "@officialkiraankumar",
+    "display_name": "Kiran Kumar",
+    "language": "Hinglish",
+    "video_style": "faceless_cinematic",
+    "aspect_ratio": "9:16",
+    "target_duration_seconds": {"min": 30, "max": 50}
+  },
+  "source": {
+    "provider": "GitHub raw content",
+    "url": "https://raw.githubusercontent.com/parmarharmad-art/Social-ai/main/social-content/book_summaries.json",
+    "format": "JSON array",
+    "item_count": 30,
+    "item_key": "id",
+    "idempotency_key": "id"
+  },
+  "make_mapping": {
+    "trigger": "Use the existing Make scenario trigger/schedule",
+    "http_module": "GET the source URL above",
+    "parse_json": "Parse response as an array of objects",
+    "iterator": "Iterate one object per Reel",
+    "claude_input": ["book","author","theme","hook","voiceover","scenes","caption","cta","hashtags"],
+    "claude_output_required": ["final_voiceover","scene_plan","on_screen_captions","instagram_caption","hashtags","rights_review","editorial_review"],
+    "publish_module": "Reuse the existing approved Instagram publishing route; do not create a second publisher",
+    "approval_required": true,
+    "deduplicate_by": "id"
+  },
+  "safety": {
+    "no_auto_publish_without_existing_approval": true,
+    "no_audiobook_or_long_book_excerpt": true,
+    "no_unlicensed_music_or_book_cover_art": true,
+    "verify_book_claims_before_publish": true,
+    "human_review_of_final_video": true
+  },
+  "github_paths": {
+    "content": "social-content/book_summaries.json",
+    "validator": "social-content/validate_book_summaries.py",
+    "qa_workflow": ".github/workflows/book-summary-reels.yml",
+    "handoff": "social-content/BOOK_SUMMARY_MAKE_HANDOFF.md"
+  }
+}
