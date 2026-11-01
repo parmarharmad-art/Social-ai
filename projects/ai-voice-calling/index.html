@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Voice Calling Automation — Demo</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#eaf1ff;background:#0b1220}
+*{box-sizing:border-box}body{margin:0;padding:24px}.wrap{max-width:900px;margin:auto}
+header,.panel{background:#121d30;border:1px solid #263752;border-radius:16px;padding:20px;margin-bottom:16px}
+h1{font-size:clamp(24px,5vw,36px);margin:0 0 8px}.muted{color:#a9b9d2}
+.warning{border-left:4px solid #e7a83e;padding:10px 14px;background:#28251e;border-radius:8px;color:#ffe4ad}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+label{display:block;font-size:14px;color:#b9c9df;margin:10px 0 5px}
+input,select,textarea{width:100%;padding:12px;border-radius:9px;border:1px solid #405573;background:#0b1526;color:#fff;font:inherit}
+button{border:0;border-radius:9px;padding:12px 16px;background:#4b8cff;color:white;font-weight:700;margin-top:14px;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}.result{white-space:pre-wrap;background:#0a1424;padding:14px;border-radius:10px;min-height:100px}
+.log{display:grid;gap:8px}.entry{padding:10px;border:1px solid #31445f;border-radius:9px}
+</style></head>
+<body><main class="wrap">
+<header><h1>AI Voice Calling Automation</h1><p class="muted">Enquiry → consent check → call script → outcome log</p>
+<div class="warning"><strong>Prototype only:</strong> this page simulates a call locally. It does not dial a phone number, use a microphone, or contact anyone.</div></header>
+<section class="panel"><h2>Enquiry details</h2>
+<div class="grid"><div><label for="name">Customer name (sample)</label><input id="name" value="Asha"></div>
+<div><label for="topic">Enquiry type</label><select id="topic"><option value="home delivery">Home delivery</option><option value="appointment">Appointment booking</option><option value="product availability">Product availability</option><option value="general enquiry">General enquiry</option></select></div></div>
+<label for="notes">Enquiry notes</label><textarea id="notes" rows="3">Wants to know whether the requested item is available and the expected delivery window.</textarea>
+<label><input id="consent" type="checkbox" style="width:auto"> Customer has explicitly agreed to receive a callback (sample-only checkbox)</label>
+<button id="run">Simulate call workflow</button></section>
+<section class="panel"><h2>Generated call plan</h2><div id="result" class="result muted">Complete the sample enquiry and run the simulation.</div></section>
+<section class="panel"><h2>Activity log</h2><div id="log" class="log muted">No simulated calls yet.</div></section>
+</main>
+<script>
+const $=id=>document.getElementById(id);let entries=[];
+$("run").addEventListener("click",()=>{
+ const name=$("name").value.trim()||"Customer",topic=$("topic").value,notes=$("notes").value.trim();
+ if(!$("consent").checked){$("result").textContent="STOP: no callback consent recorded. No call workflow can proceed.";return;}
+ const script="Hello "+name+", this is an automated assistant following up on your "+topic+" enquiry. I have your note: "+notes+" Is it convenient to continue? I can record your preference for a team member to confirm the details.";
+ const record={time:new Date().toLocaleString(),name,topic,status:"SIMULATED — no call placed",next:"Human team member to verify details before confirming"};
+ $("result").textContent="SIMULATED CALL SCRIPT\n\n"+script+"\n\nOutcome: No call was placed.\nNext step: "+record.next;
+ entries.unshift(record);$("log").innerHTML=entries.map(e=>"<div class='entry'><strong>"+e.name+" · "+e.topic+"</strong><br>"+e.status+"<br><span class='muted'>"+e.time+" · "+e.next+"</span></div>").join("");
+});
+</script></body></html>
