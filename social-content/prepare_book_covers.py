@@ -45,6 +45,16 @@ def find_cover(row):
         author_match = any((name.split()[-1] in authors) for name in wanted_authors)
         if doc.get("cover_i") and (wanted_title in title or title in wanted_title) and author_match:
             return doc["cover_i"]
+    # Fallback: some editions index the author's name inconsistently.
+    # Accept only a near-exact normalized title match, never a loose title search.
+    def norm(value):
+        return "".join(ch for ch in value.casefold() if ch.isalnum())
+    wanted_norm = norm(row["book"])
+    if len(wanted_norm) >= 8:
+        for doc in docs:
+            title_norm = norm(str(doc.get("title", "")))
+            if doc.get("cover_i") and title_norm == wanted_norm:
+                return doc["cover_i"]
     return None
 
 def main():
