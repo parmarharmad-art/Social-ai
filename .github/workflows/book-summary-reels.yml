@@ -60,23 +60,40 @@ jobs:
           cp book_reels/covers/book_*.png "$ASSETS/"
           python render_book_reels.py book_summaries.json "$ASSETS" "$OUT"
       - name: Validate all 30 MP4 videos and audio streams
-        shell: bash
+        env:
+          RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
-          OUT="social-content/book_reels/${GITHUB_RUN_ID}"
-          COUNT="$(find "$OUT" -maxdepth 1 -type f -name '*.mp4' | wc -l)"
-          test "$COUNT" -eq 30
-          for n in $(seq -w 1 30); do
-            f="$OUT/${n}.mp4"
-            test -s "$f"
-            DIM="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$f" | head -1)"
-            AUDIO="$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_type -of csv=p=0 "$f" | head -1)"
-            DURATION="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f")"
-            test "$DIM" = "1080x1920"
-            test "$AUDIO" = "audio"
-            awk -v d="$DURATION" 'BEGIN { exit !(d >= 12 && d <= 120) }'
-          done
-          echo "PASS: 30 Reels, 1080x1920, Hindi narration audio, unique run folder."
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          out = Path("social-content/book_reels") / os.environ["RUN_ID"]
+          files = sorted(out.glob("*.mp4"))
+          if len(files) != 30:
+              raise SystemExit(f"Expected 30 MP4 files, found {len(files)} in {out}")
+          report = []
+          for index, path in enumerate(files, 1):
+              probe = subprocess.run(
+                  ["ffprobe", "-v", "error", "-show_entries", "stream=codec_type,width,height", "-show_entries", "format=duration", "-of", "json", str(path)],
+                  capture_output=True, text=True
+              )
+              if probe.returncode:
+                  raise SystemExit(f"ffprobe failed for {path.name}: {probe.stderr}")
+              data = json.loads(probe.stdout)
+              streams = data.get("streams", [])
+              video = next((s for s in streams if s.get("codec_type") == "video"), None)
+              audio = next((s for s in streams if s.get("codec_type") == "audio"), None)
+              duration = float(data.get("format", {}).get("duration", 0))
+              if not video or (video.get("width"), video.get("height")) != (1080, 1920):
+                  raise SystemExit(f"{path.name}: invalid video stream/dimensions: {video}")
+              if not audio:
+                  raise SystemExit(f"{path.name}: missing audio stream")
+              if not 12 <= duration <= 120:
+                  raise SystemExit(f"{path.name}: duration outside 12-120 seconds: {duration}")
+              report.append({"file": path.name, "duration_seconds": round(duration, 2), "video": "1080x1920", "audio": True})
+          Path("social-content/book-summary-quality-report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+          print(f"PASS: validated {len(report)} MP4 reels; all are 1080x1920 with audio and 12-120 second duration.")
+          PY
       - name: Upload uniquely named book Reels review package
         uses: actions/upload-artifact@v4
         with:
