@@ -15,7 +15,7 @@ def get(url, attempts=4):
         try:
             req = urllib.request.Request(
                 url,
-                headers={"User-Agent": "KiranBookReels/1.0 (book-summary-video-builder)"}
+                headers={"User-Agent": "KiranBookReels/1.1 (book-summary-video-builder)"}
             )
             with urllib.request.urlopen(req, timeout=30) as response:
                 return response.read()
@@ -27,34 +27,55 @@ def get(url, attempts=4):
                 time.sleep(delay)
     raise RuntimeError("Open Library request failed after retries: " + str(last))
 
+def norm(value):
+    return "".join(ch for ch in value.casefold() if ch.isalnum())
+
 def find_cover(row):
-    params = urllib.parse.urlencode({
-        "title": row["book"],
-        "limit": 20,
-        "fields": "title,author_name,cover_i"
-    })
-    payload = json.loads(get("https://openlibrary.org/search.json?" + params).decode("utf-8"))
-    wanted_title = row["book"].strip().casefold()
+    wanted_title = row["book"].strip()
+    wanted_norm = norm(wanted_title)
     wanted_authors = [part.strip().casefold() for part in row["author"].replace(" and ", ",").split(",") if part.strip()]
-    # Open Library indexes co-authors separately; query by exact title, then
-    # require a title match and at least one supplied author surname/token.
-    docs = payload.get("docs", [])
+    queries = [wanted_title, wanted_title.replace("The ", "", 1), wanted_title + " " + row["author"]]
+    seen = set()
+    docs = []
+    for query in queries:
+        if query.casefold() in seen:
+            continue
+        seen.add(query.casefold())
+        params = urllib.parse.urlencode({
+            "title": query,
+            "limit": 100,
+            "fields": "title,author_name,cover_i"
+        })
+        payload = json.loads(get("https://openlibrary.org/search.json?" + params).decode("utf-8"))
+        docs.extend(payload.get("docs", []))
+        time.sleep(0.4)
+
+    # Prefer title + author matches. Open Library sometimes indexes co-authors
+    # separately or appends subtitles to the displayed title.
+    unique = {}
     for doc in docs:
-        title = str(doc.get("title", "")).casefold()
+        if doc.get("cover_i"):
+            key = (doc.get("key"), doc.get("cover_i"))
+            unique[key] = doc
+    docs = list(unique.values())
+
+    def author_match(doc):
         authors = " ".join(doc.get("author_name", [])).casefold()
-        author_match = any((name.split()[-1] in authors) for name in wanted_authors)
-        if doc.get("cover_i") and (wanted_title in title or title in wanted_title) and author_match:
+        return any(name.split()[-1] in authors for name in wanted_authors)
+
+    def title_match(doc):
+        title_norm = norm(str(doc.get("title", "")))
+        return bool(wanted_norm and (wanted_norm in title_norm or title_norm in wanted_norm))
+
+    for doc in docs:
+        if title_match(doc) and author_match(doc):
             return doc["cover_i"]
-    # Fallback: some editions index the author's name inconsistently.
-    # Accept only a near-exact normalized title match, never a loose title search.
-    def norm(value):
-        return "".join(ch for ch in value.casefold() if ch.isalnum())
-    wanted_norm = norm(row["book"])
-    if len(wanted_norm) >= 8:
-        for doc in docs:
-            title_norm = norm(str(doc.get("title", "")))
-            if doc.get("cover_i") and title_norm == wanted_norm:
-                return doc["cover_i"]
+    # Author metadata is sometimes absent, but only accept a title match
+    # that includes the complete normalized requested title.
+    for doc in docs:
+        title_norm = norm(str(doc.get("title", "")))
+        if doc.get("cover_i") and wanted_norm and wanted_norm in title_norm:
+            return doc["cover_i"]
     return None
 
 def main():
@@ -75,7 +96,7 @@ def main():
         with Image.open(BytesIO(data)) as cover:
             cover.convert("RGB").save(path, format="PNG", optimize=True)
         print("Fetched matching cover:", row["book"], "by", row["author"], "->", path.name, path.stat().st_size, "bytes", flush=True)
-        time.sleep(1)
+        time.sleep(0.5)
     if len(list(out.glob("book_*.png"))) != len(rows):
         raise SystemExit("Book-cover count mismatch")
 if __name__ == "__main__":
