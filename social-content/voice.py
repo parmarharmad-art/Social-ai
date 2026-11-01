@@ -1,15 +1,12 @@
-"""Text-to-speech helper with configurable Indian voice providers.
+"""Reliable local speech synthesis for the social-content workflow.
 
-Set REEL_VOICE (default: hi-IN-SwaraNeural) to select an Edge TTS voice.
-Falls back to Google TTS in Hindi, then available espeak-ng voices.
-Note: the narration text is spoken as supplied; this module does not translate it.
-Set FAKE_TTS=1 only for timeline tests (it creates a tone, not speech).
+The CI workflow selects REEL_TTS_PROVIDER=espeak so every Reel can render
+without waiting on external TTS services. Hindi is preferred; Indian English
+is the local fallback. Narration text is spoken as supplied.
 """
-import asyncio
 import os
 import subprocess
 
-VOICE = os.environ.get("REEL_VOICE", "hi-IN-SwaraNeural")
 TTS_LANGUAGE = os.environ.get("REEL_TTS_LANGUAGE", "hi")
 
 
@@ -18,48 +15,28 @@ def _valid_audio(path):
 
 
 def synth(text, path):
-    """Write speech for text to path; return True only if a non-empty audio file exists."""
+    """Write real speech to path; return True only when audio was produced."""
     if os.environ.get("FAKE_TTS") == "1":
-        secs = max(1.0, 0.075 * len(text))
-        subprocess.run(
-            ["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i",
-             "sine=frequency=180:duration=%.2f" % secs, "-af", "volume=0.2", path],
-            check=True,
-        )
-        return _valid_audio(path)
+        raise RuntimeError("FAKE_TTS is test-only and cannot be used for published Reels")
 
-    try:
-        import edge_tts
-        asyncio.run(edge_tts.Communicate(text, VOICE, rate="+4%").save(path))
-        if _valid_audio(path):
-            return True
-    except Exception as e:  # noqa: BLE001
-        print("edge-tts failed:", e)
-
-    try:
-        from gtts import gTTS
-        gTTS(text, lang=TTS_LANGUAGE, tld="co.in").save(path)
-        if _valid_audio(path):
-            return True
-    except Exception as e:  # noqa: BLE001
-        print("gTTS failed:", e)
-
-    # espeak language packs vary by runner; try Hindi, then Indian English.
     wav = path.rsplit(".", 1)[0] + ".wav"
-    for lang in ("hi", "en-in"):
+    preferred = ["hi", "en-in"] if TTS_LANGUAGE.lower().startswith("hi") else ["en-in", "hi"]
+    for lang in preferred:
         try:
             subprocess.run(
                 ["espeak-ng", "-v", lang, "-s", "150", "-w", wav, text],
                 check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+                timeout=20,
             )
-            if _valid_audio(wav):
-                if wav != path:
-                    subprocess.run(
-                        ["ffmpeg", "-y", "-loglevel", "error", "-i", wav, path],
-                        check=True,
-                    )
-                if _valid_audio(path):
-                    return True
-        except Exception as e:  # noqa: BLE001
-            print("espeak-ng voice %s failed: %s" % (lang, e))
+            if not _valid_audio(wav):
+                continue
+            subprocess.run(
+                ["ffmpeg", "-y", "-loglevel", "error", "-i", wav, path],
+                check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+                timeout=20,
+            )
+            if _valid_audio(path):
+                return True
+        except (subprocess.SubprocessError, OSError) as exc:
+            print("local TTS voice %s failed: %s" % (lang, exc))
     return False
