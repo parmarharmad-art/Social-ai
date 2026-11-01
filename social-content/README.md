@@ -6,7 +6,8 @@ This folder is the GitHub source of truth for reusable social-content briefs. It
 
 | Asset | Purpose |
 | --- | --- |
-| [book_summaries.json](book_summaries.json) | 30 original Hinglish, faceless Reel briefs |\n| [30_DAY_BOOK_REELS_CALENDAR.md](30_DAY_BOOK_REELS_CALENDAR.md) | 30-day posting calendar with all captions, hashtags, hooks, CTAs and review checklist |
+| [book_summaries.json](book_summaries.json) | 30 original Hinglish, faceless Reel briefs |
+| [30_DAY_BOOK_REELS_CALENDAR.md](30_DAY_BOOK_REELS_CALENDAR.md) | 30-day posting calendar with all captions, hashtags, hooks, CTAs and review checklist |
 | [validate_book_summaries.py](validate_book_summaries.py) | Checks package structure, required fields, IDs, hooks and scene count |
 | [BOOK_SUMMARY_REELS.md](BOOK_SUMMARY_REELS.md) | Editorial format, Android production notes and rights safeguards |
 | [book-summary-make-config.json](book-summary-make-config.json) | Machine-readable source and field-mapping contract for Make |
