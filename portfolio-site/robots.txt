@@ -1,0 +1,1 @@
+User-agent: *\nAllow: /\nSitemap: https://kiran-kumar-portfolio-ypn9.netlify.app/sitemap.xml\n
