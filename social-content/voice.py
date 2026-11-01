@@ -1,8 +1,4 @@
-"""Neural Hindi speech synthesis for social-content Reels.
-
-Uses Microsoft's Edge neural Hindi voices through edge-tts. If neural synthesis
-fails, return failure rather than silently falling back to robotic eSpeak.
-"""
+"""Neural Hindi speech synthesis for Reels using Edge TTS."""
 import os
 import subprocess
 
@@ -15,20 +11,25 @@ def _valid_audio(path):
 
 
 def synth(text, path):
-    """Write neural Hindi speech to path; return True only for valid output."""
+    """Generate neural Hindi narration. Never silently fall back to robotic TTS."""
     if os.environ.get("FAKE_TTS") == "1":
-        raise RuntimeError("FAKE_TTS is test-only and cannot be used for Reels")
-
+        raise RuntimeError("FAKE_TTS is test-only")
+    cmd = [
+        "edge-tts", "--voice", VOICE, "--rate=" + RATE,
+        "--text", text, "--write-media", path,
+    ]
     try:
-        subprocess.run(
-            ["edge-tts", "--voice", VOICE, "--rate", RATE,
-             "--text", text, "--write-media", path],
-            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
-            timeout=90,
+        result = subprocess.run(
+            cmd, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, timeout=90,
         )
+        if result.returncode != 0:
+            print("Neural TTS exit=%s stderr=%s" % (result.returncode, (result.stderr or result.stdout)[-1800:]))
+            return False
         if _valid_audio(path):
             return True
         print("Neural TTS produced an empty or invalid audio file")
+        return False
     except (subprocess.SubprocessError, OSError) as exc:
         print("Neural Hindi TTS failed: %s" % exc)
-    return False
+        return False
