@@ -7,3 +7,6 @@ venv/
 !.env.example
 .pytest_cache/
 .DS_Store
+
+# Netlify local state
+.netlify/
