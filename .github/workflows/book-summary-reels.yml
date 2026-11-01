@@ -11,6 +11,7 @@ on:
     paths:
       - "social-content/book_summaries.json"
       - "social-content/validate_book_summaries.py"
+      - "social-content/render_book_reels.py"
       - ".github/workflows/book-summary-reels.yml"
 permissions:
   contents: read
@@ -18,23 +19,55 @@ concurrency:
   group: book-summary-reels-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  validate:
+  build:
     if: github.event_name != 'workflow_dispatch' || inputs.confirm_review_only == true
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Validate 30-day book-summary plan
-        run: python social-content/validate_book_summaries.py
-      - name: Upload reviewed content package
+        working-directory: social-content
+        run: python validate_book_summaries.py
+      - name: Install video rendering dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg espeak-ng fonts-noto-core fonts-dejavu-core
+          python -m pip install --upgrade pip
+          pip install pillow numpy
+      - name: Render 30 book-summary Reels with real Hindi voiceover
+        working-directory: social-content
+        env:
+          REQUIRE_VOICE: "1"
+          REEL_TTS_LANGUAGE: "hi"
+          SKIP_EXISTING: "0"
+        run: python render_book_reels.py book_summaries.json assets book_reels
+      - name: Validate all 30 MP4 videos and audio streams
+        shell: bash
+        run: |
+          set -euo pipefail
+          COUNT="$(find social-content/book_reels -maxdepth 1 -type f -name '*.mp4' | wc -l)"
+          test "$COUNT" -eq 30
+          for n in $(seq -w 1 30); do
+            f="social-content/book_reels/${n}.mp4"
+            test -s "$f"
+            DIM="$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$f" | head -1)"
+            AUDIO="$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_type -of csv=p=0 "$f" | head -1)"
+            test "$DIM" = "1080x1920"
+            test "$AUDIO" = "audio"
+          done
+          echo "PASS: 30 book-summary Reels, 1080x1920, with audio."
+      - name: Upload book Reels and review package
         uses: actions/upload-artifact@v4
         with:
-          name: book-summary-content-plan
+          name: book-summary-reels
           path: |
+            social-content/book_reels/*.mp4
             social-content/book_summaries.json
             social-content/book-summary-quality-report.json
           if-no-files-found: error
           retention-days: 30
+      - name: Confirm review-only delivery
+        run: echo "Book-summary Reels generated and uploaded for review. Instagram publishing is disabled."
