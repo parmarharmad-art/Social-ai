@@ -1,0 +1,4 @@
+# Netlify configuration for the portfolio subdirectory.
+# Connect this repository to the separate portfolio Netlify site.
+[build]
+  publish = "portfolio-site"
